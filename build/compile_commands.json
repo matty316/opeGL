@@ -1,0 +1,17 @@
+[
+  {
+    "arguments": [
+      "/usr/bin/c++",
+      "-I/home/matty/projects/opeGL/include",
+      "-I/home/matty/projects/opeGL/thirdParty/glfw/include",
+      "-std=gnu++17",
+      "-c",
+      "-o",
+      "CMakeFiles/opeGL.dir/src/main.cpp.o",
+      "/home/matty/projects/opeGL/src/main.cpp"
+    ],
+    "directory": "/home/matty/projects/opeGL/build",
+    "file": "/home/matty/projects/opeGL/src/main.cpp",
+    "output": "/home/matty/projects/opeGL/build/CMakeFiles/opeGL.dir/src/main.cpp.o"
+  }
+]

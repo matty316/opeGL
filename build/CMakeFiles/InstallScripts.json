@@ -1,0 +1,12 @@
+{
+	"InstallScripts" : 
+	[
+		"/home/matty/projects/opeGL/build/cmake_install.cmake",
+		"/home/matty/projects/opeGL/build/thirdParty/glfw/cmake_install.cmake",
+		"/home/matty/projects/opeGL/build/thirdParty/glfw/src/cmake_install.cmake",
+		"/home/matty/projects/opeGL/build/thirdParty/glfw/docs/cmake_install.cmake",
+		"/home/matty/projects/opeGL/build/thirdParty/glm/cmake_install.cmake",
+		"/home/matty/projects/opeGL/build/thirdParty/glm/glm/cmake_install.cmake"
+	],
+	"Parallel" : false
+}
