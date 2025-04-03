@@ -1,1 +1,0 @@
-/usr/bin/c++ -Wl,--dependency-file=CMakeFiles/opeGL.dir/link.d CMakeFiles/opeGL.dir/src/main.cpp.o CMakeFiles/opeGL.dir/src/shader.cpp.o CMakeFiles/opeGL.dir/src/glad.c.o -o opeGL  thirdParty/glfw/src/libglfw3.a thirdParty/glm/glm/libglm.a /usr/lib/librt.a -lm -ldl
