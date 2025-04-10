@@ -1,4 +1,6 @@
 #include "shader.h"
+#include "glm/fwd.hpp"
+#include "lighting.h"
 #include <fstream>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -85,4 +87,64 @@ void Shader::setFloat(const std::string &name, float value) const {
 void Shader::setMat4(const std::string &name, glm::mat4 matrix) const {
   glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE,
                      glm::value_ptr(matrix));
+}
+
+void Shader::setVec3(const std::string &name, glm::vec3 vec) const {
+  glUniform3fv(glGetUniformLocation(ID, name.c_str()), 1, glm::value_ptr(vec));
+}
+
+void Shader::setPointLight(PointLight light, int index) {
+  std::stringstream name;
+  name << "pointLights[" << index << "].";
+
+  std::stringstream position;
+  position << name.str() << "position";
+
+  std::stringstream ambient;
+  ambient << name.str() << "ambient";
+
+  std::stringstream diffuse;
+  diffuse << name.str() << "diffuse";
+
+  std::stringstream specular;
+  specular << name.str() << "specular";
+
+  std::stringstream constant;
+  constant << name.str() << "constant";
+
+  std::stringstream linear;
+  linear << name.str() << "linear";
+
+  std::stringstream quadratic;
+  quadratic << name.str() << "quadratic";
+
+  setVec3(position.str(), light.pos);
+  setVec3(ambient.str(), light.ambient);
+  setVec3(diffuse.str(), light.diffuse);
+  setVec3(specular.str(), light.specular);
+  setFloat(constant.str(), light.constant);
+  setFloat(linear.str(), light.linear);
+  setFloat(quadratic.str(), light.quadratic);
+}
+
+void Shader::setDirLight(DirectionalLight light) {
+  std::stringstream name;
+  name << "dirLight.";
+
+  std::stringstream direction;
+  direction << name.str() << "direction";
+
+  std::stringstream ambient;
+  ambient << name.str() << "ambient";
+
+  std::stringstream diffuse;
+  diffuse << name.str() << "diffuse";
+
+  std::stringstream specular;
+  specular << name.str() << "specular";
+
+  setVec3(direction.str(), light.direction);
+  setVec3(ambient.str(), light.ambient);
+  setVec3(diffuse.str(), light.diffuse);
+  setVec3(specular.str(), light.specular);
 }
