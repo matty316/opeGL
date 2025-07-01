@@ -32,11 +32,7 @@ glm::vec3 pLightPositions[NUM_OF_POINT_LIGHTS] = {
 
 std::vector<PointLight> pointLights;
 
-Shader shader{"../resources/shader.vert", "../resources/shader.frag"};
-Cube cube{shader, "../resources/container2.png",
-          "../resources/container2_specular.png"};
-
-void createScene() {
+void createScene(Shader &shader) {
   for (size_t i = 0; i < NUM_OF_POINT_LIGHTS; i++) {
     // pointLights.push_back(PointLight{pLightPositions[i]});
   }
@@ -88,7 +84,7 @@ void updateScene(int width, int height) {
   screenHeight = height;
 }
 
-void renderScene(GLFWwindow *window) {
+void renderScene(GLFWwindow *window, Shader &shader, Cube &cube) {
   glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   shader.use();

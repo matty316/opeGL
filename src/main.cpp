@@ -1,6 +1,8 @@
 
 #include "error.h"
 #include "gamescene.h"
+#include "shader.h"
+#include "model.h"
 #include <iostream>
 #include <stb_image.h>
 
@@ -20,8 +22,9 @@ void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
 int main() {
   glfwInit();
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
   glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
 
   GLFWwindow *window = glfwCreateWindow(800, 600, "OpeGL", nullptr, nullptr);
@@ -37,7 +40,7 @@ int main() {
     return -1;
   }
 
-  enableReportGlErrors();
+//  enableReportGlErrors();
 
   glEnable(GL_DEPTH_TEST);
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
@@ -48,10 +51,13 @@ int main() {
 
   stbi_set_flip_vertically_on_load(true);
 
-  createScene();
+    Shader shader{"../resources/shader.vert", "../resources/shader.frag"};
+    Cube cube{shader, "../resources/container2.png",
+              "../resources/container2_specular.png"};
+    createScene(shader);
   while (!glfwWindowShouldClose(window)) {
     processInput(window);
-    renderScene(window);
+    renderScene(window, shader, cube);
   }
 
   glfwTerminate();

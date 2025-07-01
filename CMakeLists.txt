@@ -1,15 +1,15 @@
 cmake_minimum_required(VERSION 3.13)
 
 add_subdirectory("thirdParty/glfw")
-add_subdirectory("thirdParty/assimp")
 
 project(opeGL)
 set(CMAKE_CXX_STANDARD 17)
 
 file(GLOB_RECURSE MY_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
+file(GLOB_RECURSE MY_HEADERS CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/include/*.h")
 
-add_executable(opeGL "${MY_SOURCES}" "${CMAKE_CURRENT_SOURCE_DIR}/src/glad.c")
+add_executable(opeGL "${MY_SOURCES}" "${MY_HEADERS}" "${CMAKE_CURRENT_SOURCE_DIR}/src/glad.c")
 target_include_directories(opeGL PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include/")
-target_link_libraries(opeGL PRIVATE glfw assimp)
+target_link_libraries(opeGL PRIVATE glfw)
 
 target_compile_options(opeGL PRIVATE -Wall -Wextra)
