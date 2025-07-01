@@ -34,7 +34,7 @@ std::vector<PointLight> pointLights;
 
 void createScene(Shader &shader) {
   for (size_t i = 0; i < NUM_OF_POINT_LIGHTS; i++) {
-    // pointLights.push_back(PointLight{pLightPositions[i]});
+    pointLights.push_back(PointLight{pLightPositions[i]});
   }
   shader.use();
   shader.setInt("numOfPointLights", NUM_OF_POINT_LIGHTS);
