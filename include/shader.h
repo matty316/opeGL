@@ -1,8 +1,7 @@
 #pragma once
 
-#include "glad/glad.h"
-#include "glm/fwd.hpp"
 #include "lighting.h"
+#include <common.h>
 #include <string>
 
 struct Shader {

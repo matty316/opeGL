@@ -3,7 +3,6 @@
 #include "glm/ext/matrix_transform.hpp"
 #include "glm/geometric.hpp"
 #include "glm/trigonometric.hpp"
-#include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -14,7 +13,7 @@ enum CameraMovement {
   RIGHT,
 };
 
-struct Camera {
+class Camera {
 public:
   glm::vec3 pos{0.0f, 0.0f, 0.0f};
   float zoom = 45.0f;
@@ -39,7 +38,7 @@ public:
   }
 
   void processMouseMovement(float xoffset, float yoffset,
-                            GLboolean constainPitch = true) {
+                            bool constainPitch = true) {
     xoffset *= mouseSensitivity;
     yoffset *= mouseSensitivity;
 

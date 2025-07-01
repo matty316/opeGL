@@ -1,15 +1,22 @@
 #pragma once
 
-#include "camera.h"
+#include "glm/ext/matrix_transform.hpp"
 #include "texture.h"
-#include <glad/glad.h>
+#include <common.h>
+#include <glm/glm.hpp>
 #include <shader.h>
 
-struct Model {
+class Model {
   virtual void render(Shader shader);
 };
 
-struct Cube {
+class Cube {
+public:
+  glm::vec3 position{0.0f};
+  glm::vec3 rotation{1.0f};
+  float rotationAngle = 0.0f;
+  float scale = 1.0f;
+
   Cube(Shader shader, const char *diffusePath, const char *specularPath) {
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -18,7 +25,6 @@ struct Cube {
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    unsigned int VBO, VAO;
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
                           (void *)0);
     glEnableVertexAttribArray(0);
@@ -31,22 +37,16 @@ struct Cube {
 
     diffuseMap = loadTexture(diffusePath);
     specularMap = loadTexture(specularPath);
+    shader.use();
     shader.setInt("material.diffuse", 0);
     shader.setInt("material.specular", 1);
-  }
-
-  ~Cube() {
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
   }
 
   void render(Shader shader) {
     glBindVertexArray(VAO);
     auto model = glm::mat4{1.0f};
-    model = glm::translate(model, glm::vec3(0.0f));
-    float angle = 0.0f;
-    model =
-        glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+    model = glm::translate(model, position);
+    model = glm::rotate(model, glm::radians(rotationAngle), rotation);
     shader.setMat4("model", model);
 
     glActiveTexture(GL_TEXTURE0);
@@ -59,7 +59,6 @@ struct Cube {
 
 private:
   unsigned int VBO, VAO, diffuseMap, specularMap;
-  glm::mat4 position;
   // clang-format off
     float vertices[288] = {
         // positions          // normals           // texture coords

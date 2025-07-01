@@ -12,3 +12,4 @@ add_executable(opeGL "${MY_SOURCES}" "${CMAKE_CURRENT_SOURCE_DIR}/src/glad.c")
 target_include_directories(opeGL PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include/")
 target_link_libraries(opeGL PRIVATE glfw assimp)
 
+target_compile_options(opeGL PRIVATE -Wall -Wextra)
