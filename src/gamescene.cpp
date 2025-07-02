@@ -84,7 +84,7 @@ void updateScene(int width, int height) {
   screenHeight = height;
 }
 
-void renderScene(GLFWwindow *window, Shader &shader, Cube &cube) {
+void renderScene(GLFWwindow *window, Shader &shader, Model &model) {
   glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   shader.use();
@@ -103,7 +103,7 @@ void renderScene(GLFWwindow *window, Shader &shader, Cube &cube) {
 
   auto view = cam.getView();
   shader.setMat4("view", view);
-  cube.render(shader);
+  model.draw(shader);
 
   glfwSwapBuffers(window);
   glfwPollEvents();

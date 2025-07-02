@@ -1,7 +1,7 @@
 #pragma once
 
+#include "common.h"
 #include "lighting.h"
-#include <common.h>
 #include <string>
 
 struct Shader {

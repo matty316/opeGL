@@ -52,12 +52,11 @@ int main() {
   stbi_set_flip_vertically_on_load(true);
 
   Shader shader{"../resources/shader.vert", "../resources/shader.frag"};
-  Cube cube{shader, "../resources/container2.png",
-            "../resources/container2_specular.png"};
+  Model backpack{"../resources/backpack.obj"};
   createScene(shader);
   while (!glfwWindowShouldClose(window)) {
     processInput(window);
-    renderScene(window, shader, cube);
+    renderScene(window, shader, backpack);
   }
 
   glfwTerminate();
