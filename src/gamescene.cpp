@@ -51,7 +51,7 @@ void processMouse(GLFWwindow *window, double xposIn, double yposIn) {
   }
 
   float xoffset = xpos - lastX;
-  float yoffset = ypos - lastY;
+  float yoffset = lastY - ypos;
 
   lastX = xpos;
   lastY = ypos;
