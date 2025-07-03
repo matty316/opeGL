@@ -18,6 +18,8 @@ bool firstMouse = true;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
+std::vector<Model> models;
+
 Camera cam{glm::vec3{0.0f, 0.0f, 3.0f}};
 DirectionalLight directionalLight{
     glm::vec3{-0.2f, -1.0f, -0.3f},
@@ -38,6 +40,9 @@ void createScene(Shader &shader) {
   }
   shader.use();
   shader.setInt("numOfPointLights", NUM_OF_POINT_LIGHTS);
+
+  Model backpack{"../resources/backpack.obj"};
+  models.push_back(backpack);
 }
 
 void processMouse(GLFWwindow *window, double xposIn, double yposIn) {
@@ -51,7 +56,7 @@ void processMouse(GLFWwindow *window, double xposIn, double yposIn) {
   }
 
   float xoffset = xpos - lastX;
-  float yoffset = lastY - ypos;
+  float yoffset = ypos - lastY;
 
   lastX = xpos;
   lastY = ypos;
@@ -84,7 +89,7 @@ void updateScene(int width, int height) {
   screenHeight = height;
 }
 
-void renderScene(GLFWwindow *window, Shader &shader, Model &model) {
+void renderScene(GLFWwindow *window, Shader &shader) {
   glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   shader.use();
@@ -103,7 +108,9 @@ void renderScene(GLFWwindow *window, Shader &shader, Model &model) {
 
   auto view = cam.getView();
   shader.setMat4("view", view);
-  model.draw(shader);
+  for (size_t i = 0; i < models.size(); i++) {
+    models[i].draw(shader);
+  }
 
   glfwSwapBuffers(window);
   glfwPollEvents();
