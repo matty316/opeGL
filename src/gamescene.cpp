@@ -2,7 +2,6 @@
 #include "camera.h"
 #include "glm/ext/matrix_clip_space.hpp"
 #include "glm/trigonometric.hpp"
-#include "lighting.h"
 #include "model.h"
 #include "shader.h"
 
@@ -21,25 +20,19 @@ float lastFrame = 0.0f;
 std::vector<Model> models;
 
 Camera cam{glm::vec3{0.0f, 0.0f, 3.0f}};
-DirectionalLight directionalLight{
-    glm::vec3{-0.2f, -1.0f, -0.3f},
-    glm::vec3{0.05f, 0.05f, 0.05f},
-    glm::vec3{0.4f, 0.4f, 0.4f},
-    glm::vec3{0.5f, 0.5f, 0.5f},
-};
+
 #define NUM_OF_POINT_LIGHTS 4
 glm::vec3 pLightPositions[NUM_OF_POINT_LIGHTS] = {
     glm::vec3{0.7f, 0.2f, 2.0f}, glm::vec3{2.3f, -3.3f, -4.0f},
     glm::vec3{-4.0f, 2.0f, -12.0f}, glm::vec3{0.0f, 0.0f, -3.0f}};
 
-std::vector<PointLight> pointLights;
-
 void createScene(Shader &shader) {
-  for (size_t i = 0; i < NUM_OF_POINT_LIGHTS; i++) {
-    pointLights.push_back(PointLight{pLightPositions[i]});
-  }
   shader.use();
   shader.setInt("numOfPointLights", NUM_OF_POINT_LIGHTS);
+  shader.setDirLight(glm::vec3{-0.2f, -1.0f, -0.3f});
+  for (size_t i = 0; i < NUM_OF_POINT_LIGHTS; i++) {
+    shader.setPointLight(pLightPositions[i], i);
+  }
 
   Model backpack{"../resources/backpack.obj"};
   models.push_back(backpack);
@@ -95,11 +88,6 @@ void renderScene(GLFWwindow *window, Shader &shader) {
   shader.use();
   shader.setVec3("viewPos", cam.pos);
   shader.setFloat("material.shininess", 32.0f);
-
-  shader.setDirLight(directionalLight);
-  for (size_t i = 0; i < pointLights.size(); i++) {
-    shader.setPointLight(pointLights[i], i);
-  }
 
   auto aspect = (float)screenWidth / (float)screenHeight;
   auto projection =

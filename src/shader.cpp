@@ -1,7 +1,7 @@
 #include "shader.h"
 #include "glm/fwd.hpp"
-#include "lighting.h"
 #include <fstream>
+#include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
@@ -93,7 +93,7 @@ void Shader::setVec3(const std::string &name, glm::vec3 vec) const {
   glUniform3fv(glGetUniformLocation(ID, name.c_str()), 1, glm::value_ptr(vec));
 }
 
-void Shader::setPointLight(PointLight light, int index) {
+void Shader::setPointLight(glm::vec3 pos, int index) {
   std::stringstream name;
   name << "pointLights[" << index << "].";
 
@@ -118,16 +118,16 @@ void Shader::setPointLight(PointLight light, int index) {
   std::stringstream quadratic;
   quadratic << name.str() << "quadratic";
 
-  setVec3(position.str(), light.pos);
-  setVec3(ambient.str(), light.ambient);
-  setVec3(diffuse.str(), light.diffuse);
-  setVec3(specular.str(), light.specular);
-  setFloat(constant.str(), light.constant);
-  setFloat(linear.str(), light.linear);
-  setFloat(quadratic.str(), light.quadratic);
+  setVec3(position.str(), pos);
+  setVec3(ambient.str(), glm::vec3{0.5f});
+  setVec3(diffuse.str(), glm::vec3{0.8f});
+  setVec3(specular.str(), glm::vec3{1.0f});
+  setFloat(constant.str(), 1.0f);
+  setFloat(linear.str(), 0.09f);
+  setFloat(quadratic.str(), 0.032f);
 }
 
-void Shader::setDirLight(DirectionalLight light) {
+void Shader::setDirLight(glm::vec3 dir) {
   std::stringstream name;
   name << "dirLight.";
 
@@ -143,8 +143,8 @@ void Shader::setDirLight(DirectionalLight light) {
   std::stringstream specular;
   specular << name.str() << "specular";
 
-  setVec3(direction.str(), light.direction);
-  setVec3(ambient.str(), light.ambient);
-  setVec3(diffuse.str(), light.diffuse);
-  setVec3(specular.str(), light.specular);
+  setVec3(direction.str(), dir);
+  setVec3(ambient.str(), glm::vec3{0.05});
+  setVec3(diffuse.str(), glm::vec3{0.4f});
+  setVec3(specular.str(), glm::vec3{0.5f});
 }

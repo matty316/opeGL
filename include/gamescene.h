@@ -1,6 +1,5 @@
 #pragma once
 
-#include "model.h"
 #include "shader.h"
 #include <common.h>
 void createScene(Shader &shader);
