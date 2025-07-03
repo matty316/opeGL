@@ -1,6 +1,7 @@
 #include "gamescene.h"
 #include "camera.h"
 #include "glm/ext/matrix_clip_space.hpp"
+#include "glm/fwd.hpp"
 #include "glm/trigonometric.hpp"
 #include "model.h"
 #include "shader.h"
@@ -34,7 +35,8 @@ void createScene(Shader &shader) {
     shader.setPointLight(pLightPositions[i], i);
   }
 
-  Model backpack{"../resources/backpack.obj"};
+  Model backpack{"../resources/backpack.obj", glm::vec3{0.0f}, glm::vec3{1.0f},
+                 0.0f, 0.1f};
   models.push_back(backpack);
 }
 

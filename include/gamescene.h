@@ -1,7 +1,11 @@
 #pragma once
 
+// clang-format off
+#include "glad/glad.h"
+#include "GLFW/glfw3.h"
 #include "shader.h"
-#include <common.h>
+// clang-format on
+
 void createScene(Shader &shader);
 void processMouse(GLFWwindow *window, double xposIn, double yposIn);
 void processScroll(double yoffset);
