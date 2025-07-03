@@ -1,4 +1,4 @@
-
+#include "common.h"
 #include "error.h"
 #include "gamescene.h"
 #include "model.h"
@@ -24,7 +24,9 @@ int main() {
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+#if __APPLE__
   glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
   glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
 
   GLFWwindow *window = glfwCreateWindow(800, 600, "OpeGL", nullptr, nullptr);
@@ -40,7 +42,9 @@ int main() {
     return -1;
   }
 
+#if !__APPLE__
   enableReportGlErrors();
+#endif
 
   glEnable(GL_DEPTH_TEST);
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
