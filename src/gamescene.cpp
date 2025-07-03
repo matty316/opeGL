@@ -35,7 +35,7 @@ void createScene(Shader &shader) {
     shader.setPointLight(pLightPositions[i], i);
   }
 
-  Model backpack{"../resources/backpack.obj", glm::vec3{0.0f}, glm::vec3{1.0f},
+  Model backpack{"resources/backpack.obj", glm::vec3{0.0f}, glm::vec3{1.0f},
                  0.0f, 0.1f};
   models.push_back(backpack);
 }

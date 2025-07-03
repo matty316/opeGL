@@ -54,7 +54,7 @@ int main() {
 
   stbi_set_flip_vertically_on_load(true);
 
-  Shader shader{"../resources/shader.vert", "../resources/shader.frag"};
+  Shader shader{"resources/shader.vert", "resources/shader.frag"};
   createScene(shader);
   while (!glfwWindowShouldClose(window)) {
     processInput(window);
