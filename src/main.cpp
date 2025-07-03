@@ -56,6 +56,9 @@ int main() {
 
   Shader shader{"resources/shader.vert", "resources/shader.frag"};
   createScene(shader);
+  glEnable(GL_CULL_FACE);
+  glCullFace(GL_FRONT);
+  glFrontFace(GL_CW);
   while (!glfwWindowShouldClose(window)) {
     processInput(window);
     renderScene(window, shader);

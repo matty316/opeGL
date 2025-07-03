@@ -36,7 +36,7 @@ void createScene(Shader &shader) {
   }
 
   Model backpack{"resources/backpack.obj", glm::vec3{0.0f}, glm::vec3{1.0f},
-                 0.0f, 0.1f};
+                 0.0f, 1.0f};
   models.push_back(backpack);
 }
 
@@ -85,7 +85,7 @@ void updateScene(int width, int height) {
 }
 
 void renderScene(GLFWwindow *window, Shader &shader) {
-  glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   shader.use();
   shader.setVec3("viewPos", cam.pos);
