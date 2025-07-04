@@ -1,6 +1,7 @@
 #include "error.h"
 #include "gamescene.h"
 #include "shader.h"
+#include <error.h>
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #include <iostream>
@@ -57,8 +58,7 @@ int main() {
   Shader shader{"resources/shader.vert", "resources/shader.frag"};
   createScene(shader);
   glEnable(GL_CULL_FACE);
-  glCullFace(GL_FRONT);
-  glFrontFace(GL_CW);
+  glCullFace(GL_BACK);
   while (!glfwWindowShouldClose(window)) {
     processInput(window);
     renderScene(window, shader);
