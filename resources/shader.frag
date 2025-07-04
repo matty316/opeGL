@@ -71,5 +71,6 @@ void main() {
     for (int i = 0; i < numOfPointLights; i++)
         result += calculatePointLight(pointLights[i], norm, FragPos, viewDir);
 
+    result = pow(result, vec3(1.0 / 2.2));
     FragColor = vec4(result, 1.0);
 }

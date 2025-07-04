@@ -23,10 +23,7 @@ std::vector<Model> models;
 
 Camera cam{glm::vec3{0.0f, 0.0f, 3.0f}};
 
-#define NUM_OF_POINT_LIGHTS 4
-glm::vec3 pLightPositions[NUM_OF_POINT_LIGHTS] = {
-    glm::vec3{0.7f, 0.2f, 2.0f}, glm::vec3{2.3f, -3.3f, -4.0f},
-    glm::vec3{-4.0f, 2.0f, -12.0f}, glm::vec3{0.0f, 0.0f, -3.0f}};
+std::vector<glm::vec3> pLightPositions{glm::vec3{0.7f, 0.2f, 2.0f}};
 
 unsigned int skyboxVAO, skyboxVBO, skyboxTexture;
 
@@ -63,9 +60,9 @@ void setupSkyboxVAO() {
 
 void createScene(Shader &shader, Shader &skyboxShader) {
   shader.use();
-  shader.setInt("numOfPointLights", NUM_OF_POINT_LIGHTS);
+  shader.setInt("numOfPointLights", pLightPositions.size());
   shader.setDirLight(glm::vec3{-0.2f, -1.0f, -0.3f});
-  for (size_t i = 0; i < NUM_OF_POINT_LIGHTS; i++) {
+  for (size_t i = 0; i < pLightPositions.size(); i++) {
     shader.setPointLight(pLightPositions[i], i);
   }
 
