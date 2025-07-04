@@ -56,12 +56,13 @@ int main() {
   stbi_set_flip_vertically_on_load(true);
 
   Shader shader{"resources/shader.vert", "resources/shader.frag"};
-  createScene(shader);
+  Shader skyboxShader{"resources/skybox.vert", "resources/skybox.frag"};
+  createScene(shader, skyboxShader);
   glEnable(GL_CULL_FACE);
   glCullFace(GL_BACK);
   while (!glfwWindowShouldClose(window)) {
     processInput(window);
-    renderScene(window, shader);
+    renderScene(window, shader, skyboxShader);
   }
 
   glfwTerminate();

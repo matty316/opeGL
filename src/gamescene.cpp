@@ -5,6 +5,7 @@
 #include "glm/trigonometric.hpp"
 #include "model.h"
 #include "shader.h"
+#include "skybox.h"
 
 #include <vector>
 
@@ -27,7 +28,40 @@ glm::vec3 pLightPositions[NUM_OF_POINT_LIGHTS] = {
     glm::vec3{0.7f, 0.2f, 2.0f}, glm::vec3{2.3f, -3.3f, -4.0f},
     glm::vec3{-4.0f, 2.0f, -12.0f}, glm::vec3{0.0f, 0.0f, -3.0f}};
 
-void createScene(Shader &shader) {
+unsigned int skyboxVAO, skyboxVBO, skyboxTexture;
+
+float skyboxVertices[] = {
+    // positions
+    -1.0f, 1.0f,  -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  -1.0f, -1.0f,
+    1.0f,  -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f, -1.0f, 1.0f,  -1.0f,
+
+    -1.0f, -1.0f, 1.0f,  -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  -1.0f,
+    -1.0f, 1.0f,  -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f, -1.0f, 1.0f,
+
+    1.0f,  -1.0f, -1.0f, 1.0f,  -1.0f, 1.0f,  1.0f,  1.0f,  1.0f,
+    1.0f,  1.0f,  1.0f,  1.0f,  1.0f,  -1.0f, 1.0f,  -1.0f, -1.0f,
+
+    -1.0f, -1.0f, 1.0f,  -1.0f, 1.0f,  1.0f,  1.0f,  1.0f,  1.0f,
+    1.0f,  1.0f,  1.0f,  1.0f,  -1.0f, 1.0f,  -1.0f, -1.0f, 1.0f,
+
+    -1.0f, 1.0f,  -1.0f, 1.0f,  1.0f,  -1.0f, 1.0f,  1.0f,  1.0f,
+    1.0f,  1.0f,  1.0f,  -1.0f, 1.0f,  1.0f,  -1.0f, 1.0f,  -1.0f,
+
+    -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f, -1.0f,
+    1.0f,  -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f, 1.0f};
+
+void setupSkyboxVAO() {
+  glGenVertexArrays(1, &skyboxVAO);
+  glGenBuffers(1, &skyboxVBO);
+  glBindVertexArray(skyboxVAO);
+  glBindBuffer(GL_ARRAY_BUFFER, skyboxVBO);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), &skyboxVertices,
+               GL_STATIC_DRAW);
+  glEnableVertexAttribArray(0);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
+}
+
+void createScene(Shader &shader, Shader &skyboxShader) {
   shader.use();
   shader.setInt("numOfPointLights", NUM_OF_POINT_LIGHTS);
   shader.setDirLight(glm::vec3{-0.2f, -1.0f, -0.3f});
@@ -36,8 +70,12 @@ void createScene(Shader &shader) {
   }
 
   Model backpack{"resources/backpack.obj", glm::vec3{0.0f}, glm::vec3{1.0f},
-                 0.0f, 1.0f};
+                 0.0f, 0.1f};
   models.push_back(backpack);
+  skyboxTexture = loadSkybox();
+  setupSkyboxVAO();
+  skyboxShader.use();
+  skyboxShader.setInt("skybox", 0);
 }
 
 void processMouse(GLFWwindow *window, double xposIn, double yposIn) {
@@ -84,9 +122,10 @@ void updateScene(int width, int height) {
   screenHeight = height;
 }
 
-void renderScene(GLFWwindow *window, Shader &shader) {
+void renderScene(GLFWwindow *window, Shader &shader, Shader &skyboxShader) {
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
   shader.use();
   shader.setVec3("viewPos", cam.pos);
   shader.setFloat("material.shininess", 32.0f);
@@ -101,6 +140,22 @@ void renderScene(GLFWwindow *window, Shader &shader) {
   for (size_t i = 0; i < models.size(); i++) {
     models[i].draw(shader);
   }
+
+  // draw skybox as last
+  glDepthFunc(GL_LEQUAL); // change depth function so depth test passes when
+                          // values are equal to depth buffer's content
+  skyboxShader.use();
+  view = glm::mat4(
+      glm::mat3(cam.getView())); // remove translation from the view matrix
+  skyboxShader.setMat4("view", view);
+  skyboxShader.setMat4("projection", projection);
+  // skybox cube
+  glBindVertexArray(skyboxVAO);
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture);
+  glDrawArrays(GL_TRIANGLES, 0, 36);
+  glBindVertexArray(0);
+  glDepthFunc(GL_LESS); // set depth function back to default
 
   glfwSwapBuffers(window);
   glfwPollEvents();
