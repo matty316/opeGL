@@ -4,6 +4,7 @@
 #include "glm/fwd.hpp"
 #include "glm/trigonometric.hpp"
 #include "model.h"
+#include "plane.h"
 #include "shader.h"
 #include "skybox.h"
 
@@ -69,6 +70,7 @@ void createScene(Shader &shader, Shader &skyboxShader) {
   Model backpack{"resources/backpack.obj", glm::vec3{0.0f}, glm::vec3{1.0f},
                  0.0f, 0.1f};
   models.push_back(backpack);
+
   skyboxTexture = loadSkybox();
   setupSkyboxVAO();
   skyboxShader.use();
@@ -119,7 +121,8 @@ void updateScene(int width, int height) {
   screenHeight = height;
 }
 
-void renderScene(GLFWwindow *window, Shader &shader, Shader &skyboxShader) {
+void renderScene(GLFWwindow *window, Shader &shader, Shader &skyboxShader,
+                 Plane &ground) {
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -137,6 +140,8 @@ void renderScene(GLFWwindow *window, Shader &shader, Shader &skyboxShader) {
   for (size_t i = 0; i < models.size(); i++) {
     models[i].draw(shader);
   }
+
+  ground.draw(shader);
 
   // draw skybox as last
   glDepthFunc(GL_LEQUAL); // change depth function so depth test passes when
