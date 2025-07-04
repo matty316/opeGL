@@ -67,8 +67,8 @@ void createScene(Shader &shader, Shader &skyboxShader) {
     shader.setPointLight(pLightPositions[i], i);
   }
 
-  Model backpack{"resources/backpack.obj", glm::vec3{0.0f}, glm::vec3{1.0f},
-                 0.0f, 0.1f};
+  Model backpack{"resources/backpack.obj", glm::vec3{0.0f, -1.0f, 0.0f},
+                 glm::vec3{1.0f}, 0.0f, 0.5f};
   models.push_back(backpack);
 
   skyboxTexture = loadSkybox();

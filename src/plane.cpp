@@ -21,23 +21,28 @@ Plane::Plane(const char *diffusePath, const char *specularPath) {
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices,
                GL_STATIC_DRAW);
 
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)0);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)0);
   glEnableVertexAttribArray(0);
 
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
                         (void *)(3 * sizeof(float)));
   glEnableVertexAttribArray(1);
+
+  glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
+                        (void *)(6 * sizeof(float)));
+  glEnableVertexAttribArray(2);
 
   diffuse = loadTexture(diffusePath);
   specular = loadTexture(specularPath);
 
-  position = glm::vec3{0.0f, 0.0f, 0.0f};
+  position = glm::vec3{0.0f, -2.0f, 0.0f};
   rotationAngle = 90.0f;
-  rotation = glm::vec3{0.0f, 0.0f, 1.0f};
-  scale = 20.0f;
+  rotation = glm::vec3{1.0f, 0.0f, 0.0f};
+  scale = 100.0f;
 }
 
 void Plane::draw(Shader &shader) {
+  shader.setInt("tiling", 16);
   auto model = glm::mat4{1.0f};
   model = glm::translate(model, position);
   model = glm::rotate(model, glm::radians(rotationAngle), rotation);
