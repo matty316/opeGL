@@ -146,7 +146,7 @@ unsigned int Model::TextureFromFile(const char *path,
       format = GL_RGBA;
 
     glBindTexture(GL_TEXTURE_2D, textureID);
-    glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format,
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB, width, height, 0, format,
                  GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
 
