@@ -1,5 +1,6 @@
 #include "error.h"
 #include "gamescene.h"
+#include "plane.h"
 #include "shader.h"
 #include <error.h>
 #define STB_IMAGE_IMPLEMENTATION
@@ -57,12 +58,15 @@ int main() {
 
   Shader shader{"resources/shader.vert", "resources/shader.frag"};
   Shader skyboxShader{"resources/skybox.vert", "resources/skybox.frag"};
+  Plane ground{"resources/textures/rocky_terrain_02_diff_4k.png",
+               "resources/textures/rocky_terrain_02_spec_4k.png"};
+
   createScene(shader, skyboxShader);
   glEnable(GL_CULL_FACE);
   glCullFace(GL_BACK);
   while (!glfwWindowShouldClose(window)) {
     processInput(window);
-    renderScene(window, shader, skyboxShader);
+    renderScene(window, shader, skyboxShader, ground);
   }
 
   glfwTerminate();

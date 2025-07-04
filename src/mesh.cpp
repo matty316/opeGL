@@ -13,6 +13,7 @@ Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices,
 void Mesh::draw(Shader &shader) {
   unsigned int diffuseNr = 1;
   unsigned int specularNr = 1;
+  shader.setInt("tiling", 1);
 
   for (size_t i = 0; i < textures.size(); i++) {
     glActiveTexture(GL_TEXTURE0 + i);
