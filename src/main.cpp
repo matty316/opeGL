@@ -58,8 +58,7 @@ int main() {
 
   Shader shader{"resources/shader.vert", "resources/shader.frag"};
   Shader skyboxShader{"resources/skybox.vert", "resources/skybox.frag"};
-  Plane ground{"resources/textures/rocky_terrain_02_diff_4k.png",
-               "resources/textures/rocky_terrain_02_spec_4k.png"};
+  Plane ground{"resources/textures/broken_brick_wall_diff_4k.jpg", nullptr};
 
   createScene(shader, skyboxShader);
   glEnable(GL_CULL_FACE);
