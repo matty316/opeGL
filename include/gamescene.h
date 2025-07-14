@@ -14,4 +14,4 @@ void processScroll(double yoffset);
 void updateScene(int width, int height);
 void processInput(GLFWwindow *window);
 void renderScene(GLFWwindow *window, Shader &shader, Shader &skyboxShader,
-                 Plane &ground);
+                 Shader &depthShader, Plane &ground);

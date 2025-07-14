@@ -1,13 +1,14 @@
 #include "gamescene.h"
 #include "camera.h"
-#include "glm/ext/matrix_clip_space.hpp"
-#include "glm/fwd.hpp"
-#include "glm/trigonometric.hpp"
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
 #include "model.h"
 #include "plane.h"
 #include "shader.h"
 #include "stb_image.h"
 
+#include <X11/Xlib.h>
+#include <cstddef>
 #include <iostream>
 #include <vector>
 
@@ -18,6 +19,10 @@ float lastX = screenWidth / 2.0f;
 float lastY = screenHeight / 2.0f;
 bool firstMouse = true;
 
+const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
+
+unsigned int depthMapFBO, depthMap;
+
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
@@ -26,19 +31,23 @@ std::vector<Model> models;
 Camera cam{glm::vec3{0.0f, 0.0f, 3.0f}};
 
 std::vector<glm::vec3> pLightPositions{glm::vec3{0.7f, 0.2f, 2.0f}};
+glm::vec3 dirLight{-0.2f, -1.0f, -0.3f};
 
 unsigned int skyboxVAO, skyboxVBO, skyboxTexture;
 
 void setupSkyboxVAO();
 unsigned int loadSkybox();
+void setupDepthMap();
+void renderDepthMap(Shader &depthShader, Shader &shader, Plane &ground);
 
 void createScene(Shader &shader, Shader &skyboxShader) {
   shader.use();
   shader.setInt("numOfPointLights", pLightPositions.size());
-  shader.setDirLight(glm::vec3{-0.2f, -1.0f, -0.3f});
+  shader.setDirLight(dirLight);
   for (size_t i = 0; i < pLightPositions.size(); i++) {
     shader.setPointLight(pLightPositions[i], i);
   }
+  shader.setInt("shadowMap", 0);
 
   Model backpack{"resources/backpack.obj", glm::vec3{0.0f, -1.0f, 0.0f},
                  glm::vec3{1.0f}, 0.0f, 0.5f};
@@ -94,10 +103,20 @@ void updateScene(int width, int height) {
   screenHeight = height;
 }
 
+void renderModels(Shader &shader, Plane &ground) {
+  for (size_t i = 0; i < models.size(); i++) {
+    models[i].draw(shader);
+  }
+
+  ground.draw(shader);
+}
+
 void renderScene(GLFWwindow *window, Shader &shader, Shader &skyboxShader,
-                 Plane &ground) {
+                 Shader &depthShader, Plane &ground) {
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  renderDepthMap(depthShader, shader, ground);
 
   shader.use();
   shader.setVec3("viewPos", cam.pos);
@@ -110,11 +129,8 @@ void renderScene(GLFWwindow *window, Shader &shader, Shader &skyboxShader,
 
   auto view = cam.getView();
   shader.setMat4("view", view);
-  for (size_t i = 0; i < models.size(); i++) {
-    models[i].draw(shader);
-  }
 
-  ground.draw(shader);
+  renderModels(shader, ground);
 
   // draw skybox as last
   glDepthFunc(GL_LEQUAL); // change depth function so depth test passes when
@@ -200,4 +216,48 @@ void setupSkyboxVAO() {
                GL_STATIC_DRAW);
   glEnableVertexAttribArray(0);
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
+}
+
+void setupDepthMap() {
+  glGenFramebuffers(1, &depthMapFBO);
+
+  glGenTextures(1, &depthMap);
+  glBindTexture(GL_TEXTURE_2D, depthMap);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH,
+               SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+  glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D,
+                         depthMap, 0);
+  glDrawBuffer(GL_NONE);
+  glReadBuffer(GL_NONE);
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void renderDepthMap(Shader &depthShader, Shader &shader, Plane &ground) {
+  auto lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 7.5f);
+  auto lightView =
+      glm::lookAt(dirLight, glm::vec3{0.0f}, glm::vec3{0.0f, 1.0f, 0.0f});
+  auto lightSpaceMatrix = lightProjection * lightView;
+
+  depthShader.use();
+  depthShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+
+  glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+  glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+  glClear(GL_DEPTH_BUFFER_BIT);
+  glActiveTexture(GL_TEXTURE0);
+
+  renderModels(depthShader, ground);
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  glViewport(0, 0, screenWidth, screenHeight);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  shader.use();
+  shader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, depthMap);
 }

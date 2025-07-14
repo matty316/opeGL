@@ -15,7 +15,7 @@ Model::Model(std::string path, glm::vec3 pos, glm::vec3 rotation,
   loadModel(path);
 }
 
-void Model::draw(Shader shader) {
+void Model::draw(Shader &shader) {
   auto model = glm::mat4{1.0f};
   model = glm::translate(model, position);
   model = glm::rotate(model, glm::radians(rotationAngle), rotation);

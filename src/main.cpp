@@ -23,11 +23,8 @@ void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
 int main() {
   glfwInit();
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-#if __APPLE__
-  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-#endif
   glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
 
   GLFWwindow *window = glfwCreateWindow(800, 600, "OpeGL", nullptr, nullptr);
@@ -43,9 +40,7 @@ int main() {
     return -1;
   }
 
-#if !__APPLE__
   enableReportGlErrors();
-#endif
 
   glEnable(GL_DEPTH_TEST);
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
@@ -58,6 +53,7 @@ int main() {
 
   Shader shader{"resources/shader.vert", "resources/shader.frag"};
   Shader skyboxShader{"resources/skybox.vert", "resources/skybox.frag"};
+  Shader depthShader{"resources/shadow.vert", "resources/shadow.frag"};
   Plane ground{"resources/textures/broken_brick_wall_diff_4k.jpg", nullptr};
 
   createScene(shader, skyboxShader);
@@ -65,7 +61,7 @@ int main() {
   glCullFace(GL_BACK);
   while (!glfwWindowShouldClose(window)) {
     processInput(window);
-    renderScene(window, shader, skyboxShader, ground);
+    renderScene(window, shader, skyboxShader, depthShader, ground);
   }
 
   glfwTerminate();

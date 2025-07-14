@@ -16,7 +16,7 @@ public:
 
   Model(std::string path, glm::vec3 pos, glm::vec3 rotation,
         float rotationAngle, float scale);
-  void draw(Shader shader);
+  void draw(Shader &shader);
 
 private:
   std::vector<Mesh> meshes;
