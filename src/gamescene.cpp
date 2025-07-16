@@ -28,8 +28,6 @@ float lastFrame = 0.0f;
 
 std::vector<Model> models;
 
-Camera cam{glm::vec3{0.0f, 0.0f, 3.0f}};
-
 std::vector<glm::vec3> pLightPositions{glm::vec3{0.7f, 0.2f, 2.0f}};
 glm::vec3 dirLight{-0.2f, -1.0f, -0.3f};
 
@@ -63,6 +61,7 @@ void createScene() {
   setInt(skyboxShader, "skybox", 0);
 
   createPlane("resources/textures/rocky_terrain_02_diff_4k.png", "resources/textures/rocky_terrain_02_diff_4k.png");
+  createCamera({0.0f, 0.0f, 3.0f});
 }
 
 void processMouse(GLFWwindow *window, double xposIn, double yposIn) {
@@ -81,11 +80,11 @@ void processMouse(GLFWwindow *window, double xposIn, double yposIn) {
   lastX = xpos;
   lastY = ypos;
 
-  cam.processMouseMovement(xoffset, yoffset);
+  processMouseMovement(xoffset, yoffset);
 }
 
 void processScroll(double yoffset) {
-  cam.processMouseScroll(static_cast<float>(yoffset));
+  processMouseScroll(static_cast<float>(yoffset));
 }
 
 void processInput(GLFWwindow *window) {
@@ -95,13 +94,13 @@ void processInput(GLFWwindow *window) {
   if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     glfwSetWindowShouldClose(window, true);
   if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-    cam.processKeyboard(FORWARD, deltaTime);
+    processKeyboard(FORWARD, deltaTime);
   if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-    cam.processKeyboard(BACKWARD, deltaTime);
+    processKeyboard(BACKWARD, deltaTime);
   if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-    cam.processKeyboard(LEFT, deltaTime);
+    processKeyboard(LEFT, deltaTime);
   if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-    cam.processKeyboard(RIGHT, deltaTime);
+    processKeyboard(RIGHT, deltaTime);
 }
 
 void updateScene(int width, int height) {
@@ -129,15 +128,15 @@ void renderScene(GLFWwindow *window) {
   renderDepthMap();
 
   use(shader);
-  setVec3(shader, "viewPos", cam.pos);
+  setVec3(shader, "viewPos", cameraPos());
   setFloat(shader, "material.shininess", 32.0f);
 
   auto aspect = (float)screenWidth / (float)screenHeight;
   auto projection =
-      glm::perspective(glm::radians(cam.zoom), aspect, 0.1f, 100.0f);
+      glm::perspective(glm::radians(getZoom()), aspect, 0.1f, 100.0f);
   setMat4(shader, "projection", projection);
 
-  auto view = cam.getView();
+  auto view = getView();
   setMat4(shader, "view", view);
 
   renderModels(shader);
@@ -147,7 +146,7 @@ void renderScene(GLFWwindow *window) {
                           // values are equal to depth buffer's content
   use(skyboxShader);
   view = glm::mat4(
-      glm::mat3(cam.getView())); // remove translation from the view matrix
+      glm::mat3(getView())); // remove translation from the view matrix
   setMat4(skyboxShader, "view", view);
   setMat4(skyboxShader, "projection", projection);
   // skybox cube

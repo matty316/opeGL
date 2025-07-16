@@ -1,15 +1,36 @@
 #include "camera.h"
 #include <glm/ext/matrix_transform.hpp>
 
-Camera::Camera(glm::vec3 position) {
+glm::vec3 pos{0.0f, 0.0f, 0.0f};
+glm::vec3 up{0.0f, 1.0f, 0.0f};
+glm::vec3 front{0.0f, 0.0f, -1.0f};
+glm::vec3 worldUp;
+glm::vec3 right;
+float yaw = -90.0f;
+float pitch = 0.0f;
+float movementSpeed = 5.0f;
+float mouseSensitivity = 0.1f;
+float zoom = 45.0f;
+
+void updateCameraVecs();
+
+void createCamera(glm::vec3 position) {
   pos = position;
   worldUp = up;
   updateCameraVecs();
 }
 
-glm::mat4 Camera::getView() { return glm::lookAt(pos, pos + front, up); }
+glm::vec3 cameraPos() {
+  return pos;
+}
 
-void Camera::processKeyboard(CameraMovement dir, float deltaTime) {
+float getZoom() {
+  return zoom;
+}
+
+glm::mat4 getView() { return glm::lookAt(pos, pos + front, up); }
+
+void processKeyboard(CameraMovement dir, float deltaTime) {
   float velocity = movementSpeed * deltaTime;
   if (dir == FORWARD)
     pos += front * velocity;
@@ -21,7 +42,7 @@ void Camera::processKeyboard(CameraMovement dir, float deltaTime) {
     pos += right * velocity;
 }
 
-void Camera::processMouseMovement(float xoffset, float yoffset,
+void processMouseMovement(float xoffset, float yoffset,
                                   bool constainPitch) {
   xoffset *= mouseSensitivity;
   yoffset *= mouseSensitivity;
@@ -39,7 +60,7 @@ void Camera::processMouseMovement(float xoffset, float yoffset,
   updateCameraVecs();
 }
 
-void Camera::processMouseScroll(float yoffset) {
+void processMouseScroll(float yoffset) {
   zoom -= (float)yoffset;
   if (zoom < 1.0f)
     zoom = 1.0f;
@@ -47,7 +68,7 @@ void Camera::processMouseScroll(float yoffset) {
     zoom = 45.0f;
 }
 
-void Camera::updateCameraVecs() {
+void updateCameraVecs() {
   glm::vec3 f;
   f.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
   f.y = sin(glm::radians(pitch));
