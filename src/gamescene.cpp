@@ -54,9 +54,8 @@ void createScene() {
   }
   setInt(depthShader, "shadowMap", 0);
 
-  Model backpack{"resources/backpack.obj", glm::vec3{0.0f, -1.0f, 0.0f},
-                 glm::vec3{1.0f}, 0.0f, 0.5f};
-  models.push_back(backpack);
+  addModel("resources/backpack.obj", glm::vec3{0.0f, -1.0f, 0.0f},
+                 glm::vec3{1.0f}, 0.0f, 0.5f);
 
   skyboxTexture = loadSkybox();
   setupSkyboxVAO();
@@ -108,6 +107,11 @@ void processInput(GLFWwindow *window) {
 void updateScene(int width, int height) {
   screenWidth = width;
   screenHeight = height;
+}
+
+void addModel(const char* path, glm::vec3 pos, glm::vec3 rotation, float angle, float scale) {
+  Model model{path, pos, rotation, angle, scale};
+  models.push_back(model);
 }
 
 void renderModels(GLuint shader) {

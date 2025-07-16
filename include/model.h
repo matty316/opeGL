@@ -15,7 +15,7 @@ public:
   float rotationAngle = 0.0f;
   float scale = 0.5f;
 
-  Model(std::string path, glm::vec3 pos, glm::vec3 rotation,
+  Model(const char *path, glm::vec3 pos, glm::vec3 rotation,
         float rotationAngle, float scale);
   void draw(GLuint shader);
 
@@ -24,7 +24,7 @@ private:
   std::string dir;
   std::vector<Texture> textures_loaded;
 
-  void loadModel(std::string path);
+  void loadModel(const char *path);
   void processNode(aiNode *node, const aiScene *scene);
   Mesh processMesh(aiMesh *mesh, const aiScene *scene);
   std::vector<Texture> loadMaterialTextures(aiMaterial *mat, aiTextureType type,

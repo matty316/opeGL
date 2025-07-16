@@ -8,7 +8,7 @@
 #include <glm/glm.hpp>
 #include <iostream>
 
-Model::Model(std::string path, glm::vec3 pos, glm::vec3 rotation,
+Model::Model(const char *path, glm::vec3 pos, glm::vec3 rotation,
              float rotationAngle, float scale)
     : position(pos), rotation(rotation), rotationAngle(rotationAngle),
       scale(scale) {
@@ -27,7 +27,7 @@ void Model::draw(GLuint shader) {
   }
 }
 
-void Model::loadModel(std::string path) {
+void Model::loadModel(const char *path) {
   Assimp::Importer import;
   const aiScene *scene =
       import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
@@ -37,7 +37,8 @@ void Model::loadModel(std::string path) {
     return;
   }
 
-  dir = path.substr(0, path.find_last_of('/'));
+  std::string pathStr{path};
+  dir = pathStr.substr(0, pathStr.find_last_of('/'));
   processNode(scene->mRootNode, scene);
 }
 

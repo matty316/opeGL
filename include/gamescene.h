@@ -3,6 +3,7 @@
 // clang-format off
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
+#include "glm/glm.hpp"
 #include "shader.h"
 // clang-format on
 
@@ -12,3 +13,5 @@ void processScroll(double yoffset);
 void updateScene(int width, int height);
 void processInput(GLFWwindow *window);
 void renderScene(GLFWwindow *window);
+void addModel(const char *path, glm::vec3 pos, glm::vec3 rotation, float angle,
+              float scale);
