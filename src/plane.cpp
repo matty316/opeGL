@@ -3,11 +3,28 @@
 #include "glm/ext/matrix_transform.hpp"
 #include "glm/fwd.hpp"
 #include "glm/trigonometric.hpp"
+#include "shader.h"
 #include "stb_image.h"
-
 #include <iostream>
 
-Plane::Plane(const char *diffusePath, const char *specularPath) {
+GLuint VAO, VBO, EBO, diffuse, specular;
+glm::vec3 position, rotation;
+float rotationAngle, scale;
+float vertices[32] = {
+    0.5f,  0.5f,  0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, // top right
+    0.5f,  -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom right
+    -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, // bottom left
+    -0.5f, 0.5f,  0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f  // top left
+};
+GLuint indices[6] = {
+    // note that we start from 0!
+    0, 1, 3, // first triangle
+    1, 2, 3  // second triangle
+};
+
+GLuint loadTexture(const char *path);
+
+void createPlane(const char *diffusePath, const char *specularPath) {
   glGenVertexArrays(1, &VAO);
   glGenBuffers(1, &VBO);
   glGenBuffers(1, &EBO);
@@ -41,20 +58,20 @@ Plane::Plane(const char *diffusePath, const char *specularPath) {
   scale = 100.0f;
 }
 
-void Plane::draw(Shader &shader) {
-  shader.setInt("tiling", 16);
+void drawPlane(GLuint shader) {
+  setInt(shader, "tiling", 16);
   auto model = glm::mat4{1.0f};
   model = glm::translate(model, position);
   model = glm::rotate(model, glm::radians(rotationAngle), rotation);
   model = glm::scale(model, glm::vec3{scale});
-  shader.setMat4("model", model);
+  setMat4(shader, "model", model);
 
   glActiveTexture(GL_TEXTURE0);
-  shader.setInt("material.diffuse", 0);
+  setInt(shader, "material.diffuse", 0);
   glBindTexture(GL_TEXTURE_2D, diffuse);
 
   glActiveTexture(GL_TEXTURE1);
-  shader.setInt("material.specular", 1);
+  setInt(shader, "material.specular", 1);
   glBindTexture(GL_TEXTURE_2D, specular);
 
   glBindVertexArray(VAO);
@@ -62,7 +79,7 @@ void Plane::draw(Shader &shader) {
   glBindVertexArray(0);
 }
 
-unsigned int Plane::loadTexture(const char *path) {
+GLuint loadTexture(const char *path) {
   unsigned int textureID;
   glGenTextures(1, &textureID);
 

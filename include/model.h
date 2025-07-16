@@ -6,6 +6,7 @@
 #include <glm/glm.hpp>
 #include <string>
 #include <vector>
+#include <glad/glad.h>
 
 class Model {
 public:
@@ -16,7 +17,7 @@ public:
 
   Model(std::string path, glm::vec3 pos, glm::vec3 rotation,
         float rotationAngle, float scale);
-  void draw(Shader &shader);
+  void draw(GLuint shader);
 
 private:
   std::vector<Mesh> meshes;

@@ -1,7 +1,5 @@
 #include "error.h"
 #include "gamescene.h"
-#include "plane.h"
-#include "shader.h"
 #include <error.h>
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -51,17 +49,13 @@ int main() {
 
   stbi_set_flip_vertically_on_load(true);
 
-  Shader shader{"resources/shader.vert", "resources/shader.frag"};
-  Shader skyboxShader{"resources/skybox.vert", "resources/skybox.frag"};
-  Shader depthShader{"resources/shadow.vert", "resources/shadow.frag"};
-  Plane ground{"resources/textures/broken_brick_wall_diff_4k.jpg", nullptr};
 
-  createScene(shader, skyboxShader);
+  createScene();
   glEnable(GL_CULL_FACE);
   glCullFace(GL_BACK);
   while (!glfwWindowShouldClose(window)) {
     processInput(window);
-    renderScene(window, shader, skyboxShader, depthShader, ground);
+    renderScene(window);
   }
 
   glfwTerminate();

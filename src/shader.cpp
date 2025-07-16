@@ -1,99 +1,90 @@
 #include "shader.h"
 #include "glm/fwd.hpp"
+#include <cstdlib>
 #include <fstream>
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
+#include <print>
 #include <sstream>
 #include <string>
 
-Shader::Shader(const char *vertexPath, const char *fragmentPath) {
-  std::ifstream vertexFile(vertexPath);
-  std::ifstream fragmentFile(fragmentPath);
+GLuint compileShader(const char *path, GLenum type) {
+  std::ifstream file(path);
+  if (file.is_open()) {
+    std::stringstream buffer;
 
-  if (vertexFile.is_open() && fragmentFile.is_open()) {
-    std::stringstream vertexBuffer;
-    std::stringstream fragmentBuffer;
+    buffer << file.rdbuf();
 
-    vertexBuffer << vertexFile.rdbuf();
-    fragmentBuffer << fragmentFile.rdbuf();
+    auto codeString = buffer.str();
 
-    std::string vertexCode = vertexBuffer.str();
-    std::string fragmentCode = fragmentBuffer.str();
+    file.close();
 
-    vertexFile.close();
-    fragmentFile.close();
+    auto code = codeString.c_str();
 
-    const char *vShaderCode = vertexCode.c_str();
-    const char *fShaderCode = fragmentCode.c_str();
-
-    unsigned int vertex, fragment;
+    GLuint shader;
     int success;
     char infoLog[512];
 
-    vertex = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertex, 1, &vShaderCode, nullptr);
-    glCompileShader(vertex);
-    glGetShaderiv(vertex, GL_COMPILE_STATUS, &success);
+    shader = glCreateShader(type);
+    glShaderSource(shader, 1, &code, nullptr);
+    glCompileShader(shader);
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
     if (!success) {
-      glGetShaderInfoLog(vertex, 512, nullptr, infoLog);
-      std::cerr << "Error::Shader::Vertex::CompilationFailed\n"
-                << vertexPath << infoLog << std::endl;
+      glGetShaderInfoLog(shader, 512, nullptr, infoLog);
+      std::println("Error compiling shader at {}, info: {}", path, infoLog);
+      exit(EXIT_FAILURE);
     }
-
-    fragment = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragment, 1, &fShaderCode, nullptr);
-    glCompileShader(fragment);
-    glGetShaderiv(fragment, GL_COMPILE_STATUS, &success);
-    if (!success) {
-      glGetShaderInfoLog(fragment, 512, nullptr, infoLog);
-      std::cerr << "Error::Shader::Fragment::CompilationFailed\n"
-                << fragmentPath << infoLog << std::endl;
-    }
-
-    ID = glCreateProgram();
-    glAttachShader(ID, vertex);
-    glAttachShader(ID, fragment);
-    glLinkProgram(ID);
-    glGetProgramiv(ID, GL_LINK_STATUS, &success);
-    if (!success) {
-      glGetProgramInfoLog(ID, 512, nullptr, infoLog);
-      std::cerr << "Error::Shader::Program::LinkingFailed\n"
-                << infoLog << std::endl;
-    }
-
-    glDeleteShader(vertex);
-    glDeleteShader(fragment);
-  } else {
-    std::cerr << "Error::Shader::FileNotSuccessfullyRead" << std::endl;
+    return shader;
   }
 }
 
-void Shader::use() { glUseProgram(ID); }
+GLuint createShader(const char *vertexPath, const char *fragmentPath) {
+  auto vertex = compileShader(vertexPath, GL_VERTEX_SHADER);
+  auto fragment = compileShader(fragmentPath, GL_FRAGMENT_SHADER);
 
-void Shader::setBool(const std::string &name, bool value) const {
-  glUniform1i(glGetUniformLocation(ID, name.c_str()), (int)value);
+  auto program = glCreateProgram();
+  glAttachShader(program, vertex);
+  glAttachShader(program, fragment);
+  glLinkProgram(program);
+
+  int success;
+  char infoLog[512];
+
+  glGetProgramiv(program, GL_LINK_STATUS, &success);
+  if (!success) {
+    glGetProgramInfoLog(program, 512, nullptr, infoLog);
+    std::println("Error linking program {}", infoLog);
+    exit(EXIT_FAILURE);
+  }
+  return program;
 }
 
-void Shader::setInt(const std::string &name, int value) const {
-  glUniform1i(glGetUniformLocation(ID, name.c_str()), value);
+void use(GLuint program) { glUseProgram(program); }
+
+void setBool(GLuint program, const std::string &name, bool value) {
+  glUniform1i(glGetUniformLocation(program, name.c_str()), (int)value);
 }
 
-void Shader::setFloat(const std::string &name, float value) const {
-  glUniform1f(glGetUniformLocation(ID, name.c_str()), value);
+void setInt(GLuint program, const std::string &name, int value) {
+  glUniform1i(glGetUniformLocation(program, name.c_str()), value);
 }
 
-void Shader::setMat4(const std::string &name, glm::mat4 matrix) const {
-  glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE,
+void setFloat(GLuint program, const std::string &name, float value) {
+  glUniform1f(glGetUniformLocation(program, name.c_str()), value);
+}
+
+void setMat4(GLuint program, const std::string &name, glm::mat4 matrix) {
+  glUniformMatrix4fv(glGetUniformLocation(program, name.c_str()), 1, GL_FALSE,
                      glm::value_ptr(matrix));
 }
 
-void Shader::setVec3(const std::string &name, glm::vec3 vec) const {
-  glUniform3fv(glGetUniformLocation(ID, name.c_str()), 1, glm::value_ptr(vec));
+void setVec3(GLuint program, const std::string &name, glm::vec3 vec) {
+  glUniform3fv(glGetUniformLocation(program, name.c_str()), 1, glm::value_ptr(vec));
 }
 
-void Shader::setPointLight(glm::vec3 pos, int index) {
+void setPointLight(GLuint program, glm::vec3 pos, int index) {
   std::stringstream name;
   name << "pointLights[" << index << "].";
 
@@ -118,16 +109,16 @@ void Shader::setPointLight(glm::vec3 pos, int index) {
   std::stringstream quadratic;
   quadratic << name.str() << "quadratic";
 
-  setVec3(position.str(), pos);
-  setVec3(ambient.str(), glm::vec3{0.5f});
-  setVec3(diffuse.str(), glm::vec3{0.8f});
-  setVec3(specular.str(), glm::vec3{1.0f});
-  setFloat(constant.str(), 1.0f);
-  setFloat(linear.str(), 0.09f);
-  setFloat(quadratic.str(), 0.032f);
+  setVec3(program, position.str(), pos);
+  setVec3(program, ambient.str(), glm::vec3{0.5f});
+  setVec3(program, diffuse.str(), glm::vec3{0.8f});
+  setVec3(program, specular.str(), glm::vec3{1.0f});
+  setFloat(program, constant.str(), 1.0f);
+  setFloat(program, linear.str(), 0.09f);
+  setFloat(program, quadratic.str(), 0.032f);
 }
 
-void Shader::setDirLight(glm::vec3 dir) {
+void setDirLight(GLuint program, glm::vec3 dir) {
   std::stringstream name;
   name << "dirLight.";
 
@@ -143,8 +134,8 @@ void Shader::setDirLight(glm::vec3 dir) {
   std::stringstream specular;
   specular << name.str() << "specular";
 
-  setVec3(direction.str(), dir);
-  setVec3(ambient.str(), glm::vec3{0.05});
-  setVec3(diffuse.str(), glm::vec3{0.4f});
-  setVec3(specular.str(), glm::vec3{0.5f});
+  setVec3(program, direction.str(), dir);
+  setVec3(program, ambient.str(), glm::vec3{0.05});
+  setVec3(program, diffuse.str(), glm::vec3{0.4f});
+  setVec3(program, specular.str(), glm::vec3{0.5f});
 }

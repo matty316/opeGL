@@ -15,12 +15,12 @@ Model::Model(std::string path, glm::vec3 pos, glm::vec3 rotation,
   loadModel(path);
 }
 
-void Model::draw(Shader &shader) {
+void Model::draw(GLuint shader) {
   auto model = glm::mat4{1.0f};
   model = glm::translate(model, position);
   model = glm::rotate(model, glm::radians(rotationAngle), rotation);
   model = glm::scale(model, glm::vec3{scale});
-  shader.setMat4("model", model);
+  setMat4(shader, "model", model);
 
   for (size_t i = 0; i < meshes.size(); i++) {
     meshes[i].draw(shader);

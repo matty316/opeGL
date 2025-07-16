@@ -10,10 +10,10 @@ Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices,
   setupMesh();
 }
 
-void Mesh::draw(Shader &shader) {
+void Mesh::draw(GLuint shader) {
   unsigned int diffuseNr = 1;
   unsigned int specularNr = 1;
-  shader.setInt("tiling", 1);
+  setInt(shader, "tiling", 1);
 
   for (size_t i = 0; i < textures.size(); i++) {
     glActiveTexture(GL_TEXTURE0 + i);
@@ -25,7 +25,7 @@ void Mesh::draw(Shader &shader) {
     else if (name == "texture_specular")
       number = std::to_string(specularNr++);
 
-    shader.setInt(("material." + name + number).c_str(), i);
+    setInt(shader, ("material." + name + number).c_str(), i);
     glBindTexture(GL_TEXTURE_2D, textures[i].id);
   }
 
