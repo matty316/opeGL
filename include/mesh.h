@@ -12,22 +12,18 @@ struct Vertex {
 };
 
 struct Texture {
-  unsigned int id;
+  GLuint id;
   std::string type;
   std::string path;
 };
 
-class Mesh {
-public:
-  std::vector<Vertex> vertices;
-  std::vector<unsigned int> indices;
+struct Mesh {
+  GLuint VAO, VBO, EBO;
   std::vector<Texture> textures;
-
-  Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices,
-       std::vector<Texture> textures);
-  void draw(GLuint shader);
-
-private:
-  unsigned int VAO, VBO, EBO;
-  void setupMesh();
+  std::vector<unsigned int> indices;
+  std::vector<Vertex> vertices;
 };
+
+Mesh createMesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices,
+                std::vector<Texture> textures);
+void drawMesh(Mesh &mesh, GLuint shader);

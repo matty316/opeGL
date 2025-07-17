@@ -1,5 +1,7 @@
 #include "model.h"
 #include "glad/glad.h"
+#include "glm/common.hpp"
+#include "mesh.h"
 #include "stb_image.h"
 
 #include <assimp/Importer.hpp>
@@ -8,26 +10,39 @@
 #include <glm/glm.hpp>
 #include <iostream>
 
-Model::Model(const char *path, glm::vec3 pos, glm::vec3 rotation,
-             float rotationAngle, float scale)
-    : position(pos), rotation(rotation), rotationAngle(rotationAngle),
-      scale(scale) {
-  loadModel(path);
+void loadModel(Model &model, const char *path);
+void processNode(Model &model, aiNode *node, const aiScene *scene);
+Mesh processMesh(Model &model, aiMesh *mesh, const aiScene *scene);
+std::vector<Texture> loadMaterialTextures(Model &model, aiMaterial *mat,
+                                          aiTextureType type,
+                                          std::string typeName);
+unsigned int TextureFromFile(const char *path, const std::string &directory);
+
+Model createModel(const char *path, glm::vec3 pos, glm::vec3 rotation,
+                  float rotationAngle, float scale) {
+  Model model;
+  model.position = pos;
+  model.rotation = rotation;
+  model.rotationAngle = rotationAngle;
+  model.scale = scale;
+  loadModel(model, path);
+  return model;
 }
 
-void Model::draw(GLuint shader) {
-  auto model = glm::mat4{1.0f};
-  model = glm::translate(model, position);
-  model = glm::rotate(model, glm::radians(rotationAngle), rotation);
-  model = glm::scale(model, glm::vec3{scale});
-  setMat4(shader, "model", model);
+void drawModel(Model &model, GLuint shader) {
+  auto modelMatrix = glm::mat4{1.0f};
+  modelMatrix = glm::translate(modelMatrix, model.position);
+  modelMatrix = glm::rotate(modelMatrix, glm::radians(model.rotationAngle),
+                            model.rotation);
+  modelMatrix = glm::scale(modelMatrix, glm::vec3{model.scale});
+  setMat4(shader, "model", modelMatrix);
 
-  for (size_t i = 0; i < meshes.size(); i++) {
-    meshes[i].draw(shader);
+  for (auto &mesh : model.meshes) {
+    drawMesh(mesh, shader);
   }
 }
 
-void Model::loadModel(const char *path) {
+void loadModel(Model &model, const char *path) {
   Assimp::Importer import;
   const aiScene *scene =
       import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
@@ -38,22 +53,21 @@ void Model::loadModel(const char *path) {
   }
 
   std::string pathStr{path};
-  dir = pathStr.substr(0, pathStr.find_last_of('/'));
-  processNode(scene->mRootNode, scene);
+  model.dir = pathStr.substr(0, pathStr.find_last_of('/'));
+  processNode(model, scene->mRootNode, scene);
 }
 
-void Model::processNode(aiNode *node, const aiScene *scene) {
-
+void processNode(Model &model, aiNode *node, const aiScene *scene) {
   for (size_t i = 0; i < node->mNumMeshes; i++) {
     aiMesh *mesh = scene->mMeshes[node->mMeshes[i]];
-    meshes.push_back(processMesh(mesh, scene));
+    model.meshes.push_back(processMesh(model, mesh, scene));
   }
   for (size_t i = 0; i < node->mNumChildren; i++) {
-    processNode(node->mChildren[i], scene);
+    processNode(model, node->mChildren[i], scene);
   }
 }
 
-Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene) {
+Mesh processMesh(Model &model, aiMesh *mesh, const aiScene *scene) {
   std::vector<Vertex> vertices;
   std::vector<unsigned int> indices;
   std::vector<Texture> textures;
@@ -88,46 +102,45 @@ Mesh Model::processMesh(aiMesh *mesh, const aiScene *scene) {
   }
 
   aiMaterial *material = scene->mMaterials[mesh->mMaterialIndex];
-  std::vector<Texture> diffuseMaps =
-      loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
+  std::vector<Texture> diffuseMaps = loadMaterialTextures(
+      model, material, aiTextureType_DIFFUSE, "texture_diffuse");
   textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
   std::vector<Texture> specularMaps = loadMaterialTextures(
-      material, aiTextureType_SPECULAR, "texture_specular");
+      model, material, aiTextureType_SPECULAR, "texture_specular");
   textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
 
-  return Mesh(vertices, indices, textures);
+  return createMesh(vertices, indices, textures);
 }
 
-std::vector<Texture> Model::loadMaterialTextures(aiMaterial *mat,
-                                                 aiTextureType type,
-                                                 std::string typeName) {
+std::vector<Texture> loadMaterialTextures(Model &model, aiMaterial *mat,
+                                          aiTextureType type,
+                                          std::string typeName) {
   std::vector<Texture> textures;
   for (size_t i = 0; i < mat->GetTextureCount(type); i++) {
     aiString str;
     mat->GetTexture(type, i, &str);
     bool skip = false;
 
-    for (size_t j = 0; j < textures_loaded.size(); j++) {
-      if (std::strcmp(textures_loaded[j].path.data(), str.C_Str()) == 0) {
-        textures.push_back(textures_loaded[j]);
+    for (size_t j = 0; j < model.textures_loaded.size(); j++) {
+      if (std::strcmp(model.textures_loaded[j].path.data(), str.C_Str()) == 0) {
+        textures.push_back(model.textures_loaded[j]);
         skip = true;
         break;
       }
     }
     if (!skip) {
       Texture texture;
-      texture.id = TextureFromFile(str.C_Str(), dir);
+      texture.id = TextureFromFile(str.C_Str(), model.dir);
       texture.type = typeName;
       texture.path = str.C_Str();
       textures.push_back(texture);
-      textures_loaded.push_back(texture);
+      model.textures_loaded.push_back(texture);
     }
   }
   return textures;
 }
 
-unsigned int Model::TextureFromFile(const char *path,
-                                    const std::string &directory) {
+unsigned int TextureFromFile(const char *path, const std::string &directory) {
   std::string filename = std::string(path);
   filename = directory + '/' + filename;
 

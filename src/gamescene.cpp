@@ -109,13 +109,13 @@ void updateScene(int width, int height) {
 }
 
 void addModel(const char* path, glm::vec3 pos, glm::vec3 rotation, float angle, float scale) {
-  Model model{path, pos, rotation, angle, scale};
+  Model model = createModel(path, pos, rotation, angle, scale);
   models.push_back(model);
 }
 
 void renderModels(GLuint shader) {
-  for (size_t i = 0; i < models.size(); i++) {
-    models[i].draw(shader);
+  for (auto &model : models) {
+    drawModel(model, shader);
   }
 
   drawPlane(shader);

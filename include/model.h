@@ -3,31 +3,22 @@
 #include "mesh.h"
 #include <assimp/mesh.h>
 #include <assimp/scene.h>
+#include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <string>
 #include <vector>
-#include <glad/glad.h>
 
-class Model {
-public:
+struct Model {
+  std::vector<Mesh> meshes;
+  std::string dir;
+  std::vector<Texture> textures_loaded;
   glm::vec3 position{0.0f};
   glm::vec3 rotation{1.0f};
   float rotationAngle = 0.0f;
   float scale = 0.5f;
-
-  Model(const char *path, glm::vec3 pos, glm::vec3 rotation,
-        float rotationAngle, float scale);
-  void draw(GLuint shader);
-
-private:
-  std::vector<Mesh> meshes;
-  std::string dir;
-  std::vector<Texture> textures_loaded;
-
-  void loadModel(const char *path);
-  void processNode(aiNode *node, const aiScene *scene);
-  Mesh processMesh(aiMesh *mesh, const aiScene *scene);
-  std::vector<Texture> loadMaterialTextures(aiMaterial *mat, aiTextureType type,
-                                            std::string typeName);
-  unsigned int TextureFromFile(const char *path, const std::string &directory);
 };
+
+Model createModel(const char *path, glm::vec3 pos, glm::vec3 rotation,
+                  float rotationAngle, float scale);
+void drawModel(Model &model, GLuint shader);
+
