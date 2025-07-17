@@ -29,38 +29,45 @@ float lastFrame = 0.0f;
 std::vector<Model> models;
 
 std::vector<glm::vec3> pLightPositions{glm::vec3{0.7f, 0.2f, 2.0f}};
-glm::vec3 dirLight{-0.2f, -1.0f, -0.3f};
+glm::vec3 dirLight{-2.0f, 4.0f, -1.0f};
 
-unsigned int skyboxVAO, skyboxVBO, skyboxTexture;
-
+GLuint skyboxVAO, skyboxVBO, skyboxTexture, debugShadowShader;
 GLuint shader, skyboxShader, depthShader;
+glm::mat4 lightSpaceMatrix;
 
 void setupSkyboxVAO();
 unsigned int loadSkybox();
 void setupDepthMap();
-void renderDepthMap();
+void renderDepthMap(float nearPlane, float farPlane);
+void renderDebugQuad(float nearPlane, float farPlane);
 
 void createScene() {
   shader = createShader("resources/shader.vert", "resources/shader.frag");
   skyboxShader = createShader("resources/skybox.vert", "resources/skybox.frag");
   depthShader = createShader("resources/shadow.vert", "resources/shadow.frag");
+  debugShadowShader =
+      createShader("resources/shadowDebug.vert", "resources/shadowDebug.frag");
+
+  setupDepthMap();
   use(shader);
   setInt(shader, "numOfPointLights", pLightPositions.size());
+  setInt(shader, "shadowMap", 11);
   setDirLight(shader, dirLight);
   for (size_t i = 0; i < pLightPositions.size(); i++) {
     setPointLight(shader, pLightPositions[i], i);
   }
-  setInt(depthShader, "shadowMap", 0);
+  setInt(debugShadowShader, "depthMap", 0);
 
   addModel("resources/backpack.obj", glm::vec3{0.0f, -1.0f, 0.0f},
-                 glm::vec3{1.0f}, 0.0f, 0.5f);
+           glm::vec3{1.0f}, 0.0f, 0.5f);
 
   skyboxTexture = loadSkybox();
   setupSkyboxVAO();
   use(skyboxShader);
   setInt(skyboxShader, "skybox", 0);
 
-  createPlane("resources/textures/rocky_terrain_02_diff_4k.png", "resources/textures/rocky_terrain_02_diff_4k.png");
+  createPlane("resources/textures/rocky_terrain_02_diff_4k.png",
+              "resources/textures/rocky_terrain_02_diff_4k.png");
   createCamera({0.0f, 0.0f, 3.0f});
 }
 
@@ -108,7 +115,8 @@ void updateScene(int width, int height) {
   screenHeight = height;
 }
 
-void addModel(const char* path, glm::vec3 pos, glm::vec3 rotation, float angle, float scale) {
+void addModel(const char *path, glm::vec3 pos, glm::vec3 rotation, float angle,
+              float scale) {
   Model model = createModel(path, pos, rotation, angle, scale);
   models.push_back(model);
 }
@@ -125,7 +133,8 @@ void renderScene(GLFWwindow *window) {
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  renderDepthMap();
+  float nearPlane = 1.0f, farPlane = 7.5f;
+  renderDepthMap(nearPlane, farPlane);
 
   use(shader);
   setVec3(shader, "viewPos", cameraPos());
@@ -138,6 +147,10 @@ void renderScene(GLFWwindow *window) {
 
   auto view = getView();
   setMat4(shader, "view", view);
+  setMat4(shader, "lightSpaceMatrix", lightSpaceMatrix);
+
+  glActiveTexture(GL_TEXTURE11);
+  glBindTexture(GL_TEXTURE_2D, depthMap);
 
   renderModels(shader);
 
@@ -156,6 +169,8 @@ void renderScene(GLFWwindow *window) {
   glDrawArrays(GL_TRIANGLES, 0, 36);
   glBindVertexArray(0);
   glDepthFunc(GL_LESS); // set depth function back to default
+
+//  renderDebugQuad(nearPlane, farPlane);
 
   glfwSwapBuffers(window);
   glfwPollEvents();
@@ -233,7 +248,7 @@ void setupDepthMap() {
   glGenTextures(1, &depthMap);
   glBindTexture(GL_TEXTURE_2D, depthMap);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH,
-               SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+               SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -247,11 +262,11 @@ void setupDepthMap() {
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void renderDepthMap() {
-  auto lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 7.5f);
+void renderDepthMap(float nearPlane, float farPlane) {
+  auto lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, nearPlane, farPlane);
   auto lightView =
       glm::lookAt(dirLight, glm::vec3{0.0f}, glm::vec3{0.0f, 1.0f, 0.0f});
-  auto lightSpaceMatrix = lightProjection * lightView;
+  lightSpaceMatrix = lightProjection * lightView;
 
   use(depthShader);
   setMat4(depthShader, "lightSpaceMatrix", lightSpaceMatrix);
@@ -259,7 +274,6 @@ void renderDepthMap() {
   glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
   glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
   glClear(GL_DEPTH_BUFFER_BIT);
-  glActiveTexture(GL_TEXTURE0);
 
   renderModels(depthShader);
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -268,5 +282,35 @@ void renderDepthMap() {
   use(shader);
   setMat4(shader, "lightSpaceMatrix", lightSpaceMatrix);
   glActiveTexture(GL_TEXTURE0);
+}
+
+void renderDebugQuad(float nearPlane, float farPlane) {
+  use(debugShadowShader);
+  setFloat(debugShadowShader, "near_plane", nearPlane);
+  setFloat(debugShadowShader, "far_plane", farPlane);
+  glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, depthMap);
+
+  GLuint quadVAO = 0, quadVBO;
+  if (quadVAO == 0) {
+    float quadVerts[] = {
+        -1.0f, 1.0f, 0.0f, 0.0f, 1.0f, -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+        1.0f,  1.0f, 0.0f, 1.0f, 1.0f, 1.0f,  -1.0f, 0.0f, 1.0f, 0.0f,
+    };
+    glGenVertexArrays(1, &quadVAO);
+    glGenBuffers(1, &quadVBO);
+    glBindVertexArray(quadVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(quadVerts), &quadVerts,
+                 GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
+                          (void *)0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
+                          (void *)(3 * sizeof(float)));
+  }
+  glBindVertexArray(quadVAO);
+  glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+  glBindVertexArray(0);
 }

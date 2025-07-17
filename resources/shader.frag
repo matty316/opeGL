@@ -36,7 +36,7 @@ uniform int numOfPointLights;
 uniform PointLight pointLights[16];
 uniform Material material;
 uniform int tiling;
-uniform sampler2D shadowMap;
+layout (location = 11) uniform sampler2D shadowMap;
 
 vec3 calculateDirLight(DirectionalLight light, vec3 normal, vec3 viewDir, float shadow) {
     vec3 lightDir = normalize(-light.direction);
@@ -47,6 +47,7 @@ vec3 calculateDirLight(DirectionalLight light, vec3 normal, vec3 viewDir, float 
     vec3 diffuse = light.diffuse * diff * texture(material.diffuse, TexCoords * tiling).rgb;
     vec3 specular = light.specular * spec * texture(material.specular, TexCoords * tiling).rgb;
     return ambient + (1.0 - shadow) * (diffuse + specular);
+//    return shadow == 1.0 ? vec3(1.0, 0.0, 0.0) : vec3(0.0, 0.0, 1.0); //for debuggin shadows, sigh
 }
 
 vec3 calculatePointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir, float shadow) {
