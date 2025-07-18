@@ -26,4 +26,4 @@ struct Mesh {
 
 Mesh createMesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices,
                 std::vector<Texture> textures);
-void drawMesh(Mesh &mesh, GLuint shader);
+void drawMesh(const Mesh &mesh, GLuint shader);

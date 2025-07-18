@@ -20,5 +20,5 @@ struct Model {
 
 Model createModel(const char *path, glm::vec3 pos, glm::vec3 rotation,
                   float rotationAngle, float scale);
-void drawModel(Model &model, GLuint shader);
+void drawModel(const Model &model, GLuint shader);
 

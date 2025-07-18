@@ -14,7 +14,7 @@ Mesh createMesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices,
   return mesh;
 }
 
-void drawMesh(Mesh &mesh, GLuint shader) {
+void drawMesh(const Mesh &mesh, GLuint shader) {
   unsigned int diffuseNr = 1;
   unsigned int specularNr = 1;
   setInt(shader, "tiling", 1);

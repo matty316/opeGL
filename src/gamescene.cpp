@@ -58,7 +58,7 @@ void createScene() {
   }
   setInt(debugShadowShader, "depthMap", 0);
 
-  addModel("resources/backpack.obj", glm::vec3{0.0f, -1.0f, 0.0f},
+  addModel("resources/rubber_duck/scene.gltf", glm::vec3{0.0f, -1.0f, 0.0f},
            glm::vec3{1.0f}, 0.0f, 0.5f);
 
   skyboxTexture = loadSkybox();
@@ -170,7 +170,7 @@ void renderScene(GLFWwindow *window) {
   glBindVertexArray(0);
   glDepthFunc(GL_LESS); // set depth function back to default
 
-//  renderDebugQuad(nearPlane, farPlane);
+  // renderDebugQuad(nearPlane, farPlane);
 
   glfwSwapBuffers(window);
   glfwPollEvents();
@@ -251,8 +251,10 @@ void setupDepthMap() {
                SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+  float borderColor[] = {1.0f, 1.0f, 1.0f, 1.0f};
+  glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
 
   glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
   glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D,
@@ -263,7 +265,8 @@ void setupDepthMap() {
 }
 
 void renderDepthMap(float nearPlane, float farPlane) {
-  auto lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, nearPlane, farPlane);
+  auto lightProjection =
+      glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, nearPlane, farPlane);
   auto lightView =
       glm::lookAt(dirLight, glm::vec3{0.0f}, glm::vec3{0.0f, 1.0f, 0.0f});
   lightSpaceMatrix = lightProjection * lightView;

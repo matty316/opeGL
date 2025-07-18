@@ -29,7 +29,7 @@ Model createModel(const char *path, glm::vec3 pos, glm::vec3 rotation,
   return model;
 }
 
-void drawModel(Model &model, GLuint shader) {
+void drawModel(const Model &model, GLuint shader) {
   auto modelMatrix = glm::mat4{1.0f};
   modelMatrix = glm::translate(modelMatrix, model.position);
   modelMatrix = glm::rotate(modelMatrix, glm::radians(model.rotationAngle),
