@@ -40,13 +40,19 @@ GLuint compileShader(const char *path, GLenum type) {
   }
 }
 
-GLuint createShader(const char *vertexPath, const char *fragmentPath) {
+GLuint createShader(const char *vertexPath, const char *fragmentPath, const char *geometryPath) {
   auto vertex = compileShader(vertexPath, GL_VERTEX_SHADER);
   auto fragment = compileShader(fragmentPath, GL_FRAGMENT_SHADER);
+  GLuint geometry;
+
+  if (geometryPath)
+    geometry = compileShader(geometryPath, GL_GEOMETRY_SHADER);
 
   auto program = glCreateProgram();
   glAttachShader(program, vertex);
   glAttachShader(program, fragment);
+  if (geometryPath)
+    glAttachShader(program, geometry);
   glLinkProgram(program);
 
   int success;

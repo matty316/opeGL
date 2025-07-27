@@ -4,8 +4,8 @@
 #include <glm/glm.hpp>
 #include <string>
 
-GLuint createShader(const char *vertextPath, const char *fragmentPath);
-
+GLuint createShader(const char *vertextPath, const char *fragmentPath,
+                    const char *geometryPath);
 void use(GLuint shader);
 void setBool(GLuint shader, const std::string &name, bool value);
 void setInt(GLuint shader, const std::string &name, int value);

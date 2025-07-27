@@ -2,6 +2,7 @@
 #include "camera.h"
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
+#include "glm/trigonometric.hpp"
 #include "model.h"
 #include "plane.h"
 #include "shader.h"
@@ -32,21 +33,30 @@ std::vector<glm::vec3> pLightPositions{glm::vec3{0.7f, 0.2f, 2.0f}};
 glm::vec3 dirLight{-2.0f, 4.0f, -1.0f};
 
 GLuint skyboxVAO, skyboxVBO, skyboxTexture, debugShadowShader;
-GLuint shader, skyboxShader, depthShader;
+GLuint shader, skyboxShader, depthShader, depthCubeShader;
 glm::mat4 lightSpaceMatrix;
+
+GLuint depthCubemap;
 
 void setupSkyboxVAO();
 unsigned int loadSkybox();
 void setupDepthMap();
+void setupDepthCubeMap();
 void renderDepthMap(float nearPlane, float farPlane);
 void renderDebugQuad(float nearPlane, float farPlane);
 
 void createScene() {
-  shader = createShader("resources/shader.vert", "resources/shader.frag");
-  skyboxShader = createShader("resources/skybox.vert", "resources/skybox.frag");
-  depthShader = createShader("resources/shadow.vert", "resources/shadow.frag");
-  debugShadowShader =
-      createShader("resources/shadowDebug.vert", "resources/shadowDebug.frag");
+  shader =
+      createShader("resources/shader.vert", "resources/shader.frag", nullptr);
+  skyboxShader =
+      createShader("resources/skybox.vert", "resources/skybox.frag", nullptr);
+  depthShader =
+      createShader("resources/shadow.vert", "resources/shadow.frag", nullptr);
+  debugShadowShader = createShader("resources/shadowDebug.vert",
+                                   "resources/shadowDebug.frag", nullptr);
+  depthCubeShader =
+      createShader("resources/shadowCube.vert", "resources/shadowCube.frag",
+                   "resources/shadowCube.gs");
 
   setupDepthMap();
   use(shader);
@@ -58,7 +68,7 @@ void createScene() {
   }
   setInt(debugShadowShader, "depthMap", 0);
 
-  addModel("resources/rubber_duck/scene.gltf", glm::vec3{0.0f, -1.0f, 0.0f},
+  addModel("resources/backpack.obj", glm::vec3{0.0f, -1.0f, 0.0f},
            glm::vec3{1.0f}, 0.0f, 0.5f);
 
   skyboxTexture = loadSkybox();
@@ -148,9 +158,6 @@ void renderScene(GLFWwindow *window) {
   auto view = getView();
   setMat4(shader, "view", view);
   setMat4(shader, "lightSpaceMatrix", lightSpaceMatrix);
-
-  glActiveTexture(GL_TEXTURE11);
-  glBindTexture(GL_TEXTURE_2D, depthMap);
 
   renderModels(shader);
 
@@ -284,7 +291,8 @@ void renderDepthMap(float nearPlane, float farPlane) {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   use(shader);
   setMat4(shader, "lightSpaceMatrix", lightSpaceMatrix);
-  glActiveTexture(GL_TEXTURE0);
+  glActiveTexture(GL_TEXTURE11);
+  glBindTexture(GL_TEXTURE_2D, depthMap);
 }
 
 void renderDebugQuad(float nearPlane, float farPlane) {
@@ -316,4 +324,65 @@ void renderDebugQuad(float nearPlane, float farPlane) {
   glBindVertexArray(quadVAO);
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
   glBindVertexArray(0);
+}
+
+void setupDepthCubeMap() {
+  glGenTextures(1, &depthCubemap);
+  glBindTexture(GL_TEXTURE_CUBE_MAP, depthCubemap);
+  for (size_t i = 0; i < 6; i++)
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT,
+                 SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT,
+                 nullptr);
+
+  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+  glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+  glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthCubemap, 0);
+  glDrawBuffer(GL_NONE);
+  glReadBuffer(GL_NONE);
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void renderDepthCubeMap(float nearPlane, float farPlane, glm::vec3 lightPos) {
+  auto shadowProj = glm::perspective(glm::radians(90.0f),
+                                     (float)SHADOW_WIDTH / (float)SHADOW_HEIGHT,
+                                     nearPlane, farPlane);
+  std::array<glm::mat4, 6> shadowTransforms = {
+      shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(1.0f, 0.0f, 0.0f),
+                               glm::vec3(0.0f, -1.0f, 0.0f)),
+      shadowProj * glm::lookAt(lightPos,
+                               lightPos + glm::vec3(-1.0f, 0.0f, 0.0f),
+                               glm::vec3(0.0f, -1.0f, 0.0f)),
+      shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(0.0f, 1.0f, 0.0f),
+                               glm::vec3(0.0f, 0.0f, .0f)),
+      shadowProj * glm::lookAt(lightPos,
+                               lightPos + glm::vec3(0.0f, -1.0f, 0.0f),
+                               glm::vec3(0.0f, 0.0f, -1.0f)),
+      shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(0.0f, 0.0f, 1.0f),
+                               glm::vec3(0.0f, -1.0f, 0.0f)),
+      shadowProj * glm::lookAt(lightPos,
+                               lightPos + glm::vec3(0.0f, 0.0f, -1.0f),
+                               glm::vec3(0.0f, -1.0f, 0.0f)),
+  };
+
+  glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+  glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+  glClear(GL_DEPTH_BUFFER_BIT);
+
+  use(depthShader);
+  for (unsigned int i = 0; i < 6; i++) 
+    setMat4(depthCubeShader, "shadowMatrices[" + std::to_string(i) + "]", shadowTransforms[i]);
+  setFloat(depthCubeShader, "far_plane", farPlane);
+  setVec3(depthCubeShader, "lightPos", lightPos);
+  renderModels(depthCubeShader);
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  glViewport(0, 0, screenWidth, screenHeight);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  use(shader);
+  glActiveTexture(GL_TEXTURE12);
+  glBindTexture(GL_TEXTURE_CUBE_MAP, depthCubemap);
 }
