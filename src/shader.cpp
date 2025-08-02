@@ -37,6 +37,8 @@ GLuint compileShader(const char *path, GLenum type) {
       exit(EXIT_FAILURE);
     }
     return shader;
+  } else {
+    exit(EXIT_FAILURE);
   }
 }
 
@@ -116,9 +118,9 @@ void setPointLight(GLuint program, glm::vec3 pos, int index) {
   quadratic << name.str() << "quadratic";
 
   setVec3(program, position.str(), pos);
-  setVec3(program, ambient.str(), glm::vec3{0.5f});
-  setVec3(program, diffuse.str(), glm::vec3{0.8f});
-  setVec3(program, specular.str(), glm::vec3{1.0f});
+  setVec3(program, ambient.str(), glm::vec3{0.05f});
+  setVec3(program, diffuse.str(), glm::vec3{0.3f});
+  setVec3(program, specular.str(), glm::vec3{0.5f});
   setFloat(program, constant.str(), 1.0f);
   setFloat(program, linear.str(), 0.09f);
   setFloat(program, quadratic.str(), 0.032f);
@@ -142,6 +144,6 @@ void setDirLight(GLuint program, glm::vec3 dir) {
 
   setVec3(program, direction.str(), dir);
   setVec3(program, ambient.str(), glm::vec3{0.05});
-  setVec3(program, diffuse.str(), glm::vec3{0.4f});
+  setVec3(program, diffuse.str(), glm::vec3{0.3f});
   setVec3(program, specular.str(), glm::vec3{0.5f});
 }
