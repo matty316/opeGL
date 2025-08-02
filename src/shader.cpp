@@ -135,7 +135,7 @@ void setDirLight(GLuint program, glm::vec3 dir) {
   specular << name.str() << "specular";
 
   setVec3(program, direction.str(), dir);
-  setVec3(program, ambient.str(), glm::vec3{0.05});
+  setVec3(program, ambient.str(), glm::vec3{0.1});
   setVec3(program, diffuse.str(), glm::vec3{0.4f});
   setVec3(program, specular.str(), glm::vec3{0.5f});
 }
