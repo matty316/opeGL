@@ -13,12 +13,4 @@ add_library(opeGL "${MY_SOURCES}" "${MY_HEADERS}" "${CMAKE_CURRENT_SOURCE_DIR}/s
 target_include_directories(opeGL PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include/")
 target_link_libraries(opeGL PRIVATE glfw assimp)
 
-#add_custom_target(copy_resources ALL
-#        COMMAND ${CMAKE_COMMAND} -E copy_directory
-#        ${PROJECT_SOURCE_DIR}/resources
-#        ${PROJECT_BINARY_DIR}/resources
-#        COMMENT "Copying resources into binary directory")
-
-#add_dependencies(opeGL copy_resources)
-
 target_compile_options(opeGL PRIVATE -Wall -Wextra -g)
