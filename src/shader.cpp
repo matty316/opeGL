@@ -38,6 +38,7 @@ GLuint compileShader(const char *path, GLenum type) {
     }
     return shader;
   }
+  exit(EXIT_FAILURE);
 }
 
 GLuint createShader(const char *vertexPath, const char *fragmentPath) {
