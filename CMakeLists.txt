@@ -5,13 +5,11 @@ add_subdirectory("thirdParty/assimp")
 
 project(opeGL)
 set(CMAKE_CXX_STANDARD 23)
-find_package(ZLIB REQUIRED) 
-
 file(GLOB_RECURSE MY_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
 file(GLOB_RECURSE MY_HEADERS CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/include/*.h")
 file(GLOB_RECURSE MY_RESOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/resources/*")
 
 add_library(opeGL "${MY_SOURCES}" "${MY_HEADERS}" "${MY_RESOURCES}" "${CMAKE_CURRENT_SOURCE_DIR}/src/glad.c")
 target_include_directories(opeGL PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include/")
-target_link_libraries(opeGL PRIVATE glfw ZLIB::ZLIB assimp)
+target_link_libraries(opeGL PRIVATE glfw assimp)
 target_compile_options(opeGL PRIVATE -Wall -Wextra -g)
