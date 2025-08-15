@@ -11,11 +11,13 @@ float pitch = 0.0f;
 float movementSpeed = 5.0f;
 float mouseSensitivity = 0.1f;
 float zoom = 45.0f;
+CameraType cameraType;
 
 void updateCameraVecs();
 
-void createCamera(glm::vec3 position) {
+void createCamera(glm::vec3 position, CameraType type) {
   pos = position;
+  cameraType = type;
   worldUp = up;
   updateCameraVecs();
 }
@@ -40,6 +42,9 @@ void processKeyboard(CameraMovement dir, float deltaTime) {
     pos -= right * velocity;
   if (dir == RIGHT)
     pos += right * velocity;
+
+  if (cameraType == FPS) 
+    pos.y = 0.0f;
 }
 
 void processMouseMovement(float xoffset, float yoffset,
