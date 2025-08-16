@@ -9,9 +9,7 @@
 #include <vector>
 
 struct Model {
-  std::vector<Mesh> meshes;
-  std::string dir;
-  std::vector<Texture> textures_loaded;
+  GLuint vao, meshData, perFrameDataBuffer;
   glm::vec3 position{0.0f};
   glm::vec3 rotation{1.0f};
   float rotationAngle = 0.0f;
