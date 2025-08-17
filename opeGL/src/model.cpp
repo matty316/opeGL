@@ -14,6 +14,7 @@
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/glm.hpp>
 #include <print>
+#include <meshoptimizer.h>
 
 struct PerFrameData {
   glm::mat4 mvp;
@@ -85,16 +86,29 @@ void loadModel(Model &model, const char *path) {
   }
 
   std::vector<glm::vec3> positions;
+  std::vector<unsigned int> indices;
   const aiMesh* mesh = scene->mMeshes[0];
+  for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
+    const aiVector3D v = mesh->mVertices[i];
+    positions.push_back(glm::vec3(v.x, v.z, v.y));
+  }
   for (unsigned int i = 0; i < mesh->mNumFaces; i++) {
-    const aiFace& face = mesh->mFaces[i];
-    const unsigned int idx[3] = { face.mIndices[0], face.mIndices[1], face.mIndices[2] };
-    for (int j = 0; j < 3; j++) {
-       const aiVector3D v = mesh->mVertices[idx[j]];
-       positions.push_back(glm::vec3(v.x, v.z, v.y));
+    for (unsigned int j = 0; j < 3; j++) {
+      indices.push_back(mesh->mFaces[i].mIndices[j]);
     }
   }
   aiReleaseImport(scene);
+
+  std::vector<unsigned int> remap(indices.size());
+  const size_t vertexCount = meshopt_generateVertexRemap(remap.data(), indices.data(), indices.size(), positions.data(), indices.size(), sizeof(glm::vec3));
+
+  std::vector<unsigned int> remappedIndices(indices.size());
+  std::vector<glm::vec3> remappedVertices(vertexCount);
+
+  meshopt_remapIndexBuffer(remappedIndices.data(), indices.data(), indices.size(), remap.data());
+  meshopt_remapVertexBuffer(remappedVertices.data(), positions.data(), positions.size(), sizeof(glm::vec3), remap.data());
+
+  
 
   glNamedBufferStorage(model.meshData, sizeof(glm::vec3) * positions.size(), positions.data(), 0);
   

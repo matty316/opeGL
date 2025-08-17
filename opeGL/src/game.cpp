@@ -31,9 +31,8 @@ void start() {
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
-  glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_TRUE);
 
-  window = glfwCreateWindow(800, 600, "OpeGL", nullptr, nullptr);
+  window = glfwCreateWindow(1920, 1080, "OpeGL", nullptr, nullptr);
   if (window == nullptr) {
     std::println("Failed to create window");
     glfwTerminate();
