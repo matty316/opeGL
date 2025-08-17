@@ -1,7 +1,9 @@
 #include "model.h"
 #include "glad/glad.h"
 #include "glm/common.hpp"
+#include "glm/fwd.hpp"
 #include "mesh.h"
+#include "shader.h"
 #include "stb_image.h"
 
 #include <assimp/cimport.h>
@@ -14,11 +16,10 @@
 #include <print>
 
 struct PerFrameData {
-  glm::mat4 m;
+  glm::mat4 mvp;
   int isWireframe;
 };
 const GLsizeiptr kBufferSize = sizeof(PerFrameData);
-int numVerts;
 
 void loadModel(Model &model, const char *path);
 void processNode(Model &model, aiNode *node, const aiScene *scene);
@@ -39,12 +40,28 @@ Model createModel(const char *path, glm::vec3 pos, glm::vec3 rotation,
   return model;
 }
 
-void drawModel(const Model &model, GLuint shader) {
+void drawModel(const Model &model, GLuint shader, glm::mat4 v, glm::mat4 p) {
   auto m = glm::mat4(1.0f); 
   m = glm::translate(m, model.position);
   m = glm::rotate(m, glm::radians(model.rotationAngle), model.rotation);
   m = glm::scale(m, glm::vec3(model.scale));
-   
+
+  PerFrameData perFrameData = { .mvp = m * v * p, .isWireframe = false };
+  use(shader);
+
+  glBindVertexArray(model.vao);
+
+  glNamedBufferSubData(model.perFrameDataBuffer, 0, kBufferSize, &perFrameData);
+  glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+  glDrawArrays(GL_TRIANGLES, 0, model.numVerts);
+
+  perFrameData.isWireframe = true;
+  glNamedBufferSubData(model.perFrameDataBuffer, 0, kBufferSize, &perFrameData);
+
+  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+  glDrawArrays(GL_TRIANGLES, 0, model.numVerts);
+
+  glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
 void loadModel(Model &model, const char *path) {
@@ -86,5 +103,5 @@ void loadModel(Model &model, const char *path) {
   glVertexArrayAttribFormat(model.vao, 0, 3, GL_FLOAT, GL_FALSE, 0);
   glVertexArrayAttribBinding(model.vao, 0, 0);
 
-  numVerts = static_cast<int>(positions.size());
+  model.numVerts = static_cast<int>(positions.size());
 }
