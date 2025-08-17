@@ -31,7 +31,7 @@ std::vector<Model> models;
 std::vector<glm::vec3> pLightPositions{glm::vec3{0.7f, 0.2f, 2.0f}};
 glm::vec3 dirLight{-2.0f, 4.0f, -1.0f};
 
-GLuint skyboxVAO, skyboxVBO, skyboxTexture, debugShadowShader;
+GLuint skyboxVAO, skyboxVBO, skyboxTexture, debugShadowShader, modelShader;
 GLuint shader, skyboxShader, depthShader;
 glm::mat4 lightSpaceMatrix;
 
@@ -47,6 +47,7 @@ void createScene() {
   depthShader = createShader("resources/shadow.vert", "resources/shadow.frag");
   debugShadowShader =
       createShader("resources/shadowDebug.vert", "resources/shadowDebug.frag");
+  modelShader = createShader("resources/modelShader.vert", "resources/modelShader.frag");
 
   setupDepthMap();
   use(shader);
@@ -118,12 +119,11 @@ void addModel(const char *path, glm::vec3 pos, glm::vec3 rotation, float angle,
   models.push_back(model);
 }
 
-void renderModels(GLuint shader) {
-  for (auto &model : models) {
-    drawModel(model, shader);
-  }
-
+void renderModels(GLuint shader, GLuint mShader, glm::mat4 v, glm::mat4 p) {
   drawPlane(shader);
+  for (auto &model : models) {
+    drawModel(model, mShader, v, p);
+  }
 }
 
 void renderScene(GLFWwindow *window) {
@@ -149,7 +149,7 @@ void renderScene(GLFWwindow *window) {
   glActiveTexture(GL_TEXTURE11);
   glBindTexture(GL_TEXTURE_2D, depthMap);
 
-  renderModels(shader);
+  renderModels(shader, modelShader, view, projection);
 
   // draw skybox as last
   glDepthFunc(GL_LEQUAL); // change depth function so depth test passes when
@@ -275,7 +275,7 @@ void renderDepthMap(float nearPlane, float farPlane) {
   glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
   glClear(GL_DEPTH_BUFFER_BIT);
 
-  renderModels(depthShader);
+  renderModels(depthShader, depthShader, lightView, lightProjection);
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
   glViewport(0, 0, screenWidth, screenHeight);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
