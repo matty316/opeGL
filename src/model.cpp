@@ -46,7 +46,7 @@ void drawModel(const Model &model, GLuint shader, glm::mat4 v, glm::mat4 p) {
   m = glm::rotate(m, glm::radians(model.rotationAngle), model.rotation);
   m = glm::scale(m, glm::vec3(model.scale));
 
-  PerFrameData perFrameData = { .mvp = m * v * p, .isWireframe = false };
+  PerFrameData perFrameData = { .mvp = p * v * m, .isWireframe = false };
   use(shader);
 
   glBindVertexArray(model.vao);
