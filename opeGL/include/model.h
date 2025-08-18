@@ -14,7 +14,7 @@ struct Model {
   glm::vec3 rotation{1.0f};
   float rotationAngle = 0.0f;
   float scale = 0.5f;
-  int numVerts = 0;
+  int indicesSize = 0;
 };
 
 Model createModel(const char *path, glm::vec3 pos, glm::vec3 rotation,
