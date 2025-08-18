@@ -12,11 +12,6 @@
 
 GLFWwindow *window;
 
-void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
-  glViewport(0, 0, width, height);
-  updateScene(width, height);
-}
-
 void mouse_callback(GLFWwindow *window, double xposIn, double yposIn) {
   processMouse(window, xposIn, yposIn);
 }
@@ -32,7 +27,7 @@ void start() {
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
 
-  window = glfwCreateWindow(1920, 1080, "OpeGL", nullptr, nullptr);
+  window = glfwCreateWindow(800, 600, "OpeGL", glfwGetPrimaryMonitor(), nullptr);
   if (window == nullptr) {
     std::println("Failed to create window");
     glfwTerminate();
@@ -48,7 +43,6 @@ void start() {
   enableReportGlErrors();
 
   glEnable(GL_DEPTH_TEST);
-  glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
   glfwSetCursorPosCallback(window, mouse_callback);
   glfwSetScrollCallback(window, scroll_callback);
 
@@ -61,6 +55,10 @@ void start() {
 
 void run() {
   while (!glfwWindowShouldClose(window)) {
+    int width, height;
+    glfwGetFramebufferSize(window, &width, &height);
+    glViewport(0, 0, width, height);
+    updateScene(width, height);
     processInput(window);
     renderScene(window);
   }

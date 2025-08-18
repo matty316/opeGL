@@ -12,8 +12,8 @@
 #include <iostream>
 #include <vector>
 
-int screenWidth = 1920;
-int screenHeight = 1080;
+int screenWidth = 800;
+int screenHeight = 600;
 
 float lastX = screenWidth / 2.0f;
 float lastY = screenHeight / 2.0f;
