@@ -24,12 +24,18 @@ void createCamera(const glm::vec3 &pos, const glm::vec3 &target,
   cameraUp = up;
 }
 
+void setUpVector(const glm::vec3& up) {
+  const glm::mat4 view = getViewMatrix();
+  const glm::vec3 dir = -glm::vec3(view[0][2], view[1][2], view[2][2]);
+  cameraOrientation = glm::lookAt(cameraPosition, cameraPosition + dir, up);
+}
 void updateCamera(CameraMovement movement, double deltaTime,
                   const glm::vec2 &mousePos, bool mousePressed) {
   const glm::vec2 delta = mousePos - mousePosition;
   const glm::quat deltaQuat =
       glm::quat(glm::vec3(mouseSpeed * delta.y, mouseSpeed * delta.x, 0.0f));
   cameraOrientation = glm::normalize(deltaQuat * cameraOrientation);
+  setUpVector(cameraUp);
   mousePosition = mousePos;
 
   const glm::mat4 v = glm::mat4_cast(cameraOrientation);
