@@ -1,4 +1,5 @@
 #include "camera.h"
+#include "frameCounter.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include "error.h"
 #include "game.h"
@@ -93,6 +94,8 @@ void run() {
     const double newTimeStamp = glfwGetTime();
     deltaTime = static_cast<float>(newTimeStamp - timeStamp);
     timeStamp = newTimeStamp;
+    
+    tick(deltaTime);
 
     int width, height;
     glfwGetFramebufferSize(window, &width, &height);

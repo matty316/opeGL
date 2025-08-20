@@ -27,7 +27,7 @@ void setUpVector(const glm::vec3& up) {
   const glm::vec3 dir = -glm::vec3(view[0][2], view[1][2], view[2][2]);
   cameraOrientation = glm::lookAt(cameraPosition, cameraPosition + dir, up);
 }
-void updateCamera(CameraMovement movement, double deltaTime,
+void updateCamera(CameraMovement movement, float deltaTime,
                   const glm::vec2 &mousePos, bool mousePressed) {
   const glm::vec2 delta = mousePos - mousePosition;
   const glm::quat deltaQuat =
@@ -60,9 +60,9 @@ void updateCamera(CameraMovement movement, double deltaTime,
   if (accel == glm::vec3(0.0f)) {
     moveSpeed -=
         moveSpeed *
-        std::min((1.0f / damping) * static_cast<float>(deltaTime), 1.0f);
+        std::min((1.0f / damping) * deltaTime, 1.0f);
   } else {
-    moveSpeed += accel * acceleration * static_cast<float>(deltaTime);
+    moveSpeed += accel * acceleration * deltaTime;
     const float maximumSpeed =
         movement.fastSpeed ? maxSpeed * fastCoef : maxSpeed;
     if (glm::length(moveSpeed) > maxSpeed)
@@ -70,7 +70,7 @@ void updateCamera(CameraMovement movement, double deltaTime,
   }
 
   cameraPosition.y = 0.0f;
-  cameraPosition += moveSpeed * static_cast<float>(deltaTime);
+  cameraPosition += moveSpeed * deltaTime;
 }
 
 glm::mat4 getViewMatrix() {

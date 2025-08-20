@@ -13,6 +13,6 @@ struct CameraMovement {
 };
 
 void createCamera();
-void updateCamera(CameraMovement movement, double deltaTime, const glm::vec2& mousePos, bool mousePressed);
+void updateCamera(CameraMovement movement, float deltaTime, const glm::vec2& mousePos, bool mousePressed);
 glm::mat4 getViewMatrix();
 glm::vec3 getCameraPos();
