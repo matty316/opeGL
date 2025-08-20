@@ -12,7 +12,7 @@ struct CameraMovement {
   bool fastSpeed = false;
 };
 
-void createCamera(const glm::vec3 &pos, const glm::vec3 &target, const glm::vec3 &up);
+void createCamera();
 void updateCamera(CameraMovement movement, double deltaTime, const glm::vec2& mousePos, bool mousePressed);
 glm::mat4 getViewMatrix();
 glm::vec3 getCameraPos();

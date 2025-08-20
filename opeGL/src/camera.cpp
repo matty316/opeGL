@@ -12,16 +12,14 @@ float maxSpeed = 10.0f;
 float fastCoef = 10.0f;
 
 glm::vec2 mousePosition = glm::vec2(0.0f);
-glm::vec3 cameraPosition = glm::vec3(0.0f, 10.0f, 10.0f);
+glm::vec3 cameraPosition = glm::vec3(0.0f, 0.0f, -3.0f);
 glm::quat cameraOrientation = glm::quat(glm::vec3(0.0f));
 glm::vec3 moveSpeed = glm::vec3(0.0f);
-glm::vec3 cameraUp = glm::vec3(0.0f, 0.0f, 1.0f);
+glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
-void createCamera(const glm::vec3 &pos, const glm::vec3 &target,
-                  const glm::vec3 &up) {
-  cameraPosition = pos;
-  cameraOrientation = glm::quat(glm::lookAt(pos, target, up));
-  cameraUp = up;
+void createCamera() {
+  auto target = glm::vec3(0.0f);
+  cameraOrientation = glm::quat(glm::lookAt(cameraPosition, target, cameraUp));
 }
 
 void setUpVector(const glm::vec3& up) {
@@ -71,6 +69,7 @@ void updateCamera(CameraMovement movement, double deltaTime,
       moveSpeed = glm::normalize(moveSpeed) * maximumSpeed;
   }
 
+  cameraPosition.y = 0.0f;
   cameraPosition += moveSpeed * static_cast<float>(deltaTime);
 }
 
