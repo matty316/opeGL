@@ -2,24 +2,17 @@
 
 #include <glm/glm.hpp>
 
-enum CameraType {
-  FLY,
-  FPS,
+struct CameraMovement {
+  bool forward = false;
+  bool backward = false;
+  bool left = false;
+  bool right = false;
+  bool up = false;
+  bool down = false;
+  bool fastSpeed = false;
 };
 
-enum CameraMovement {
-  FORWARD,
-  BACKWARD,
-  LEFT,
-  RIGHT,
-};
-
-glm::vec3 cameraPos();
-float getZoom();
-void createCamera(glm::vec3 position, CameraType type = FPS);
-glm::mat4 getView();
-void processKeyboard(CameraMovement dir, float deltaTime);
-void processMouseMovement(float xoffset, float yoffset,
-                          bool constainPitch = true);
-void processMouseScroll(float yoffset);
-
+void createCamera();
+void updateCamera(CameraMovement movement, double deltaTime, const glm::vec2& mousePos, bool mousePressed);
+glm::mat4 getViewMatrix();
+glm::vec3 getCameraPos();

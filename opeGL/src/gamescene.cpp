@@ -23,7 +23,6 @@ const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
 
 unsigned int depthMapFBO, depthMap;
 
-float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
 std::vector<Model> models;
@@ -47,7 +46,8 @@ void createScene() {
   depthShader = createShader("resources/shadow.vert", "resources/shadow.frag");
   debugShadowShader =
       createShader("resources/shadowDebug.vert", "resources/shadowDebug.frag");
-  modelShader = createShader("resources/modelShader.vert", "resources/modelShader.frag");
+  modelShader =
+      createShader("resources/modelShader.vert", "resources/modelShader.frag");
 
   setupDepthMap();
   use(shader);
@@ -66,46 +66,6 @@ void createScene() {
 
   createPlane("resources/textures/rocky_terrain_02_diff_4k.png",
               "resources/textures/rocky_terrain_02_diff_4k.png");
-  createCamera({0.0f, 0.0f, 3.0f});
-}
-
-void processMouse(GLFWwindow *window, double xposIn, double yposIn) {
-  float xpos = static_cast<float>(xposIn);
-  float ypos = static_cast<float>(yposIn);
-
-  if (firstMouse) {
-    lastX = xpos;
-    lastY = ypos;
-    firstMouse = false;
-  }
-
-  float xoffset = xpos - lastX;
-  float yoffset = ypos - lastY;
-
-  lastX = xpos;
-  lastY = ypos;
-
-  processMouseMovement(xoffset, yoffset);
-}
-
-void processScroll(double yoffset) {
-  processMouseScroll(static_cast<float>(yoffset));
-}
-
-void processInput(GLFWwindow *window) {
-  float currentFrame = static_cast<float>(glfwGetTime());
-  deltaTime = currentFrame - lastFrame;
-  lastFrame = currentFrame;
-  if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-    glfwSetWindowShouldClose(window, true);
-  if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-    processKeyboard(FORWARD, deltaTime);
-  if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-    processKeyboard(BACKWARD, deltaTime);
-  if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-    processKeyboard(LEFT, deltaTime);
-  if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-    processKeyboard(RIGHT, deltaTime);
 }
 
 void updateScene(int width, int height) {
@@ -134,15 +94,14 @@ void renderScene(GLFWwindow *window) {
   renderDepthMap(nearPlane, farPlane);
 
   use(shader);
-  setVec3(shader, "viewPos", cameraPos());
+  setVec3(shader, "viewPos", getCameraPos());
   setFloat(shader, "material.shininess", 32.0f);
 
   auto aspect = (float)screenWidth / (float)screenHeight;
-  auto projection =
-      glm::perspective(glm::radians(getZoom()), aspect, 0.1f, 100.0f);
+  auto projection = glm::perspective(glm::radians(45.0f), aspect, 0.1f, 100.0f);
   setMat4(shader, "projection", projection);
 
-  auto view = getView();
+  auto view = getViewMatrix();
   setMat4(shader, "view", view);
   setMat4(shader, "lightSpaceMatrix", lightSpaceMatrix);
 
@@ -156,7 +115,7 @@ void renderScene(GLFWwindow *window) {
                           // values are equal to depth buffer's content
   use(skyboxShader);
   view = glm::mat4(
-      glm::mat3(getView())); // remove translation from the view matrix
+      glm::mat3(getViewMatrix())); // remove translation from the view matrix
   setMat4(skyboxShader, "view", view);
   setMat4(skyboxShader, "projection", projection);
   // skybox cube
@@ -168,9 +127,6 @@ void renderScene(GLFWwindow *window) {
   glDepthFunc(GL_LESS); // set depth function back to default
 
   // renderDebugQuad(nearPlane, farPlane);
-
-  glfwSwapBuffers(window);
-  glfwPollEvents();
 }
 
 unsigned int loadSkybox() {

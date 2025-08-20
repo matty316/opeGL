@@ -1,84 +1,82 @@
 #include "camera.h"
+#include "glm/ext/quaternion_geometric.hpp"
+#include "glm/fwd.hpp"
+#include <algorithm>
+#include <glm/ext.hpp>
 #include <glm/ext/matrix_transform.hpp>
 
-glm::vec3 pos{0.0f, 0.0f, 0.0f};
-glm::vec3 up{0.0f, 1.0f, 0.0f};
-glm::vec3 front{0.0f, 0.0f, -1.0f};
-glm::vec3 worldUp;
-glm::vec3 right;
-float yaw = -90.0f;
-float pitch = 0.0f;
-float movementSpeed = 5.0f;
-float mouseSensitivity = 0.1f;
-float zoom = 45.0f;
-CameraType cameraType;
+float mouseSpeed = 4.0f;
+float acceleration = 150.0f;
+float damping = 0.2f;
+float maxSpeed = 10.0f;
+float fastCoef = 10.0f;
 
-void updateCameraVecs();
+glm::vec2 mousePosition = glm::vec2(0.0f);
+glm::vec3 cameraPosition = glm::vec3(0.0f, 0.0f, -3.0f);
+glm::quat cameraOrientation = glm::quat(glm::vec3(0.0f));
+glm::vec3 moveSpeed = glm::vec3(0.0f);
+glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
-void createCamera(glm::vec3 position, CameraType type) {
-  pos = position;
-  cameraType = type;
-  worldUp = up;
-  updateCameraVecs();
+void createCamera() {
+  auto target = glm::vec3(0.0f);
+  cameraOrientation = glm::quat(glm::lookAt(cameraPosition, target, cameraUp));
 }
 
-glm::vec3 cameraPos() {
-  return pos;
+void setUpVector(const glm::vec3& up) {
+  const glm::mat4 view = getViewMatrix();
+  const glm::vec3 dir = -glm::vec3(view[0][2], view[1][2], view[2][2]);
+  cameraOrientation = glm::lookAt(cameraPosition, cameraPosition + dir, up);
 }
+void updateCamera(CameraMovement movement, double deltaTime,
+                  const glm::vec2 &mousePos, bool mousePressed) {
+  const glm::vec2 delta = mousePos - mousePosition;
+  const glm::quat deltaQuat =
+      glm::quat(glm::vec3(mouseSpeed * delta.y, mouseSpeed * delta.x, 0.0f));
+  cameraOrientation = glm::normalize(deltaQuat * cameraOrientation);
+  setUpVector(cameraUp);
+  mousePosition = mousePos;
 
-float getZoom() {
-  return zoom;
-}
+  const glm::mat4 v = glm::mat4_cast(cameraOrientation);
+  const glm::vec3 forward = -glm::vec3(v[0][2], v[1][2], v[2][2]);
+  const glm::vec3 right = glm::vec3(v[0][0], v[1][0], v[2][0]);
+  const glm::vec3 up = glm::cross(right, forward);
 
-glm::mat4 getView() { return glm::lookAt(pos, pos + front, up); }
+  glm::vec3 accel(0.0f);
+  if (movement.forward)
+    accel += forward;
+  if (movement.backward)
+    accel -= forward;
+  if (movement.left)
+    accel -= right;
+  if (movement.right)
+    accel += right;
+  if (movement.up)
+    accel += up;
+  if (movement.down)
+    accel -= up;
+  if (movement.fastSpeed)
+    accel *= fastCoef;
 
-void processKeyboard(CameraMovement dir, float deltaTime) {
-  float velocity = movementSpeed * deltaTime;
-  if (dir == FORWARD)
-    pos += front * velocity;
-  if (dir == BACKWARD)
-    pos -= front * velocity;
-  if (dir == LEFT)
-    pos -= right * velocity;
-  if (dir == RIGHT)
-    pos += right * velocity;
-
-  if (cameraType == FPS) 
-    pos.y = 0.0f;
-}
-
-void processMouseMovement(float xoffset, float yoffset,
-                                  bool constainPitch) {
-  xoffset *= mouseSensitivity;
-  yoffset *= mouseSensitivity;
-
-  yaw += xoffset;
-  pitch += yoffset;
-
-  if (constainPitch) {
-    if (pitch > 89.0f)
-      pitch = 89.0f;
-    if (pitch < -89.0f)
-      pitch = -89.0f;
+  if (accel == glm::vec3(0.0f)) {
+    moveSpeed -=
+        moveSpeed *
+        std::min((1.0f / damping) * static_cast<float>(deltaTime), 1.0f);
+  } else {
+    moveSpeed += accel * acceleration * static_cast<float>(deltaTime);
+    const float maximumSpeed =
+        movement.fastSpeed ? maxSpeed * fastCoef : maxSpeed;
+    if (glm::length(moveSpeed) > maxSpeed)
+      moveSpeed = glm::normalize(moveSpeed) * maximumSpeed;
   }
 
-  updateCameraVecs();
+  cameraPosition.y = 0.0f;
+  cameraPosition += moveSpeed * static_cast<float>(deltaTime);
 }
 
-void processMouseScroll(float yoffset) {
-  zoom -= (float)yoffset;
-  if (zoom < 1.0f)
-    zoom = 1.0f;
-  if (zoom > 45.0f)
-    zoom = 45.0f;
+glm::mat4 getViewMatrix() {
+  const glm::mat4 t = glm::translate(glm::mat4(1.0f), -cameraPosition);
+  const glm::mat4 r = glm::mat4_cast(cameraOrientation);
+  return r * t;
 }
 
-void updateCameraVecs() {
-  glm::vec3 f;
-  f.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-  f.y = sin(glm::radians(pitch));
-  f.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-  front = glm::normalize(f);
-  right = glm::normalize(glm::cross(front, worldUp));
-  up = glm::normalize(glm::cross(right, front));
-}
+glm::vec3 getCameraPos() { return cameraPosition; }
