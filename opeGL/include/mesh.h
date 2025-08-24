@@ -1,29 +1,34 @@
 #pragma once
 
-#include "shader.h"
-#include <glm/glm.hpp>
-#include <string>
+#include <cstdint>
 #include <vector>
-
-struct Vertex {
-  glm::vec3 position;
-  glm::vec3 normal;
-  glm::vec2 texCoords;
-};
-
-struct Texture {
-  GLuint id;
-  std::string type;
-  std::string path;
-};
+constexpr const uint32_t kMaxLODs = 8;
+constexpr const uint32_t kMaxStreams = 8;
 
 struct Mesh {
-  GLuint VAO, VBO, EBO;
-  std::vector<Texture> textures;
-  std::vector<unsigned int> indices;
-  std::vector<Vertex> vertices;
+  uint32_t lodCount;
+  uint32_t streamCount;
+  uint32_t materialID;
+  uint32_t meshSize;
+  uint32_t vertexCount;
+  uint32_t lodOffset[kMaxLODs];
+  inline uint64_t lodSize(uint32_t lod) {
+    return lodOffset[lod+1] - lodOffset[lod];
+  }
+  uint64_t streamOffset[kMaxStreams];
+  uint32_t streamElementSize[kMaxStreams];
 };
 
-Mesh createMesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices,
-                std::vector<Texture> textures);
-void drawMesh(const Mesh &mesh, GLuint shader);
+struct MeshFileHeader {
+  uint32_t magicValue;
+  uint32_t meshCount;
+  uint32_t dataBlockStartOffset;
+  uint32_t indexDataSize;
+  uint32_t vertexDataSize;
+};
+
+struct MeshData {
+  std::vector<uint32_t> indexData;
+  std::vector<float> vertexData;
+  std::vector<Mesh> meshes;
+};

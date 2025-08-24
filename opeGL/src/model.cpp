@@ -28,9 +28,6 @@ const GLsizeiptr kBufferSize = sizeof(PerFrameData);
 void loadModel(Model &model, const char *path);
 void processNode(Model &model, aiNode *node, const aiScene *scene);
 Mesh processMesh(Model &model, aiMesh *mesh, const aiScene *scene);
-std::vector<Texture> loadMaterialTextures(Model &model, aiMaterial *mat,
-                                          aiTextureType type,
-                                          std::string typeName);
 unsigned int TextureFromFile(const char *path, const std::string &directory);
 
 Model createModel(const char *path, glm::vec3 pos, glm::vec3 rotation,
