@@ -4,6 +4,9 @@
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
 #include <cstdint>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <print>
 #include <sys/types.h>
 #include <vector>
@@ -43,21 +46,21 @@ Mesh convertAiMesh(const aiMesh *m) {
     const aiVector3D &v = m->mVertices[i];
     const aiVector3D &n = m->mNormals[i];
     const aiVector3D &t = hasTexCoords ? m->mTextureCoords[0][i] : aiVector3D();
-    data.vertextData.push_back(v.x);
-    data.vertextData.push_back(v.y);
-    data.vertextData.push_back(v.z);
+    data.vertexData.push_back(v.x);
+    data.vertexData.push_back(v.y);
+    data.vertexData.push_back(v.z);
     if (exportTextures) {
-      data.vertextData.push_back(t.x);
-      data.vertextData.push_back(t.y);
+      data.vertexData.push_back(t.x);
+      data.vertexData.push_back(t.y);
     }
     if (exportNormals) {
-      data.vertextData.push_back(n.x);
-      data.vertextData.push_back(n.y);
-      data.vertextData.push_back(n.z);
+      data.vertexData.push_back(n.x);
+      data.vertexData.push_back(n.y);
+      data.vertexData.push_back(n.z);
     }
   }
   for (size_t i = 0; i < m->mNumFaces; i++) {
-    const aiFace& f = m->mFaces[i];
+    const aiFace &f = m->mFaces[i];
     data.indexData.push_back(f.mIndices[0] + vertexOffset);
     data.indexData.push_back(f.mIndices[1] + vertexOffset);
     data.indexData.push_back(f.mIndices[2] + vertexOffset);
@@ -67,17 +70,74 @@ Mesh convertAiMesh(const aiMesh *m) {
   return result;
 }
 
-bool loadFile(const char* fileName) {
-  if (verbose) std::println("Loading {}...", fileName);
-  const unsigned int flags = aiProcess_JoinIdenticalVertices
-    | aiProcess_Triangulate 
-    | aiProcess_GenSmoothNormals
-    | aiProcess_PreTransformVertices
-    | aiProcess_RemoveRedundantMaterials
-    | aiProcess_FindDegenerates
-    | aiProcess_FindInvalidData
-    | aiProcess_FindInstances
-    | aiProcess_OptimizeMeshes;
+bool loadFile(const char *fileName) {
+  if (verbose)
+    std::println("Loading {}...", fileName);
+  const unsigned int flags =
+      aiProcess_JoinIdenticalVertices | aiProcess_Triangulate |
+      aiProcess_GenSmoothNormals | aiProcess_PreTransformVertices |
+      aiProcess_RemoveRedundantMaterials | aiProcess_FindDegenerates |
+      aiProcess_FindInvalidData | aiProcess_FindInstances |
+      aiProcess_OptimizeMeshes;
 
+  const aiScene *scene = aiImportFile(fileName, flags);
+  if (!scene || !scene->HasMeshes()) {
+    std::println("Unable to load {}", fileName);
+    return false;
+  }
 
+  data.meshes.reserve(scene->mNumMeshes);
+  for (size_t i = 0; i < scene->mNumMeshes; i++)
+    data.meshes.push_back(convertAiMesh(scene->mMeshes[i]));
+  return true;
+}
+
+inline void saveMeshedToFile(FILE *f) {
+  const MeshFileHeader header = {
+      .magicValue = 0x12345678,
+      .meshCount = (uint32_t)data.meshes.size(),
+      .dataBlockStartOffset = (uint32_t)(sizeof(MeshFileHeader) +
+                                         data.meshes.size() * sizeof(Mesh)),
+      .indexDataSize =
+          static_cast<uint32_t>(data.indexData.size() * sizeof(uint32_t)),
+      .vertexDataSize =
+          static_cast<uint32_t>(data.vertexData.size() * sizeof(float))};
+  fwrite(&header, 1, sizeof(header), f);
+  fwrite(data.meshes.data(), header.meshCount, sizeof(Mesh), f);
+  fwrite(data.indexData.data(), 1, header.indexDataSize, f);
+  fwrite(data.vertexData.data(), 1, header.vertexDataSize, f);
+}
+
+int main(int argc, char **argv) {
+  bool exportTextures = false;
+  bool exportNormals = false;
+
+  if (argc < 3) {
+    std::println("Usage: meshconvert <input> <output> [--export-texcoords | "
+                 "-t] [--export-normals | -n]");
+    std::println("Options: ");
+    std::println("\t--export-texcoords | -t: export texture coordinates");
+    std::println("\t--export-normals | -n: export normals");
+    exit(255);
+  }
+
+  for (int i = 3; i < argc; i++) {
+    exportTextures |=
+        !strcmp(argv[i], "--export-texcords") || !strcmp(argv[i], "-t");
+    exportNormals |=
+        !strcmp(argv[i], "--export-normals") || !strcmp(argv[i], "-n");
+    const bool exportAll = !strcmp(argv[i], "-tn") || !strcmp(argv[i], "-nt");
+    exportTextures |= exportAll;
+    exportNormals |= exportAll;
+  }
+  if (exportTextures)
+    numElementsToStore += 2;
+  if (exportNormals)
+    numElementsToStore += 3;
+  if (!loadFile(argv[1]))
+    exit(255);
+  FILE *f = fopen(argv[2], "wb");
+  saveMeshedToFile(f);
+  fclose(f);
+  return 0;
 }

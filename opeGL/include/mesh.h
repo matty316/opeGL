@@ -29,6 +29,6 @@ struct MeshFileHeader {
 
 struct MeshData {
   std::vector<uint32_t> indexData;
-  std::vector<float> vertextData;
+  std::vector<float> vertexData;
   std::vector<Mesh> meshes;
 };
