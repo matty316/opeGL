@@ -1,26 +1,3 @@
-/// @ref gtx_exterior_product
-
-#include <limits>
-
-namespace glm {
-namespace detail
-{
-	template<typename T, qualifier Q, bool Aligned>
-	struct compute_cross_vec2
-	{
-		GLM_FUNC_QUALIFIER GLM_CONSTEXPR static T call(vec<2, T, Q> const& v, vec<2, T, Q> const& u)
-		{
-			GLM_STATIC_ASSERT(std::numeric_limits<T>::is_iec559 || GLM_CONFIG_UNRESTRICTED_FLOAT, "'cross' accepts only floating-point inputs");
-
-			return v.x * u.y - u.x * v.y;
-		}
-	};
-}//namespace detail
-
-	template<typename T, qualifier Q>
-	GLM_FUNC_QUALIFIER GLM_CONSTEXPR T cross(vec<2, T, Q> const& x, vec<2, T, Q> const& y)
-	{
-		return detail::compute_cross_vec2<T, Q, detail::is_aligned<Q>::value>::call(x, y);
-	}
-}//namespace glm
-
+version https://git-lfs.github.com/spec/v1
+oid sha256:d1189ed7ab71e3ee8e563b28368e9c12bc8bcd63f632c3d494f3605fa427fce1
+size 694

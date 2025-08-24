@@ -1,8 +1,3 @@
-#!/bin/bash
-
-cd build
-cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DASSIMP_BUILD_ZLIB=ON .. -G "Ninja"
-ninja
-if [ $? -eq 0 ]; then
-  ./game
-fi
+version https://git-lfs.github.com/spec/v1
+oid sha256:b0e165f3e21d379cba0f2b4703ae436fe55e38881601c7aa1f8159a742396fac
+size 105

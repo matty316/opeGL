@@ -1,34 +1,3 @@
-#ifdef GLM_FORCE_CXX_UNKNOWN
-#undef GLM_FORCE_CXX_UNKNOWN
-#endif
-#ifdef GLM_FORCE_CXX20
-#undef GLM_FORCE_CXX20
-#endif
-#ifdef GLM_FORCE_CXX17
-#undef GLM_FORCE_CXX17
-#endif
-#ifdef GLM_FORCE_CXX14
-#undef GLM_FORCE_CXX14
-#endif
-#ifdef GLM_FORCE_CXX11
-#undef GLM_FORCE_CXX11
-#endif
-#ifdef GLM_FORCE_CXX03
-#undef GLM_FORCE_CXX03
-#endif
-#ifdef GLM_FORCE_CXX98
-#undef GLM_FORCE_CXX98
-#endif
-
-#define GLM_FORCE_CXX03
-
-#include <glm/glm.hpp>
-#include <glm/ext.hpp>
-
-int main()
-{
-	int Error = 0;
-
-	return Error;
-}
-
+version https://git-lfs.github.com/spec/v1
+oid sha256:8feffb812d4ef2ed57b1109ea5653b44025d4f5f91db288b16bcf51039900732
+size 504

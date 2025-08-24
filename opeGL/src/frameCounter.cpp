@@ -1,25 +1,3 @@
-#include "frameCounter.h"
-#include <print>
-
-const float avgIntervalSec = 0.5f;
-unsigned int numFrames = 0;
-float accumulatedTime = 0.0f;
-float currentFPS = 0.0f;
-
-bool tick(float deltaTime, bool frameRendered) {
-  if (frameRendered)
-    numFrames++;
-  accumulatedTime += deltaTime;
-
-  if (accumulatedTime < avgIntervalSec)
-    return false;
-  
-  currentFPS = static_cast<float>(numFrames / accumulatedTime);
-
-  std::println("FPS {}", currentFPS);
-  numFrames = 0;
-  accumulatedTime = 0.0f;
-  return true;
-}
-
-inline float getFPS() { return currentFPS; }
+version https://git-lfs.github.com/spec/v1
+oid sha256:11076394233711f1eb04cf1d2a38fc45ce23197105102e736299caa5648945c8
+size 553

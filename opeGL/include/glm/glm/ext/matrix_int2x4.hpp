@@ -1,33 +1,3 @@
-/// @ref ext_matrix_int2x4
-/// @file glm/ext/matrix_int2x4.hpp
-///
-/// @see core (dependence)
-///
-/// @defgroup ext_matrix_int2x4 GLM_EXT_matrix_int2x4
-/// @ingroup ext
-///
-/// Include <glm/ext/matrix_int2x4.hpp> to use the features of this extension.
-///
-/// Defines a number of matrices with integer types.
-
-#pragma once
-
-// Dependency:
-#include "../mat2x4.hpp"
-
-#if GLM_MESSAGES == GLM_ENABLE && !defined(GLM_EXT_INCLUDED)
-#	pragma message("GLM: GLM_EXT_matrix_int2x4 extension included")
-#endif
-
-namespace glm
-{
-	/// @addtogroup ext_matrix_int2x4
-	/// @{
-
-	/// Signed integer 2x4 matrix.
-	///
-	/// @see ext_matrix_int2x4
-	typedef mat<2, 4, int, defaultp>	imat2x4;
-
-	/// @}
-}//namespace glm
+version https://git-lfs.github.com/spec/v1
+oid sha256:14f2dc172aa1d618ba7ecd4109e69a07e36399d1979daa622790f871dd93df52
+size 694

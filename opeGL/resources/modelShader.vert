@@ -1,13 +1,3 @@
-#version 460 core
-layout(std140, binding = 0) uniform PerFrameData
-{
-  uniform mat4 mvp;
-  uniform int isWireframe;
-};
-layout(location=0) in vec3 pos;
-layout(location=0) out vec3 color;
-
-void main() {
-  gl_Position = mvp * vec4(pos, 1.0);
-  color = isWireframe > 0 ? vec3(0.0f) : pos.xyz;
-}
+version https://git-lfs.github.com/spec/v1
+oid sha256:f765483034dc8de20c852b353636c8df518b1e0b98a0865a4b005462c6e61e4b
+size 291

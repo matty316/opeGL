@@ -1,9 +1,3 @@
-cmake_minimum_required(VERSION 3.6 FATAL_ERROR)
-cmake_policy(VERSION 3.6)
-project(test_find_glm)
-
-find_package(glm REQUIRED)
-
-add_executable(test_find_glm test_find_glm.cpp)
-target_link_libraries(test_find_glm glm::glm)
-
+version https://git-lfs.github.com/spec/v1
+oid sha256:8d38c33dba5491552c6bd66cad23c4c7188b3124d5f5e63c24cc6d54f17c1f99
+size 221

@@ -1,6 +1,3 @@
-var searchData=
-[
-  ['integer_2ehpp_2309',['integer.hpp',['../a00542.html',1,'']]],
-  ['intersect_2ehpp_2310',['intersect.hpp',['../a00644.html',1,'']]],
-  ['io_2ehpp_2311',['io.hpp',['../a00647.html',1,'']]]
-];
+version https://git-lfs.github.com/spec/v1
+oid sha256:aeec8912a3a10a22b765179a7971d854e67285d3cbfabfb5ec5691e005df6cff
+size 212

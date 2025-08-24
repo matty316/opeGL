@@ -1,18 +1,3 @@
-#pragma once
-
-#include <glm/glm.hpp>
-
-struct CameraMovement {
-  bool forward = false;
-  bool backward = false;
-  bool left = false;
-  bool right = false;
-  bool up = false;
-  bool down = false;
-  bool fastSpeed = false;
-};
-
-void createCamera();
-void updateCamera(CameraMovement movement, float deltaTime, const glm::vec2& mousePos, bool mousePressed);
-glm::mat4 getViewMatrix();
-glm::vec3 getCameraPos();
+version https://git-lfs.github.com/spec/v1
+oid sha256:73a985bf3aebc1fa228867a43c05345dfa8b7d0709411c4ed743670aa796b2c3
+size 405

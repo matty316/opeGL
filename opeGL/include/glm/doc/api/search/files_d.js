@@ -1,8 +1,3 @@
-var searchData=
-[
-  ['packing_2ehpp_2414',['packing.hpp',['../a00554.html',1,'']]],
-  ['pca_2ehpp_2415',['pca.hpp',['../a00698.html',1,'']]],
-  ['perpendicular_2ehpp_2416',['perpendicular.hpp',['../a00701.html',1,'']]],
-  ['polar_5fcoordinates_2ehpp_2417',['polar_coordinates.hpp',['../a00704.html',1,'']]],
-  ['projection_2ehpp_2418',['projection.hpp',['../a00707.html',1,'']]]
-];
+version https://git-lfs.github.com/spec/v1
+oid sha256:80a1c220b34a13093cf908d5722916f65fc5cecb26bf75eb6d8bd6a5d16cbd4b
+size 382

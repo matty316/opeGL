@@ -1,28 +1,3 @@
-#include <glm/ext/scalar_packing.hpp>
-#include <glm/ext/scalar_relational.hpp>
-
-int test_packUnorm()
-{
-	int Error = 0;
-
-
-	return Error;
-}
-
-int test_packSnorm()
-{
-	int Error = 0;
-
-
-	return Error;
-}
-
-int main()
-{
-	int Error = 0;
-
-	Error += test_packUnorm();
-	Error += test_packSnorm();
-
-	return Error;
-}
+version https://git-lfs.github.com/spec/v1
+oid sha256:237031ea677e910d073da9d24e1c75addf647878c4e06c3ea8fe9ac751044a6c
+size 302

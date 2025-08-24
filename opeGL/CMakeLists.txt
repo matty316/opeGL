@@ -1,16 +1,3 @@
-cmake_minimum_required(VERSION 3.13)
-
-add_subdirectory("thirdParty/glfw")
-add_subdirectory("thirdParty/assimp")
-add_subdirectory("thirdParty/meshoptimizer")
-
-project(opeGL)
-set(CMAKE_CXX_STANDARD 23)
-file(GLOB_RECURSE MY_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
-file(GLOB_RECURSE MY_HEADERS CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/include/*.h")
-file(GLOB_RECURSE MY_RESOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/resources/*")
-
-add_library(opeGL "${MY_SOURCES}" "${MY_HEADERS}" "${MY_RESOURCES}" "${CMAKE_CURRENT_SOURCE_DIR}/src/glad.c")
-target_include_directories(opeGL PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include/")
-target_link_libraries(opeGL PRIVATE glfw assimp meshoptimizer)
-target_compile_options(opeGL PRIVATE -Wall -Wextra -g)
+version https://git-lfs.github.com/spec/v1
+oid sha256:3c908904c453332eb69232a475510bca596ee42dca25185429173809d0c6664a
+size 906

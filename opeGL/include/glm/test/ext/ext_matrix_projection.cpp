@@ -1,13 +1,3 @@
-#include <glm/ext/matrix_relational.hpp>
-#include <glm/ext/matrix_projection.hpp>
-#include <glm/ext/matrix_float4x4.hpp>
-#include <glm/ext/vector_relational.hpp>
-#include <glm/ext/vector_float4.hpp>
-#include <glm/ext/vector_float3.hpp>
-
-int main()
-{
-	int Error = 0;
-
-	return Error;
-}
+version https://git-lfs.github.com/spec/v1
+oid sha256:c807fd6e7b0ef81874275bb8bb34fd95295042d0d50fca11e53920e7857d82fa
+size 284

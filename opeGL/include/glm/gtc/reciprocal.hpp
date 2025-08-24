@@ -1,24 +1,3 @@
-/// @ref gtc_reciprocal
-/// @file glm/gtc/reciprocal.hpp
-///
-/// @see core (dependence)
-///
-/// @defgroup gtc_reciprocal GLM_GTC_reciprocal
-/// @ingroup gtc
-///
-/// Include <glm/gtc/reciprocal.hpp> to use the features of this extension.
-///
-/// Define secant, cosecant and cotangent functions.
-
-#pragma once
-
-// Dependencies
-#include "../detail/setup.hpp"
-
-#if GLM_MESSAGES == GLM_ENABLE && !defined(GLM_EXT_INCLUDED)
-#	pragma message("GLM: GLM_GTC_reciprocal extension included")
-#endif
-
-#include "../ext/scalar_reciprocal.hpp"
-#include "../ext/vector_reciprocal.hpp"
-
+version https://git-lfs.github.com/spec/v1
+oid sha256:0a9cd5036a7ab476d21e5829d4a5a196868b3c7b56cb49c479da6bed03d0dd13
+size 570

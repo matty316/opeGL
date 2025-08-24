@@ -1,5 +1,3 @@
-var searchData=
-[
-  ['core_20features_4355',['Core features',['../a00889.html',1,'']]],
-  ['common_20functions_4356',['Common functions',['../a00803.html',1,'']]]
-];
+version https://git-lfs.github.com/spec/v1
+oid sha256:39e80f42e152c047517f56be31d427eceaecaf84e6679ed0926c815f3f6c0c98
+size 166

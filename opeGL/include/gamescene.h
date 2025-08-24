@@ -1,17 +1,3 @@
-#pragma once
-
-// clang-format off
-#include "glad/glad.h"
-#include "GLFW/glfw3.h"
-#include "glm/glm.hpp"
-#include "shader.h"
-// clang-format on
-
-void createScene();
-void processMouse(GLFWwindow *window, double xposIn, double yposIn);
-void processScroll(double yoffset);
-void updateScene(int width, int height);
-void processInput(GLFWwindow *window);
-void renderScene(GLFWwindow *window);
-void addModel(const char *path, glm::vec3 pos, glm::vec3 rotation, float angle,
-              float scale);
+version https://git-lfs.github.com/spec/v1
+oid sha256:87ca384fff1350f25dedb81df7262b48968e55e0be09ec70a8c4283425a589e6
+size 475

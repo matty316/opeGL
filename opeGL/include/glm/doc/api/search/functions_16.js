@@ -1,4 +1,3 @@
-var searchData=
-[
-  ['zero_3092',['zero',['../a00899.html#ga788f5a421fc0f40a1296ebc094cbaa8a',1,'glm']]]
-];
+version https://git-lfs.github.com/spec/v1
+oid sha256:002c04aac11f3bc710f1bb9a5a3dab04fbe3bde914810ee82c75e38b597287c8
+size 108

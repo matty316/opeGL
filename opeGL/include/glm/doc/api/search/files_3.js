@@ -1,4 +1,3 @@
-var searchData=
-[
-  ['dual_5fquaternion_2ehpp_2279',['dual_quaternion.hpp',['../a00605.html',1,'']]]
-];
+version https://git-lfs.github.com/spec/v1
+oid sha256:094732b4897aa1cccadfed9376175e611bed0cf09b42052a23020962f4ef1952
+size 104
