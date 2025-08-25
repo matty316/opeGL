@@ -1,12 +1,13 @@
 #include "gamescene.h"
 #include "camera.h"
+#include "glm/fwd.hpp"
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
+#include "mesh.h"
 #include "model.h"
 #include "plane.h"
 #include "shader.h"
 #include "stb_image.h"
-#include "mesh.h"
 
 #include <X11/Xlib.h>
 #include <cstddef>
@@ -25,7 +26,7 @@ bool firstMouse = true;
 
 const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
 
-unsigned int depthMapFBO, depthMap;
+GLuint depthMapFBO, depthMap;
 
 float lastFrame = 0.0f;
 
@@ -34,15 +35,28 @@ std::vector<Model> models;
 std::vector<glm::vec3> pLightPositions{glm::vec3{0.7f, 0.2f, 2.0f}};
 glm::vec3 dirLight{-2.0f, 4.0f, -1.0f};
 
-GLuint skyboxVAO, skyboxVBO, skyboxTexture, debugShadowShader, modelShader;
+GLuint skyboxVAO, skyboxVBO, skyboxTexture, debugShadowShader, modelShader,
+    gridShader, gridVAO;
 GLuint shader, skyboxShader, depthShader;
 glm::mat4 lightSpaceMatrix;
 
 void setupSkyboxVAO();
 unsigned int loadSkybox();
+void renderSkybox(glm::mat4 view, glm::mat4 projection);
 void setupDepthMap();
 void renderDepthMap(float nearPlane, float farPlane);
 void renderDebugQuad(float nearPlane, float farPlane);
+void renderGrid(glm::mat4 v, glm::mat4 p);
+
+struct GridFrameData {
+  glm::mat4 v;
+  glm::mat4 p;
+  glm::vec4 camPos;
+};
+
+const GLsizeiptr kGridBufferSize = sizeof(GridFrameData);
+
+GLuint gridBuffer;
 
 void createScene() {
   shader = createShader("resources/shader.vert", "resources/shader.frag");
@@ -52,6 +66,7 @@ void createScene() {
       createShader("resources/shadowDebug.vert", "resources/shadowDebug.frag");
   modelShader =
       createShader("resources/modelShader.vert", "resources/modelShader.frag");
+  gridShader = createShader("resources/grid.vert", "resources/grid.frag");
 
   setupDepthMap();
   use(shader);
@@ -70,6 +85,20 @@ void createScene() {
 
   createPlane("resources/textures/rocky_terrain_02_diff_4k.png",
               "resources/textures/rocky_terrain_02_diff_4k.png");
+
+  use(gridShader);
+
+  glCreateBuffers(1, &gridBuffer);
+  glNamedBufferStorage(gridBuffer, kGridBufferSize, nullptr,
+                       GL_DYNAMIC_STORAGE_BIT);
+  glBindBufferRange(GL_UNIFORM_BUFFER, 0, gridBuffer, 0, kGridBufferSize);
+  glCreateVertexArrays(1, &gridVAO);
+  glBindVertexArray(gridVAO);
+
+  glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
 void updateScene(int width, int height) {
@@ -79,11 +108,11 @@ void updateScene(int width, int height) {
 
 void addModel(const char *path, glm::vec3 pos, glm::vec3 rotation, float angle,
               float scale) {
-  FILE* f = fopen(path, "rb");
+  FILE *f = fopen(path, "rb");
   if (!f) {
     std::println("Unable to open mesh file: {}", path);
     exit(255);
-  } 
+  }
   MeshFileHeader header;
   if (fread(&header, 1, sizeof(header), f) != sizeof(header)) {
     std::println("Unable to read file header");
@@ -93,7 +122,7 @@ void addModel(const char *path, glm::vec3 pos, glm::vec3 rotation, float angle,
   std::vector<Mesh> meshes;
   const auto meshCount = header.meshCount;
   meshes.resize(meshCount);
-  if (fread(meshes.data(), sizeof(Mesh), meshCount,f) != meshCount) {
+  if (fread(meshes.data(), sizeof(Mesh), meshCount, f) != meshCount) {
     std::println("Could not read meshes");
     exit(255);
   }
@@ -104,25 +133,25 @@ void addModel(const char *path, glm::vec3 pos, glm::vec3 rotation, float angle,
   const auto vtxDataSize = header.vertexDataSize;
   indexData.resize(idxDataSize / sizeof(uint32_t));
   vertexData.resize(vtxDataSize / sizeof(float));
-  if ((fread(indexData.data(), 1, idxDataSize, f) != idxDataSize) || (fread(vertexData.data(), 1, vtxDataSize, f) != vtxDataSize)) {
+  if ((fread(indexData.data(), 1, idxDataSize, f) != idxDataSize) ||
+      (fread(vertexData.data(), 1, vtxDataSize, f) != vtxDataSize)) {
     std::println("Unable to read index/vertex data");
     exit(255);
   }
   fclose(f);
-  Model model = createModel(pos, scale, indexData.data(), idxDataSize, vertexData.data(), vtxDataSize);
+  Model model = createModel(pos, scale, indexData.data(), idxDataSize,
+                            vertexData.data(), vtxDataSize);
   models.push_back(model);
 }
 
 void renderModels(GLuint shader, GLuint mShader, glm::mat4 v, glm::mat4 p) {
-  drawPlane(shader);
+  // drawPlane(shader);
   for (auto &model : models) {
     drawModel(model, mShader, v, p);
   }
 }
 
 void renderScene(GLFWwindow *window) {
-  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   float nearPlane = 1.0f, farPlane = 7.5f;
   renderDepthMap(nearPlane, farPlane);
@@ -132,7 +161,8 @@ void renderScene(GLFWwindow *window) {
   setFloat(shader, "material.shininess", 32.0f);
 
   auto aspect = (float)screenWidth / (float)screenHeight;
-  auto projection = glm::perspective(glm::radians(45.0f), aspect, 0.1f, 100.0f);
+  auto projection =
+      glm::perspective(glm::radians(45.0f), aspect, 0.1f, 1000.0f);
   setMat4(shader, "projection", projection);
 
   auto view = getViewMatrix();
@@ -144,21 +174,8 @@ void renderScene(GLFWwindow *window) {
 
   renderModels(shader, modelShader, view, projection);
 
-  // draw skybox as last
-  glDepthFunc(GL_LEQUAL); // change depth function so depth test passes when
-                          // values are equal to depth buffer's content
-  use(skyboxShader);
-  view = glm::mat4(
-      glm::mat3(getViewMatrix())); // remove translation from the view matrix
-  setMat4(skyboxShader, "view", view);
-  setMat4(skyboxShader, "projection", projection);
-  // skybox cube
-  glBindVertexArray(skyboxVAO);
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture);
-  glDrawArrays(GL_TRIANGLES, 0, 36);
-  glBindVertexArray(0);
-  glDepthFunc(GL_LESS); // set depth function back to default
+  renderGrid(view, projection);
+  // renderSkybox(view, projection);
 
   // renderDebugQuad(nearPlane, farPlane);
 }
@@ -227,6 +244,24 @@ void setupSkyboxVAO() {
                GL_STATIC_DRAW);
   glEnableVertexAttribArray(0);
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
+}
+
+void renderSkybox(glm::mat4 view, glm::mat4 projection) {
+  // draw skybox as last
+  glDepthFunc(GL_LEQUAL); // change depth function so depth test passes when
+                          // values are equal to depth buffer's content
+  use(skyboxShader);
+  view = glm::mat4(
+      glm::mat3(getViewMatrix())); // remove translation from the view matrix
+  setMat4(skyboxShader, "view", view);
+  setMat4(skyboxShader, "projection", projection);
+  // skybox cube
+  glBindVertexArray(skyboxVAO);
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture);
+  glDrawArrays(GL_TRIANGLES, 0, 36);
+  glBindVertexArray(0);
+  glDepthFunc(GL_LESS); // set depth function back to default
 }
 
 void setupDepthMap() {
@@ -303,4 +338,13 @@ void renderDebugQuad(float nearPlane, float farPlane) {
   glBindVertexArray(quadVAO);
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
   glBindVertexArray(0);
+}
+
+void renderGrid(glm::mat4 v, glm::mat4 p) {
+  use(gridShader);
+  glBindVertexArray(gridVAO);
+  const GridFrameData gridFrameData = {
+      .v = v, .p = p, .camPos = glm::vec4(getCameraPos(), 1.0)};
+  glNamedBufferSubData(gridBuffer, 0, kGridBufferSize, &gridFrameData);
+  glDrawArraysInstancedBaseInstance(GL_TRIANGLES, 0, 6, 1, 0);
 }
