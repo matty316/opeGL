@@ -9,5 +9,5 @@ file(GLOB_RECURSE MY_HEADERS CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/incl
 
 add_executable(meshConverter "${MY_SOURCES}" "${MY_HEADERS}")
 target_include_directories(meshConverter PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include/")
-target_link_libraries(meshConverter PRIVATE opeGL ${CMAKE_CURRENT_SOURCE_DIR}/../opeGL/thirdParty/libassimp.a)
+target_link_libraries(meshConverter PRIVATE opeGL ${CMAKE_CURRENT_SOURCE_DIR}/../opeGL/thirdParty/libassimp.a ${CMAKE_CURRENT_SOURCE_DIR}/../opeGL/thirdParty/libmeshoptimizer.a)
 target_compile_options(meshConverter PRIVATE -Wall -Wextra -g)
