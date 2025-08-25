@@ -10,5 +10,5 @@ struct Model {
   float scale;
 };
 
-Model createModel(glm::vec3 pos, float scale, const uint32_t* indices, uint32_t indicesSizeBytes, const uint32_t* vertexData, uint32_t verticesSizeBytes);
+Model createModel(glm::vec3 pos, float scale, const uint32_t* indices, uint32_t indicesSizeBytes, const float* vertexData, uint32_t verticesSizeBytes);
 void drawModel(Model model, GLuint shader, glm::mat4 v, glm::mat4 p);

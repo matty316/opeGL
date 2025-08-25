@@ -10,7 +10,7 @@ struct PerFrameData {
 const GLsizeiptr kBufferSize = sizeof(PerFrameData);
 
 Model createModel(glm::vec3 pos, float scale, const uint32_t *indices,
-                  uint32_t indicesSizeBytes, const uint32_t *vertexData,
+                  uint32_t indicesSizeBytes, const float *vertexData,
                   uint32_t verticesSizeBytes) {
   Model model;
   model.pos = pos;
@@ -60,4 +60,6 @@ void drawModel(Model model, GLuint shader, glm::mat4 v, glm::mat4 p) {
   glNamedBufferSubData(model.perFrameDataBuffer, 0, kBufferSize, &perFrameData);
   glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(model.numIndices),
                  GL_UNSIGNED_INT, nullptr);
+
+  glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
