@@ -6,10 +6,14 @@
 #include "plane.h"
 #include "shader.h"
 #include "stb_image.h"
+#include "mesh.h"
 
 #include <X11/Xlib.h>
 #include <cstddef>
+#include <cstdio>
+#include <cstdlib>
 #include <iostream>
+#include <print>
 #include <vector>
 
 int screenWidth = 800;
@@ -75,7 +79,37 @@ void updateScene(int width, int height) {
 
 void addModel(const char *path, glm::vec3 pos, glm::vec3 rotation, float angle,
               float scale) {
-  Model model = createModel(path, pos, rotation, angle, scale);
+  FILE* f = fopen(path, "rb");
+  if (!f) {
+    std::println("Unable to open mesh file: {}", path);
+    exit(255);
+  } 
+  MeshFileHeader header;
+  if (fread(&header, 1, sizeof(header), f) != sizeof(header)) {
+    std::println("Unable to read file header");
+    exit(255);
+  }
+
+  std::vector<Mesh> meshes;
+  const auto meshCount = header.meshCount;
+  meshes.resize(meshCount);
+  if (fread(meshes.data(), sizeof(Mesh), meshCount,f) != meshCount) {
+    std::println("Could not read meshes");
+    exit(255);
+  }
+
+  std::vector<uint32_t> indexData;
+  std::vector<float> vertexData;
+  const auto idxDataSize = header.indexDataSize;
+  const auto vtxDataSize = header.vertexDataSize;
+  indexData.resize(idxDataSize / sizeof(uint32_t));
+  vertexData.resize(vtxDataSize / sizeof(float));
+  if ((fread(indexData.data(), 1, idxDataSize, f) != idxDataSize) || (fread(vertexData.data(), 1, vtxDataSize, f) != vtxDataSize)) {
+    std::println("Unable to read index/vertex data");
+    exit(255);
+  }
+  fclose(f);
+  Model model = createModel(pos, scale, indexData.data(), idxDataSize, vertexData.data(), vtxDataSize);
   models.push_back(model);
 }
 
