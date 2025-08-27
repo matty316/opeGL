@@ -67,7 +67,11 @@ Mesh convertAiMesh(const aiMesh *m) {
       static_cast<uint32_t>(numElements * sizeof(float));
   const uint32_t meshSize = static_cast<uint32_t>(
       m->mNumVertices * streamElementSize * sizeof(uint32_t));
-  const Mesh result = {
+
+  std::vector<float> srcVertices;
+  std::vector<uint32_t> srcIndices;
+
+  Mesh result = {
       .lodCount = 1,
       .streamCount = 1,
       .materialID = 0,
@@ -83,6 +87,11 @@ Mesh convertAiMesh(const aiMesh *m) {
     const aiVector3D &v = m->mVertices[i];
     const aiVector3D &n = m->mNormals[i];
     const aiVector3D &t = hasTexCoords ? m->mTextureCoords[0][i] : aiVector3D();
+
+    srcVertices.push_back(v.x);
+    srcVertices.push_back(v.y);
+    srcVertices.push_back(v.z);
+
     data.vertexData.push_back(v.x);
     data.vertexData.push_back(v.y);
     data.vertexData.push_back(v.z);
@@ -101,8 +110,26 @@ Mesh convertAiMesh(const aiMesh *m) {
     data.indexData.push_back(f.mIndices[0] + vertexOffset);
     data.indexData.push_back(f.mIndices[1] + vertexOffset);
     data.indexData.push_back(f.mIndices[2] + vertexOffset);
+    for (unsigned int j = 0; j < m->mFaces[i].mNumIndices; j++)
+      srcIndices.push_back(m->mFaces[i].mIndices[j]);
   }
-  indexOffset += numIndices;
+
+  std::vector<std::vector<uint32_t>> outLods;
+
+  processLODs(srcIndices, srcVertices, outLods);
+
+  uint32_t numIndicesNew = 0;
+  for (size_t l = 0; l < outLods.size(); l++) {
+    for (size_t i = 0; i < outLods[l].size(); i++)
+      data.indexData.push_back(outLods[l][i]);
+    result.lodOffset[l] = numIndicesNew;
+    numIndicesNew += (int)outLods[l].size();
+  }
+
+  result.lodOffset[outLods.size()] = numIndicesNew;
+  result.lodCount = (uint32_t)outLods.size();
+
+  indexOffset += numIndicesNew;
   vertexOffset += m->mNumVertices;
   return result;
 }

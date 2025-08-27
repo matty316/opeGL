@@ -57,3 +57,25 @@ void traverse(const aiScene* sourceScene, Scene& scene, aiNode* node, int parent
   for (unsigned int n = 0; n < node->mNumChildren; n++)
     traverse(sourceScene, scene, node->mChildren[n], newNodeId, atLevel + 1);
 }
+
+void markAsChanged(Scene& scene, int node) {
+  int level = scene.hierarchy[node].level;
+  scene.changedAtThisFrame[level].push_back(node);
+  for (int s = scene.hierarchy[node].firstChild; s != -1; s = scene.hierarchy[s].nextSibling)
+    markAsChanged(scene, s);
+}
+
+void recalculateGlobalTransforms(Scene& scene) {
+  if (!scene.changedAtThisFrame[0].empty()) {
+    int c = scene.changedAtThisFrame[0][0];
+    scene.globalTransforms[c] = scene.localTransforms[c];
+    scene.changedAtThisFrame[0].clear();
+  }
+  for (int i = 1; i < MAX_NODE_LEVEL && !scene.changedAtThisFrame[i].empty(); i++) {
+    for (int c : scene.changedAtThisFrame[i]) {
+      int p = scene.hierarchy[c].parent;
+      scene.globalTransforms[c] = scene.globalTransforms[p] * scene.localTransforms[c];
+    }
+    scene.changedAtThisFrame[i].clear();
+  }
+}
