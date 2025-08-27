@@ -4,11 +4,14 @@
 #include <glm/glm.hpp>
 
 struct Model {
-  GLuint vao, bufferIndices, bufferVertices, perFrameDataBuffer;
-  uint32_t numIndices;
-  glm::vec3 pos;
-  float scale;
+  GLuint vao, meshData, perFrameDataBuffer;
+  glm::vec3 position{0.0f};
+  glm::vec3 rotation{1.0f};
+  float rotationAngle = 0.0f;
+  float scale = 0.5f;
+  int indicesSize = 0;
 };
 
-Model createModel(glm::vec3 pos, float scale, const uint32_t* indices, uint32_t indicesSizeBytes, const float* vertexData, uint32_t verticesSizeBytes);
-void drawModel(Model model, GLuint shader, glm::mat4 v, glm::mat4 p);
+Model createModel(const char *path, glm::vec3 pos, glm::vec3 rotation,
+                  float rotationAngle, float scale);
+void drawModel(const Model &model, GLuint shader, glm::mat4 v, glm::mat4 p);
