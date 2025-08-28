@@ -144,3 +144,7 @@ void loadModel(Model &model, const char *path) {
   glVertexArrayAttribBinding(model.vao, 0, 0);
   model.indicesSize = indicesLod.size();
 }
+
+Mesh createMesh() {
+  
+}
