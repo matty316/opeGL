@@ -85,7 +85,7 @@ void addModel(const char *path, glm::vec3 pos, glm::vec3 rotation, float angle,
 void renderModels(GLuint shader, GLuint mShader, glm::mat4 v, glm::mat4 p) {
   drawPlane(shader);
   for (auto &model : models) {
-    drawModel(model, mShader, v, p);
+    drawModel(model, shader);
   }
 }
 
