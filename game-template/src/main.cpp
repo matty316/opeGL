@@ -12,17 +12,17 @@ int main() {
            glm::vec3{0.0f, -2.0f, 0.0f}, glm::vec3{1.0f, 0.0f, 0.0f}, 90.f,
            100.f);
   addPlane("resources/beige-textures/beige_wall_001_diff_4k.jpg", nullptr,
-           glm::vec3(0.0f, 0.0f, 20.0f), glm::vec3(1.0f, 0.0f, 0.0f), 90.0f,
+           glm::vec3(0.0f, 0.0f, 20.0f), glm::vec3(0.0f, 0.0f, 1.0f), 90.0f,
            100.0f);
-  addPlane("resources/beige-textures/beige_wall_001_diff_4k.jpg", nullptr,
-           glm::vec3(20.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), 90.0f,
+/*  addPlane("resources/beige-textures/beige_wall_001_diff_4k.jpg", nullptr,
+           glm::vec3(0.0f, 0.0f, -20.0f), glm::vec3(1.0f, 0.0f, 0.0f), 90.0f,
            100.0f);
   addPlane("resources/beige-textures/beige_wall_001_diff_4k.jpg", nullptr,
            glm::vec3(-20.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), 90.0f,
            100.0f);
   addPlane("resources/beige-textures/beige_wall_001_diff_4k.jpg", nullptr,
            glm::vec3(0.0f, 0.0f, -20.0f), glm::vec3(0.0f, 0.0f, 1.0f), 90.0f,
-           100.0f);
+           100.0f);*/
 
   run();
 }
