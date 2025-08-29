@@ -35,7 +35,6 @@ uniform DirectionalLight dirLight;
 uniform int numOfPointLights;
 uniform PointLight pointLights[16];
 uniform Material material;
-uniform int tiling;
 layout (location = 11) uniform sampler2D shadowMap;
 
 vec3 calculateDirLight(DirectionalLight light, vec3 normal, vec3 viewDir, float shadow) {
@@ -43,9 +42,9 @@ vec3 calculateDirLight(DirectionalLight light, vec3 normal, vec3 viewDir, float 
     float diff = max(dot(normal, lightDir), 0.0);
     vec3 halfwayDir = normalize(lightDir + viewDir);
     float spec = pow(max(dot(normal, halfwayDir), 0.0), material.shininess);
-    vec3 ambient = light.ambient * texture(material.diffuse, TexCoords * tiling).rgb;
-    vec3 diffuse = light.diffuse * diff * texture(material.diffuse, TexCoords * tiling).rgb;
-    vec3 specular = light.specular * spec * texture(material.specular, TexCoords * tiling).rgb;
+    vec3 ambient = light.ambient * texture(material.diffuse, TexCoords).rgb;
+    vec3 diffuse = light.diffuse * diff * texture(material.diffuse, TexCoords).rgb;
+    vec3 specular = light.specular * spec * texture(material.specular, TexCoords).rgb;
     return ambient + (1.0 - shadow) * (diffuse + specular);
 }
 
@@ -56,9 +55,9 @@ vec3 calculatePointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewD
     float spec = pow(max(dot(normal, halfwayDir), 0.0), material.shininess);
     float distance = length(light.position - fragPos);
     float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance));
-    vec3 ambient = light.ambient * texture(material.diffuse, TexCoords * tiling).rgb;
-    vec3 diffuse = light.diffuse * diff * texture(material.diffuse, TexCoords * tiling).rgb;
-    vec3 specular = light.specular * spec * texture(material.specular, TexCoords * tiling).rgb;
+    vec3 ambient = light.ambient * texture(material.diffuse, TexCoords).rgb;
+    vec3 diffuse = light.diffuse * diff * texture(material.diffuse, TexCoords).rgb;
+    vec3 specular = light.specular * spec * texture(material.specular, TexCoords).rgb;
     ambient *= attenuation;
     diffuse *= attenuation;
     specular *= attenuation;

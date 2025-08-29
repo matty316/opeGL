@@ -2,13 +2,38 @@
 
 #include <glad/glad.h>
 #include <glm/glm.hpp>
+#include <string>
+#include <vector>
 
-struct Model {
-  GLuint vao, bufferIndices, bufferVertices, perFrameDataBuffer;
-  uint32_t numIndices;
-  glm::vec3 pos;
-  float scale;
+struct Vertex {
+  glm::vec3 position;
+  glm::vec3 normal;
+  glm::vec2 texCoords;
 };
 
-Model createModel(glm::vec3 pos, float scale, const uint32_t* indices, uint32_t indicesSizeBytes, const float* vertexData, uint32_t verticesSizeBytes);
-void drawModel(Model model, GLuint shader, glm::mat4 v, glm::mat4 p);
+struct Texture {
+  uint32_t id;
+  std::string type;
+  std::string path;
+};
+
+struct Mesh {
+  std::vector<Vertex> vertices;
+  std::vector<uint32_t> indices;
+  std::vector<Texture> textures;
+  GLuint vao, vbo, ebo;
+};
+
+struct Model {
+  std::vector<Mesh> meshes;
+  std::string dir;
+  std::vector<Texture> textures_loaded;
+  glm::vec3 position{0.0f};
+  glm::vec3 rotation{1.0f};
+  float rotationAngle = 0.0f;
+  float scale = 0.5f;
+};
+
+Model createModel(const char *path, glm::vec3 pos, glm::vec3 rotation,
+                  float rotationAngle, float scale);
+void drawModel(Model &model, GLuint shader);
