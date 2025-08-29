@@ -7,9 +7,6 @@
 #include "stb_image.h"
 #include <iostream>
 
-GLuint VAO, VBO, EBO, diffuse, specular;
-glm::vec3 position, rotation;
-float rotationAngle, scale;
 float vertices[32] = {
     0.5f,  0.5f,  0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, // top right
     0.5f,  -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom right
@@ -24,17 +21,19 @@ GLuint indices[6] = {
 
 GLuint loadTexture(const char *path);
 
-void createPlane(const char *diffusePath, const char *specularPath) {
-  glGenVertexArrays(1, &VAO);
-  glGenBuffers(1, &VBO);
-  glGenBuffers(1, &EBO);
+Plane createPlane(const char *diffusePath, const char *specularPath,
+                  glm::vec3 pos, glm::vec3 rotation, float angle, float scale) {
+  Plane plane;
+  glGenVertexArrays(1, &plane.vao);
+  glGenBuffers(1, &plane.vbo);
+  glGenBuffers(1, &plane.ebo);
 
-  glBindVertexArray(VAO);
+  glBindVertexArray(plane.vao);
 
-  glBindBuffer(GL_ARRAY_BUFFER, VBO);
+  glBindBuffer(GL_ARRAY_BUFFER, plane.vbo);
   glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, plane.ebo);
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices,
                GL_STATIC_DRAW);
 
@@ -49,32 +48,36 @@ void createPlane(const char *diffusePath, const char *specularPath) {
                         (void *)(6 * sizeof(float)));
   glEnableVertexAttribArray(2);
 
-  diffuse = loadTexture(diffusePath);
-  specular = loadTexture(specularPath);
+  plane.diffuse = loadTexture(diffusePath);
+  if (specularPath)
+    plane.specular = loadTexture(specularPath);
 
-  position = glm::vec3{0.0f, -2.0f, 0.0f};
-  rotationAngle = 90.0f;
-  rotation = glm::vec3{1.0f, 0.0f, 0.0f};
-  scale = 100.0f;
+  plane.pos = pos;
+  plane.angle = angle;
+  plane.rotation = rotation;
+  plane.scale = scale;
+  return plane;
 }
 
-void drawPlane(GLuint shader) {
+void drawPlane(Plane plane, GLuint shader) {
   setInt(shader, "tiling", 16);
   auto model = glm::mat4{1.0f};
-  model = glm::translate(model, position);
-  model = glm::rotate(model, glm::radians(rotationAngle), rotation);
-  model = glm::scale(model, glm::vec3{scale});
+  model = glm::translate(model, plane.pos);
+  model = glm::rotate(model, glm::radians(plane.angle), plane.rotation);
+  model = glm::scale(model, glm::vec3{plane.scale});
   setMat4(shader, "model", model);
 
   glActiveTexture(GL_TEXTURE0);
   setInt(shader, "material.diffuse", 0);
-  glBindTexture(GL_TEXTURE_2D, diffuse);
+  glBindTexture(GL_TEXTURE_2D, plane.diffuse);
 
-  glActiveTexture(GL_TEXTURE1);
-  setInt(shader, "material.specular", 1);
-  glBindTexture(GL_TEXTURE_2D, specular);
+  if (plane.specular) {
+    glActiveTexture(GL_TEXTURE1);
+    setInt(shader, "material.specular", 1);
+    glBindTexture(GL_TEXTURE_2D, plane.specular);
+  }
 
-  glBindVertexArray(VAO);
+  glBindVertexArray(plane.vao);
   glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
   glBindVertexArray(0);
 }

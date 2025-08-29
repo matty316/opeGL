@@ -52,6 +52,7 @@ void drawModel(Model &model, GLuint shader) {
                             model.rotation);
   modelMatrix = glm::scale(modelMatrix, glm::vec3{model.scale});
   setMat4(shader, "model", modelMatrix);
+  setInt(shader, "tiling", 1);
 
   for (auto &mesh : model.meshes) {
     drawMesh(mesh, shader);

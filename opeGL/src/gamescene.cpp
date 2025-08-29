@@ -29,6 +29,7 @@ unsigned int depthMapFBO, depthMap;
 float lastFrame = 0.0f;
 
 std::vector<Model> models;
+std::vector<Plane> planes;
 
 std::vector<glm::vec3> pLightPositions{glm::vec3{0.7f, 0.2f, 2.0f}};
 glm::vec3 dirLight{-2.0f, 4.0f, -1.0f};
@@ -66,9 +67,6 @@ void createScene() {
   setupSkyboxVAO();
   use(skyboxShader);
   setInt(skyboxShader, "skybox", 0);
-
-  createPlane("resources/textures/rocky_terrain_02_diff_4k.png",
-              "resources/textures/rocky_terrain_02_diff_4k.png");
 }
 
 void updateScene(int width, int height) {
@@ -82,8 +80,17 @@ void addModel(const char *path, glm::vec3 pos, glm::vec3 rotation, float angle,
   models.push_back(model);
 }
 
+void addPlane(const char *diffusePath, const char *specularPath, glm::vec3 pos,
+              glm::vec3 rotation, float angle, float scale) {
+  Plane plane =
+      createPlane(diffusePath, specularPath, pos, rotation, angle, scale);
+  planes.push_back(plane);
+}
+
 void renderModels(GLuint shader, GLuint mShader, glm::mat4 v, glm::mat4 p) {
-  drawPlane(shader);
+  for (auto &plane : planes) {
+    drawPlane(plane, shader);
+  }
   for (auto &model : models) {
     drawModel(model, shader);
   }
