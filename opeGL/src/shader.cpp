@@ -37,8 +37,9 @@ GLuint compileShader(const char *path, GLenum type) {
       exit(EXIT_FAILURE);
     }
     return shader;
+  } else {
+    exit(EXIT_FAILURE);
   }
-  exit(EXIT_FAILURE);
 }
 
 GLuint createShader(const char *vertexPath, const char *fragmentPath) {
@@ -82,7 +83,8 @@ void setMat4(GLuint program, const std::string &name, glm::mat4 matrix) {
 }
 
 void setVec3(GLuint program, const std::string &name, glm::vec3 vec) {
-  glUniform3fv(glGetUniformLocation(program, name.c_str()), 1, glm::value_ptr(vec));
+  glUniform3fv(glGetUniformLocation(program, name.c_str()), 1,
+               glm::value_ptr(vec));
 }
 
 void setPointLight(GLuint program, glm::vec3 pos, int index) {

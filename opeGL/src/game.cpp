@@ -168,8 +168,8 @@ void start() {
   glEnable(GL_DEPTH_TEST);
   stbi_set_flip_vertically_on_load(true);
 
-  glEnable(GL_CULL_FACE);
-  glCullFace(GL_BACK);
+  //glEnable(GL_CULL_FACE);
+  //glCullFace(GL_BACK);
   createCamera();
 }
 

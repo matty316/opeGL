@@ -69,7 +69,11 @@ void createScene() {
   setupSkyboxVAO();
   use(skyboxShader);
   setInt(skyboxShader, "skybox", 0);
-  Cube cube = createCube(glm::vec3(0.0f), glm::vec3(0.0f), 0.0f, 1.0f);
+}
+
+void addCube(glm::vec3 pos, glm::vec3 rotation, float angle, float scale) {
+  Cube cube =
+      createCube(pos, rotation, angle, scale);
   cubes.push_back(cube);
 }
 
@@ -86,8 +90,8 @@ void addModel(const char *path, glm::vec3 pos, glm::vec3 rotation, float angle,
 
 void addPlane(const char *diffusePath, const char *specularPath, glm::vec3 pos,
               glm::vec3 rotation, float angle, float scale, int tiling) {
-  Plane plane =
-      createPlane(diffusePath, specularPath, pos, rotation, angle, scale, tiling);
+  Plane plane = createPlane(diffusePath, specularPath, pos, rotation, angle,
+                            scale, tiling);
   planes.push_back(plane);
 }
 
