@@ -81,9 +81,9 @@ void addModel(const char *path, glm::vec3 pos, glm::vec3 rotation, float angle,
 }
 
 void addPlane(const char *diffusePath, const char *specularPath, glm::vec3 pos,
-              glm::vec3 rotation, float angle, float scale) {
+              glm::vec3 rotation, float angle, float scale, int tiling) {
   Plane plane =
-      createPlane(diffusePath, specularPath, pos, rotation, angle, scale);
+      createPlane(diffusePath, specularPath, pos, rotation, angle, scale, tiling);
   planes.push_back(plane);
 }
 

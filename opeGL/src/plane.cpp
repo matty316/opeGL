@@ -22,7 +22,7 @@ GLuint indices[6] = {
 GLuint loadTexture(const char *path);
 
 Plane createPlane(const char *diffusePath, const char *specularPath,
-                  glm::vec3 pos, glm::vec3 rotation, float angle, float scale) {
+                  glm::vec3 pos, glm::vec3 rotation, float angle, float scale, int tiling) {
   Plane plane;
   glGenVertexArrays(1, &plane.vao);
   glGenBuffers(1, &plane.vbo);
@@ -56,11 +56,12 @@ Plane createPlane(const char *diffusePath, const char *specularPath,
   plane.angle = angle;
   plane.rotation = rotation;
   plane.scale = scale;
+  plane.tiling = tiling;
   return plane;
 }
 
 void drawPlane(Plane plane, GLuint shader) {
-  setInt(shader, "tiling", 16);
+  setInt(shader, "tiling", plane.tiling);
   auto model = glm::mat4{1.0f};
   model = glm::translate(model, plane.pos);
   model = glm::rotate(model, glm::radians(plane.angle), plane.rotation);
