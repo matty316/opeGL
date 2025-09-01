@@ -1,5 +1,6 @@
 #include "gamescene.h"
 #include "camera.h"
+#include "cube.h"
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "model.h"
@@ -30,6 +31,7 @@ float lastFrame = 0.0f;
 
 std::vector<Model> models;
 std::vector<Plane> planes;
+std::vector<Cube> cubes;
 
 std::vector<glm::vec3> pLightPositions{glm::vec3{0.7f, 0.2f, 2.0f}};
 glm::vec3 dirLight{-2.0f, 4.0f, -1.0f};
@@ -67,6 +69,8 @@ void createScene() {
   setupSkyboxVAO();
   use(skyboxShader);
   setInt(skyboxShader, "skybox", 0);
+  Cube cube = createCube(glm::vec3(0.0f), glm::vec3(0.0f), 0.0f, 1.0f);
+  cubes.push_back(cube);
 }
 
 void updateScene(int width, int height) {
@@ -87,12 +91,15 @@ void addPlane(const char *diffusePath, const char *specularPath, glm::vec3 pos,
   planes.push_back(plane);
 }
 
-void renderModels(GLuint shader, GLuint mShader, glm::mat4 v, glm::mat4 p) {
+void renderModels(GLuint shader) {
   for (auto &plane : planes) {
     drawPlane(plane, shader);
   }
   for (auto &model : models) {
     drawModel(model, shader);
+  }
+  for (auto &cube : cubes) {
+    drawCube(cube, shader);
   }
 }
 
@@ -118,7 +125,7 @@ void renderScene(GLFWwindow *window) {
   glActiveTexture(GL_TEXTURE11);
   glBindTexture(GL_TEXTURE_2D, depthMap);
 
-  renderModels(shader, modelShader, view, projection);
+  renderModels(shader);
 
   // draw skybox as last
   glDepthFunc(GL_LEQUAL); // change depth function so depth test passes when
@@ -241,7 +248,7 @@ void renderDepthMap(float nearPlane, float farPlane) {
   glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
   glClear(GL_DEPTH_BUFFER_BIT);
 
-  renderModels(depthShader, depthShader, lightView, lightProjection);
+  renderModels(depthShader);
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
   glViewport(0, 0, screenWidth, screenHeight);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

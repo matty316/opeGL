@@ -5,7 +5,7 @@
 #include "glm/trigonometric.hpp"
 #include "shader.h"
 #include "stb_image.h"
-#include <iostream>
+#include "texture.h"
 
 float vertices[32] = {
     0.5f,  0.5f,  0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, // top right
@@ -19,10 +19,9 @@ GLuint indices[6] = {
     1, 2, 3  // second triangle
 };
 
-GLuint loadTexture(const char *path);
-
 Plane createPlane(const char *diffusePath, const char *specularPath,
-                  glm::vec3 pos, glm::vec3 rotation, float angle, float scale, int tiling) {
+                  glm::vec3 pos, glm::vec3 rotation, float angle, float scale,
+                  int tiling) {
   Plane plane;
   glGenVertexArrays(1, &plane.vao);
   glGenBuffers(1, &plane.vbo);
@@ -68,52 +67,15 @@ void drawPlane(Plane plane, GLuint shader) {
   model = glm::scale(model, glm::vec3{plane.scale});
   setMat4(shader, "model", model);
 
-  glActiveTexture(GL_TEXTURE0);
   setInt(shader, "material.diffuse", 0);
-  glBindTexture(GL_TEXTURE_2D, plane.diffuse);
+  glBindTextureUnit(0, plane.diffuse);
 
   if (plane.specular) {
-    glActiveTexture(GL_TEXTURE1);
     setInt(shader, "material.specular", 1);
-    glBindTexture(GL_TEXTURE_2D, plane.specular);
+    glBindTextureUnit(1, plane.specular);
   }
 
   glBindVertexArray(plane.vao);
   glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
   glBindVertexArray(0);
-}
-
-GLuint loadTexture(const char *path) {
-  unsigned int textureID;
-  glGenTextures(1, &textureID);
-
-  int width, height, nrComponents;
-  unsigned char *data = stbi_load(path, &width, &height, &nrComponents, 0);
-  if (data) {
-    GLenum format;
-    if (nrComponents == 1)
-      format = GL_RED;
-    else if (nrComponents == 3)
-      format = GL_RGB;
-    else if (nrComponents == 4)
-      format = GL_RGBA;
-
-    glBindTexture(GL_TEXTURE_2D, textureID);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB, width, height, 0, format,
-                 GL_UNSIGNED_BYTE, data);
-    glGenerateMipmap(GL_TEXTURE_2D);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-                    GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    stbi_image_free(data);
-  } else {
-    std::cout << "Texture failed to load at path: " << path << std::endl;
-    stbi_image_free(data);
-  }
-
-  return textureID;
 }
