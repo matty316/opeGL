@@ -17,4 +17,4 @@ void addModel(const char *path, glm::vec3 pos, glm::vec3 rotation, float angle,
               float scale);
 void addPlane(const char *diffusePath, const char *specularPath, glm::vec3 pos,
               glm::vec3 rotation, float angle, float scale, int tiling = 16);
-void addCube(glm::vec3 pos, glm::vec3 rotation, float angle, float scale);
+void addCube(const char* diff, const char* spec, glm::vec3 pos, glm::vec3 rotation, float angle, float scale);

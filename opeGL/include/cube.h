@@ -9,5 +9,5 @@ struct Cube {
   GLuint vao, vbo, diff, spec;
 };
 
-Cube createCube(glm::vec3 pos, glm::vec3 rotation, float angle, float scale);
+Cube createCube(const char* diff, const char* spec, glm::vec3 pos, glm::vec3 rotation, float angle, float scale);
 void drawCube(Cube& cube, GLuint shader);

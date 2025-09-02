@@ -71,9 +71,9 @@ void createScene() {
   setInt(skyboxShader, "skybox", 0);
 }
 
-void addCube(glm::vec3 pos, glm::vec3 rotation, float angle, float scale) {
+void addCube(const char* diff, const char* spec, glm::vec3 pos, glm::vec3 rotation, float angle, float scale) {
   Cube cube =
-      createCube(pos, rotation, angle, scale);
+      createCube(diff, spec, pos, rotation, angle, scale);
   cubes.push_back(cube);
 }
 

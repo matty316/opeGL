@@ -41,7 +41,7 @@ GLfloat cubeVertices[] = {
     1.0f,  0.0f,  -0.5f, 0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,
     -0.5f, 0.5f,  -0.5f, 0.0f,  1.0f,  0.0f,  0.0f,  1.0f};
 
-Cube createCube(glm::vec3 pos, glm::vec3 rotation, float angle, float scale) {
+Cube createCube(const char* diff, const char* spec, glm::vec3 pos, glm::vec3 rotation, float angle, float scale) {
   Cube cube;
   cube.pos = pos;
   cube.rotation = rotation;
@@ -70,8 +70,8 @@ Cube createCube(glm::vec3 pos, glm::vec3 rotation, float angle, float scale) {
   glVertexArrayAttribBinding(cube.vao, 1, 0);
   glVertexArrayAttribBinding(cube.vao, 2, 0);
 
-  cube.diff = loadTexture("resources/textures/container2.png");
-  cube.spec = loadTexture("resources/textures/container2_specular.png");
+  cube.diff = loadTexture(diff);
+  cube.spec = loadTexture(spec);
 
   return cube;
 }
