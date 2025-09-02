@@ -3,6 +3,9 @@
 #include "shader.h"
 #include "texture.h"
 #include <glm/ext/matrix_transform.hpp>
+#include <print>
+
+GLuint vao, vbo, diff, spec;
 
 // clang-format off
 GLfloat cubeVertices[] = {
@@ -51,7 +54,36 @@ GLfloat cubeVertices[] = {
 };
 // clang-format on
 
-Cube createCube(const char *diff, const char *spec, glm::vec3 pos,
+bool buffersLoaded = false;
+
+void setupBuffers() {
+  std::println("loading buffers");
+  glCreateVertexArrays(1, &vao);
+  glCreateBuffers(1, &vbo);
+
+  glNamedBufferStorage(vbo, sizeof(cubeVertices), cubeVertices,
+                       GL_DYNAMIC_STORAGE_BIT);
+
+  glVertexArrayVertexBuffer(vao, 0, vbo, 0, sizeof(GLfloat) * 8);
+
+  glEnableVertexArrayAttrib(vao, 0);
+  glEnableVertexArrayAttrib(vao, 1);
+  glEnableVertexArrayAttrib(vao, 2);
+
+  glVertexArrayAttribFormat(vao, 0, 3, GL_FLOAT, GL_FALSE, 0);
+  glVertexArrayAttribFormat(vao, 1, 3, GL_FLOAT, GL_FALSE,
+                            sizeof(GLfloat) * 3);
+  glVertexArrayAttribFormat(vao, 2, 2, GL_FLOAT, GL_FALSE,
+                            sizeof(GLfloat) * 6);
+
+  glVertexArrayAttribBinding(vao, 0, 0);
+  glVertexArrayAttribBinding(vao, 1, 0);
+  glVertexArrayAttribBinding(vao, 2, 0);
+
+  buffersLoaded = true;
+}
+
+Cube createCube(const char *diffPath, const char *specPath, glm::vec3 pos,
                 glm::vec3 rotation, float angle, float scale) {
   Cube cube;
   cube.pos = pos;
@@ -59,30 +91,11 @@ Cube createCube(const char *diff, const char *spec, glm::vec3 pos,
   cube.angle = angle;
   cube.scale = scale;
 
-  glCreateVertexArrays(1, &cube.vao);
-  glCreateBuffers(1, &cube.vbo);
+  if (!buffersLoaded)
+    setupBuffers();
 
-  glNamedBufferStorage(cube.vbo, sizeof(cubeVertices), cubeVertices,
-                       GL_DYNAMIC_STORAGE_BIT);
-
-  glVertexArrayVertexBuffer(cube.vao, 0, cube.vbo, 0, sizeof(GLfloat) * 8);
-
-  glEnableVertexArrayAttrib(cube.vao, 0);
-  glEnableVertexArrayAttrib(cube.vao, 1);
-  glEnableVertexArrayAttrib(cube.vao, 2);
-
-  glVertexArrayAttribFormat(cube.vao, 0, 3, GL_FLOAT, GL_FALSE, 0);
-  glVertexArrayAttribFormat(cube.vao, 1, 3, GL_FLOAT, GL_FALSE,
-                            sizeof(GLfloat) * 3);
-  glVertexArrayAttribFormat(cube.vao, 2, 2, GL_FLOAT, GL_FALSE,
-                            sizeof(GLfloat) * 6);
-
-  glVertexArrayAttribBinding(cube.vao, 0, 0);
-  glVertexArrayAttribBinding(cube.vao, 1, 0);
-  glVertexArrayAttribBinding(cube.vao, 2, 0);
-
-  cube.diff = loadTexture(diff);
-  cube.spec = loadTexture(spec);
+  diff = loadTexture(diffPath);
+  spec = loadTexture(specPath);
 
   return cube;
 }
@@ -96,12 +109,12 @@ void drawCube(Cube &cube, GLuint shader) {
   setMat4(shader, "model", model);
 
   setInt(shader, "material.diffuse", 0);
-  glBindTextureUnit(0, cube.diff);
+  glBindTextureUnit(0, diff);
 
   setInt(shader, "material.specular", 1);
-  glBindTextureUnit(1, cube.spec);
+  glBindTextureUnit(1, spec);
 
-  glBindVertexArray(cube.vao);
+  glBindVertexArray(vao);
   glDrawArrays(GL_TRIANGLES, 0, 36);
   glBindVertexArray(0);
 }

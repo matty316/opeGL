@@ -1,8 +1,15 @@
 #include "texture.h"
 #include <print>
 #include <stb_image.h>
+#include <string>
+#include <unordered_map>
+
+std::unordered_map<std::string, GLuint> loadedTextures;
 
 GLuint loadTexture(const char *path) {
+  if (loadedTextures[path])
+    return loadedTextures[path];
+
   unsigned int textureID;
   glCreateTextures(GL_TEXTURE_2D, 1, &textureID);
 
@@ -34,6 +41,7 @@ GLuint loadTexture(const char *path) {
     std::println("Texture failed to load at path: {}", path);
     stbi_image_free(data);
   }
-
+  
+  loadedTextures[path] = textureID;
   return textureID;
 }
