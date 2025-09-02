@@ -129,12 +129,13 @@ void APIENTRY glDebugOutput(GLenum source, GLenum type, unsigned int id,
   std::cout << std::endl;
 }
 
-void start() {
+void start(bool debug) {
   glfwInit();
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-  glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
+  if (debug)
+    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
 
   window =
       glfwCreateWindow(800, 600, "OpeGL", glfwGetPrimaryMonitor(), nullptr);
@@ -154,22 +155,24 @@ void start() {
     exit(EXIT_FAILURE);
   }
 
-  int flags;
-  glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
-  if (flags & GL_CONTEXT_FLAG_DEBUG_BIT) {
-    // initialize debug output
-    glEnable(GL_DEBUG_OUTPUT);
-    glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-    glDebugMessageCallback(glDebugOutput, nullptr);
-    glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr,
-                          GL_TRUE);
+  if (debug) {
+    int flags;
+    glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
+    if (flags & GL_CONTEXT_FLAG_DEBUG_BIT) {
+      // initialize debug output
+      glEnable(GL_DEBUG_OUTPUT);
+      glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+      glDebugMessageCallback(glDebugOutput, nullptr);
+      glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0,
+                            nullptr, GL_TRUE);
+    }
   }
 
   glEnable(GL_DEPTH_TEST);
   stbi_set_flip_vertically_on_load(true);
 
-  //glEnable(GL_CULL_FACE);
-  //glCullFace(GL_BACK);
+  // glEnable(GL_CULL_FACE);
+  // glCullFace(GL_BACK);
   createCamera();
 }
 

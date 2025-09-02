@@ -1,4 +1,4 @@
 #pragma once
 
-void start();
+void start(bool debug = false);
 void run();

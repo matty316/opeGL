@@ -63,6 +63,7 @@ void createScene() {
   for (size_t i = 0; i < pLightPositions.size(); i++) {
     setPointLight(shader, pLightPositions[i], i);
   }
+  use(debugShadowShader);
   setInt(debugShadowShader, "depthMap", 0);
 
   skyboxTexture = loadSkybox();
