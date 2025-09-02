@@ -179,7 +179,7 @@ void run() {
   double timeStamp = glfwGetTime();
   float deltaTime = 0.0f;
 
-  setupInstanceBuffer();
+  setupCubeBuffers();
 
   while (!glfwWindowShouldClose(window)) {
     updateCamera(movement, deltaTime, mouseState.pos, mouseState.pressedLeft);

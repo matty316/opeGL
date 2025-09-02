@@ -59,61 +59,54 @@ bool buffersLoaded = false;
 uint32_t instances = 0;
 
 std::vector<Cube> cubes;
-std::vector<glm::mat4> cubeMatrices;
 
-void setupBuffers() {
-  std::println("loading buffers");
-  glCreateVertexArrays(1, &vao);
-  glCreateBuffers(1, &vbo);
+void setupCubeBuffers() {
+  glm::mat4 *cubeMatrices = new glm::mat4[instances];
+  for (size_t i = 0; i < cubes.size(); i++)
+    cubeMatrices[i] = cubeModelMatrix(cubes[i]);
 
-  glNamedBufferStorage(vbo, sizeof(cubeVertices), cubeVertices,
-                       GL_DYNAMIC_STORAGE_BIT);
-  glVertexArrayVertexBuffer(vao, 0, vbo, 0, sizeof(GLfloat) * 8);
+  glGenVertexArrays(1, &vao);
+  glGenBuffers(1, &vbo);
 
-  glEnableVertexArrayAttrib(vao, 0);
-  glEnableVertexArrayAttrib(vao, 1);
-  glEnableVertexArrayAttrib(vao, 2);
+  glBindBuffer(GL_ARRAY_BUFFER, vbo);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), cubeVertices,
+               GL_STATIC_DRAW);
 
-  glVertexArrayAttribFormat(vao, 0, 3, GL_FLOAT, GL_FALSE, 0);
-  glVertexArrayAttribFormat(vao, 1, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 3);
-  glVertexArrayAttribFormat(vao, 2, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 6);
-
-  glVertexArrayAttribBinding(vao, 0, 0);
-  glVertexArrayAttribBinding(vao, 1, 0);
-  glVertexArrayAttribBinding(vao, 2, 0);
-
-  buffersLoaded = true;
-}
-
-void setupInstanceBuffer() {
   glBindVertexArray(vao);
-  glCreateBuffers(1, &instanceVbo);
-  glNamedBufferStorage(instanceVbo, instances * sizeof(glm::mat4), cubeMatrices.data(),
-                       GL_DYNAMIC_STORAGE_BIT);
-  glBindVertexBuffer(0, instanceVbo, 0, sizeof(glm::vec4) * 4);
+  glEnableVertexAttribArray(0);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)0);
+  glEnableVertexAttribArray(1);
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
+                        (void *)(3 * sizeof(float)));
+  glEnableVertexAttribArray(2);
+  glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
+                        (void *)(6 * sizeof(float)));
 
-  glEnableVertexArrayAttrib(vao, 3);
-  glEnableVertexArrayAttrib(vao, 4);
-  glEnableVertexArrayAttrib(vao, 5);
-  glEnableVertexArrayAttrib(vao, 6);
+  glGenBuffers(1, &instanceVbo);
+  glBindBuffer(GL_ARRAY_BUFFER, instanceVbo);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(glm::mat4) * instances, &cubeMatrices[0],
+               GL_STATIC_DRAW);
+  glBindVertexArray(vao);
+  // vertex attributes
+  std::size_t vec4Size = sizeof(glm::vec4);
+  glEnableVertexAttribArray(3);
+  glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size, (void *)0);
+  glEnableVertexAttribArray(4);
+  glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size,
+                        (void *)(1 * vec4Size));
+  glEnableVertexAttribArray(5);
+  glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size,
+                        (void *)(2 * vec4Size));
+  glEnableVertexAttribArray(6);
+  glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, 4 * vec4Size,
+                        (void *)(3 * vec4Size));
 
-  glVertexArrayAttribFormat(vao, 3, 4, GL_FLOAT, GL_FALSE, 0);
-  glVertexArrayAttribFormat(vao, 4, 4, GL_FLOAT, GL_FALSE, sizeof(glm::vec4));
-  glVertexArrayAttribFormat(vao, 5, 4, GL_FLOAT, GL_FALSE,
-                            2 * sizeof(glm::vec4));
-  glVertexArrayAttribFormat(vao, 6, 4, GL_FLOAT, GL_FALSE,
-                            3 * sizeof(glm::vec4));
+  glVertexAttribDivisor(3, 1);
+  glVertexAttribDivisor(4, 1);
+  glVertexAttribDivisor(5, 1);
+  glVertexAttribDivisor(6, 1);
 
-  glVertexArrayAttribBinding(vao, 3, 0);
-  glVertexArrayAttribBinding(vao, 4, 0);
-  glVertexArrayAttribBinding(vao, 5, 0);
-  glVertexArrayAttribBinding(vao, 6, 0);
-
-  glVertexArrayBindingDivisor(vao, 3, 1);
-  glVertexArrayBindingDivisor(vao, 4, 1);
-  glVertexArrayBindingDivisor(vao, 5, 1);
-  glVertexArrayBindingDivisor(vao, 6, 1);
-
+  glBindVertexArray(0);
 }
 
 void createCube(const char *diffPath, const char *specPath, glm::vec3 pos,
@@ -124,15 +117,11 @@ void createCube(const char *diffPath, const char *specPath, glm::vec3 pos,
   cube.angle = angle;
   cube.scale = scale;
 
-  if (!buffersLoaded)
-    setupBuffers();
-
-  instances++;
-
   diff = loadTexture(diffPath);
   spec = loadTexture(specPath);
 
-  cubeMatrices.push_back(cubeModelMatrix(cube));
+  instances++;
+
   cubes.push_back(cube);
 }
 
@@ -154,6 +143,6 @@ void drawCubes(GLuint shader) {
   glBindTextureUnit(1, spec);
 
   glBindVertexArray(vao);
-  glDrawArraysInstanced(GL_TRIANGLES, 0, 36, instances);
+  glDrawArraysInstanced(GL_TRIANGLES, 0, 36, static_cast<unsigned int>(cubes.size()));
   glBindVertexArray(0);
 }
