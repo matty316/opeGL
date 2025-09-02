@@ -4,44 +4,55 @@
 #include "texture.h"
 #include <glm/ext/matrix_transform.hpp>
 
+// clang-format off
 GLfloat cubeVertices[] = {
-    -1.0f, -1.0f, -1.0f, 0.0f,  0.0f,  -1.0f, 0.0f,  0.0f,  1.0f,  -1.0f,
-    -1.0f, 0.0f,  0.0f,  -1.0f, 1.0f,  0.0f,  1.0f,  1.0f,  -1.0f, 0.0f,
-    0.0f,  -1.0f, 1.0f,  1.0f,  1.0f,  1.0f,  -1.0f, 0.0f,  0.0f,  -1.0f,
-    1.0f,  1.0f,  -1.0f, 1.0f,  -1.0f, 0.0f,  0.0f,  -1.0f, 0.0f,  1.0f,
-    -1.0f, -1.0f, -1.0f, 0.0f,  0.0f,  -1.0f, 0.0f,  0.0f,
+    // Back face
+    -1.0f, -1.0f, -1.0f,  0.0f, 0.0f, -1.0f, 0.0f, 0.0f, // Bottom-left
+     1.0f,  1.0f, -1.0f,  0.0f, 0.0f, -1.0f, 1.0f, 1.0f, // top-right
+     1.0f, -1.0f, -1.0f,  0.0f, 0.0f, -1.0f, 1.0f, 0.0f, // bottom-right         
+     1.0f,  1.0f, -1.0f,  0.0f, 0.0f, -1.0f, 1.0f, 1.0f, // top-right
+    -1.0f, -1.0f, -1.0f,  0.0f, 0.0f, -1.0f, 0.0f, 0.0f, // bottom-left
+    -1.0f,  1.0f, -1.0f,  0.0f, 0.0f, -1.0f, 0.0f, 1.0f, // top-left
+    // Front face
+    -1.0f, -1.0f,  1.0f,  0.0f, 0.0f,  1.0f, 0.0f, 0.0f, // bottom-left
+     1.0f, -1.0f,  1.0f,  0.0f, 0.0f,  1.0f, 1.0f, 0.0f, // bottom-right
+     1.0f,  1.0f,  1.0f,  0.0f, 0.0f,  1.0f, 1.0f, 1.0f, // top-right
+     1.0f,  1.0f,  1.0f,  0.0f, 0.0f,  1.0f, 1.0f, 1.0f, // top-right
+    -1.0f,  1.0f,  1.0f,  0.0f, 0.0f,  1.0f, 0.0f, 1.0f, // top-left
+    -1.0f, -1.0f,  1.0f,  0.0f, 0.0f,  1.0f, 0.0f, 0.0f, // bottom-left
+    // Left face
+    -1.0f,  1.0f,  1.0f, -1.0f, 0.0f,  0.0f, 1.0f, 0.0f, // top-right
+    -1.0f,  1.0f, -1.0f, -1.0f, 0.0f,  0.0f, 1.0f, 1.0f, // top-left
+    -1.0f, -1.0f, -1.0f, -1.0f, 0.0f,  0.0f, 0.0f, 1.0f, // bottom-left
+    -1.0f, -1.0f, -1.0f, -1.0f, 0.0f,  0.0f, 0.0f, 1.0f, // bottom-left
+    -1.0f, -1.0f,  1.0f, -1.0f, 0.0f,  0.0f, 0.0f, 0.0f, // bottom-right
+    -1.0f,  1.0f,  1.0f, -1.0f, 0.0f,  0.0f, 1.0f, 0.0f, // top-right
+    // Right face
+     1.0f,  1.0f,  1.0f,  1.0f, 0.0f,  0.0f, 1.0f, 0.0f, // top-left
+     1.0f, -1.0f, -1.0f,  1.0f, 0.0f,  0.0f, 0.0f, 1.0f, // bottom-right
+     1.0f,  1.0f, -1.0f,  1.0f, 0.0f,  0.0f, 1.0f, 1.0f, // top-right         
+     1.0f, -1.0f, -1.0f,  1.0f, 0.0f,  0.0f, 0.0f, 1.0f, // bottom-right
+     1.0f,  1.0f,  1.0f,  1.0f, 0.0f,  0.0f, 1.0f, 0.0f, // top-left
+     1.0f, -1.0f,  1.0f,  1.0f, 0.0f,  0.0f, 0.0f, 0.0f, // bottom-left     
+    // Bottom face
+    -1.0f, -1.0f, -1.0f,  0.0f, -1.0f, 0.0f, 0.0f, 1.0f, // top-right
+     1.0f, -1.0f, -1.0f,  0.0f, -1.0f, 0.0f, 1.0f, 1.0f, // top-left
+     1.0f, -1.0f,  1.0f,  0.0f, -1.0f, 0.0f, 1.0f, 0.0f, // bottom-left
+     1.0f, -1.0f,  1.0f,  0.0f, -1.0f, 0.0f, 1.0f, 0.0f, // bottom-left
+    -1.0f, -1.0f,  1.0f,  0.0f, -1.0f, 0.0f, 0.0f, 0.0f, // bottom-right
+    -1.0f, -1.0f, -1.0f,  0.0f, -1.0f, 0.0f, 0.0f, 1.0f, // top-right
+    // Top face
+    -1.0f,  1.0f, -1.0f,  0.0f,  1.0f, 0.0f, 0.0f, 1.0f, // top-left
+     1.0f,  1.0f,  1.0f,  0.0f,  1.0f, 0.0f, 1.0f, 0.0f, // bottom-right
+     1.0f,  1.0f, -1.0f,  0.0f,  1.0f, 0.0f, 1.0f, 1.0f, // top-right     
+     1.0f,  1.0f,  1.0f,  0.0f,  1.0f, 0.0f, 1.0f, 0.0f, // bottom-right
+    -1.0f,  1.0f, -1.0f,  0.0f,  1.0f, 0.0f, 0.0f, 1.0f, // top-left
+    -1.0f,  1.0f,  1.0f,  0.0f,  1.0f, 0.0f, 0.0f, 0.0f  // bottom-left        
+};
+// clang-format on
 
-    -1.0f, -1.0f, 1.0f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,  -1.0f,
-    1.0f,  0.0f,  0.0f,  1.0f,  1.0f,  0.0f,  1.0f,  1.0f,  1.0f,  0.0f,
-    0.0f,  1.0f,  1.0f,  1.0f,  1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f,
-    1.0f,  1.0f,  -1.0f, 1.0f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,  1.0f,
-    -1.0f, -1.0f, 1.0f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
-
-    -1.0f, 1.0f,  1.0f,  -1.0f, 0.0f,  0.0f,  1.0f,  0.0f,  -1.0f, 1.0f,
-    -1.0f, -1.0f, 0.0f,  0.0f,  1.0f,  1.0f,  -1.0f, -1.0f, -1.0f, -1.0f,
-    0.0f,  0.0f,  0.0f,  1.0f,  -1.0f, -1.0f, -1.0f, -1.0f, 0.0f,  0.0f,
-    0.0f,  1.0f,  -1.0f, -1.0f, 1.0f,  -1.0f, 0.0f,  0.0f,  0.0f,  0.0f,
-    -1.0f, 1.0f,  1.0f,  -1.0f, 0.0f,  0.0f,  1.0f,  0.0f,
-
-    1.0f,  1.0f,  1.0f,  1.0f,  0.f,   0.0f,  1.0f,  0.0f,  1.0f,  1.0f,
-    -1.0f, 1.0f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,  -1.0f, -1.0f, 1.0f,
-    0.0f,  0.0f,  0.0f,  1.0f,  1.0f,  -1.0f, -1.0f, 1.0f,  0.0f,  0.0f,
-    0.0f,  1.0f,  1.0f,  -1.0f, 1.0f,  1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
-    1.0f,  1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
-
-    -1.0f, -1.0f, -1.0f, 0.0f,  -1.0f, 0.0f,  0.0f,  1.0f,  1.0f,  -1.0f,
-    -1.0f, 0.0f,  -1.0f, 0.0f,  1.0f,  1.0f,  1.0f,  -1.0f, 1.0f,  0.0f,
-    -1.0f, 0.0f,  1.0f,  0.0f,  1.0f,  -1.0f, 1.0f,  0.0f,  -1.0f, 0.0f,
-    1.0f,  0.0f,  -1.0f, -1.0f, 1.0f,  0.0f,  -1.0f, 0.0f,  0.0f,  0.0f,
-    -1.0f, -1.0f, -1.0f, 0.0f,  -1.0f, 0.0f,  0.0f,  1.0f,
-
-    -1.0f, 1.0f,  -1.0f, 0.0f,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
-    -1.0f, 0.0f,  1.0f,  0.0f,  1.0f,  1.0f,  1.0f,  1.0f,  1.0f,  0.0f,
-    1.0f,  0.0f,  1.0f,  0.0f,  1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f,
-    1.0f,  0.0f,  -1.0f, 1.0f,  1.0f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,
-    -1.0f, 1.0f,  -1.0f, 0.0f,  1.0f,  0.0f,  0.0f,  1.0f};
-
-Cube createCube(const char* diff, const char* spec, glm::vec3 pos, glm::vec3 rotation, float angle, float scale) {
+Cube createCube(const char *diff, const char *spec, glm::vec3 pos,
+                glm::vec3 rotation, float angle, float scale) {
   Cube cube;
   cube.pos = pos;
   cube.rotation = rotation;
@@ -53,7 +64,7 @@ Cube createCube(const char* diff, const char* spec, glm::vec3 pos, glm::vec3 rot
 
   glNamedBufferStorage(cube.vbo, sizeof(cubeVertices), cubeVertices,
                        GL_DYNAMIC_STORAGE_BIT);
-  
+
   glVertexArrayVertexBuffer(cube.vao, 0, cube.vbo, 0, sizeof(GLfloat) * 8);
 
   glEnableVertexArrayAttrib(cube.vao, 0);
