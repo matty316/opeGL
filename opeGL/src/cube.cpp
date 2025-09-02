@@ -1,4 +1,5 @@
 #include "cube.h"
+#include "glm/fwd.hpp"
 #include "shader.h"
 #include "texture.h"
 #include <glm/ext/matrix_transform.hpp>
@@ -85,11 +86,11 @@ void setupBuffers() {
 }
 
 void setupInstanceBuffer() {
+  glBindVertexArray(vao);
   glCreateBuffers(1, &instanceVbo);
   glNamedBufferStorage(instanceVbo, instances * sizeof(glm::mat4), cubeMatrices.data(),
                        GL_DYNAMIC_STORAGE_BIT);
-  glVertexArrayVertexBuffer(vao, 0, instanceVbo, 0,
-                            sizeof(glm::mat4));
+  glBindVertexBuffer(0, instanceVbo, 0, sizeof(glm::vec4) * 4);
 
   glEnableVertexArrayAttrib(vao, 3);
   glEnableVertexArrayAttrib(vao, 4);
@@ -103,15 +104,16 @@ void setupInstanceBuffer() {
   glVertexArrayAttribFormat(vao, 6, 4, GL_FLOAT, GL_FALSE,
                             3 * sizeof(glm::vec4));
 
-  glVertexArrayBindingDivisor(instanceVbo, 3, 1);
-  glVertexArrayBindingDivisor(instanceVbo, 4, 1);
-  glVertexArrayBindingDivisor(instanceVbo, 5, 1);
-  glVertexArrayBindingDivisor(instanceVbo, 6, 1);
-
   glVertexArrayAttribBinding(vao, 3, 0);
   glVertexArrayAttribBinding(vao, 4, 0);
   glVertexArrayAttribBinding(vao, 5, 0);
   glVertexArrayAttribBinding(vao, 6, 0);
+
+  glVertexArrayBindingDivisor(vao, 3, 1);
+  glVertexArrayBindingDivisor(vao, 4, 1);
+  glVertexArrayBindingDivisor(vao, 5, 1);
+  glVertexArrayBindingDivisor(vao, 6, 1);
+
 }
 
 void createCube(const char *diffPath, const char *specPath, glm::vec3 pos,
@@ -126,8 +128,6 @@ void createCube(const char *diffPath, const char *specPath, glm::vec3 pos,
     setupBuffers();
 
   instances++;
-
-  setupInstanceBuffer();
 
   diff = loadTexture(diffPath);
   spec = loadTexture(specPath);

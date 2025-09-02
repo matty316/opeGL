@@ -1,4 +1,5 @@
 #include "camera.h"
+#include "cube.h"
 #include "frameCounter.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include "game.h"
@@ -177,6 +178,8 @@ void start(bool debug) {
 void run() {
   double timeStamp = glfwGetTime();
   float deltaTime = 0.0f;
+
+  setupInstanceBuffer();
 
   while (!glfwWindowShouldClose(window)) {
     updateCamera(movement, deltaTime, mouseState.pos, mouseState.pressedLeft);
