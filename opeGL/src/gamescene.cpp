@@ -31,13 +31,12 @@ float lastFrame = 0.0f;
 
 std::vector<Model> models;
 std::vector<Plane> planes;
-std::vector<Cube> cubes;
 
 std::vector<glm::vec3> pLightPositions{glm::vec3{0.7f, 0.2f, 2.0f}};
 glm::vec3 dirLight{-2.0f, 4.0f, -1.0f};
 
 GLuint skyboxVAO, skyboxVBO, skyboxTexture, debugShadowShader, modelShader;
-GLuint shader, skyboxShader, depthShader;
+GLuint shader, skyboxShader, depthShader, cubeShader;
 glm::mat4 lightSpaceMatrix;
 
 void setupSkyboxVAO();
@@ -48,6 +47,7 @@ void renderDebugQuad(float nearPlane, float farPlane);
 
 void createScene() {
   shader = createShader("resources/shader.vert", "resources/shader.frag");
+  cubeShader = createShader("resources/cubeShader.vert", "resources/shader.frag");
   skyboxShader = createShader("resources/skybox.vert", "resources/skybox.frag");
   depthShader = createShader("resources/shadow.vert", "resources/shadow.frag");
   debugShadowShader =
@@ -73,9 +73,7 @@ void createScene() {
 }
 
 void addCube(const char* diff, const char* spec, glm::vec3 pos, glm::vec3 rotation, float angle, float scale) {
-  Cube cube =
-      createCube(diff, spec, pos, rotation, angle, scale);
-  cubes.push_back(cube);
+    createCube(diff, spec, pos, rotation, angle, scale);
 }
 
 void updateScene(int width, int height) {
@@ -103,9 +101,7 @@ void renderModels(GLuint shader) {
   for (auto &model : models) {
     drawModel(model, shader);
   }
-  for (auto &cube : cubes) {
-    drawCube(cube, shader);
-  }
+  drawCubes(cubeShader);
 }
 
 void renderScene(GLFWwindow *window) {

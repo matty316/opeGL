@@ -1,11 +1,11 @@
 #include "cube.h"
-#include "plane.h"
 #include "shader.h"
 #include "texture.h"
 #include <glm/ext/matrix_transform.hpp>
 #include <print>
+#include <vector>
 
-GLuint vao, vbo, diff, spec;
+GLuint vao, vbo, instanceVbo, diff, spec;
 
 // clang-format off
 GLfloat cubeVertices[] = {
@@ -55,6 +55,10 @@ GLfloat cubeVertices[] = {
 // clang-format on
 
 bool buffersLoaded = false;
+uint32_t instances = 0;
+
+std::vector<Cube> cubes;
+std::vector<glm::mat4> cubeMatrices;
 
 void setupBuffers() {
   std::println("loading buffers");
@@ -63,7 +67,6 @@ void setupBuffers() {
 
   glNamedBufferStorage(vbo, sizeof(cubeVertices), cubeVertices,
                        GL_DYNAMIC_STORAGE_BIT);
-
   glVertexArrayVertexBuffer(vao, 0, vbo, 0, sizeof(GLfloat) * 8);
 
   glEnableVertexArrayAttrib(vao, 0);
@@ -71,10 +74,8 @@ void setupBuffers() {
   glEnableVertexArrayAttrib(vao, 2);
 
   glVertexArrayAttribFormat(vao, 0, 3, GL_FLOAT, GL_FALSE, 0);
-  glVertexArrayAttribFormat(vao, 1, 3, GL_FLOAT, GL_FALSE,
-                            sizeof(GLfloat) * 3);
-  glVertexArrayAttribFormat(vao, 2, 2, GL_FLOAT, GL_FALSE,
-                            sizeof(GLfloat) * 6);
+  glVertexArrayAttribFormat(vao, 1, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 3);
+  glVertexArrayAttribFormat(vao, 2, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 6);
 
   glVertexArrayAttribBinding(vao, 0, 0);
   glVertexArrayAttribBinding(vao, 1, 0);
@@ -83,7 +84,37 @@ void setupBuffers() {
   buffersLoaded = true;
 }
 
-Cube createCube(const char *diffPath, const char *specPath, glm::vec3 pos,
+void setupInstanceBuffer() {
+  glCreateBuffers(1, &instanceVbo);
+  glNamedBufferStorage(instanceVbo, instances * sizeof(glm::mat4), cubeMatrices.data(),
+                       GL_DYNAMIC_STORAGE_BIT);
+  glVertexArrayVertexBuffer(vao, 0, instanceVbo, 0,
+                            sizeof(glm::mat4));
+
+  glEnableVertexArrayAttrib(vao, 3);
+  glEnableVertexArrayAttrib(vao, 4);
+  glEnableVertexArrayAttrib(vao, 5);
+  glEnableVertexArrayAttrib(vao, 6);
+
+  glVertexArrayAttribFormat(vao, 3, 4, GL_FLOAT, GL_FALSE, 0);
+  glVertexArrayAttribFormat(vao, 4, 4, GL_FLOAT, GL_FALSE, sizeof(glm::vec4));
+  glVertexArrayAttribFormat(vao, 5, 4, GL_FLOAT, GL_FALSE,
+                            2 * sizeof(glm::vec4));
+  glVertexArrayAttribFormat(vao, 6, 4, GL_FLOAT, GL_FALSE,
+                            3 * sizeof(glm::vec4));
+
+  glVertexArrayBindingDivisor(instanceVbo, 3, 1);
+  glVertexArrayBindingDivisor(instanceVbo, 4, 1);
+  glVertexArrayBindingDivisor(instanceVbo, 5, 1);
+  glVertexArrayBindingDivisor(instanceVbo, 6, 1);
+
+  glVertexArrayAttribBinding(vao, 3, 0);
+  glVertexArrayAttribBinding(vao, 4, 0);
+  glVertexArrayAttribBinding(vao, 5, 0);
+  glVertexArrayAttribBinding(vao, 6, 0);
+}
+
+void createCube(const char *diffPath, const char *specPath, glm::vec3 pos,
                 glm::vec3 rotation, float angle, float scale) {
   Cube cube;
   cube.pos = pos;
@@ -94,20 +125,28 @@ Cube createCube(const char *diffPath, const char *specPath, glm::vec3 pos,
   if (!buffersLoaded)
     setupBuffers();
 
+  instances++;
+
+  setupInstanceBuffer();
+
   diff = loadTexture(diffPath);
   spec = loadTexture(specPath);
 
-  return cube;
+  cubeMatrices.push_back(cubeModelMatrix(cube));
+  cubes.push_back(cube);
 }
 
-void drawCube(Cube &cube, GLuint shader) {
-  setInt(shader, "tiling", 1);
+glm::mat4 cubeModelMatrix(Cube &cube) {
   auto model = glm::mat4{1.0f};
   model = glm::translate(model, cube.pos);
   model = glm::rotate(model, glm::radians(cube.angle), cube.rotation);
   model = glm::scale(model, glm::vec3{cube.scale});
-  setMat4(shader, "model", model);
+  return model;
+}
 
+void drawCubes(GLuint shader) {
+  use(shader);
+  setInt(shader, "tiling", 1);
   setInt(shader, "material.diffuse", 0);
   glBindTextureUnit(0, diff);
 
@@ -115,6 +154,6 @@ void drawCube(Cube &cube, GLuint shader) {
   glBindTextureUnit(1, spec);
 
   glBindVertexArray(vao);
-  glDrawArrays(GL_TRIANGLES, 0, 36);
+  glDrawArraysInstanced(GL_TRIANGLES, 0, 36, instances);
   glBindVertexArray(0);
 }
