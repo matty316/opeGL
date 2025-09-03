@@ -2,6 +2,7 @@
 #include "glm/ext/quaternion_geometric.hpp"
 #include "glm/fwd.hpp"
 #include <algorithm>
+#include <cmath>
 #include <glm/ext.hpp>
 #include <glm/ext/matrix_transform.hpp>
 
@@ -10,15 +11,16 @@ float acceleration = 150.0f;
 float damping = 0.2f;
 float maxSpeed = 10.0f;
 float fastCoef = 10.0f;
+float playerHeight = 3.0f;
 
 glm::vec2 mousePosition = glm::vec2(0.0f);
-glm::vec3 cameraPosition = glm::vec3(0.0f, 0.0f, -3.0f);
+glm::vec3 cameraPosition = glm::vec3(0.0f, playerHeight, -3.0f);
 glm::quat cameraOrientation = glm::quat(glm::vec3(0.0f));
 glm::vec3 moveSpeed = glm::vec3(0.0f);
 glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
 void createCamera() {
-  auto target = glm::vec3(0.0f);
+  auto target = glm::vec3(0.0f, playerHeight, 0.0f);
   cameraOrientation = glm::quat(glm::lookAt(cameraPosition, target, cameraUp));
 }
 
@@ -69,7 +71,12 @@ void updateCamera(CameraMovement movement, float deltaTime,
       moveSpeed = glm::normalize(moveSpeed) * maximumSpeed;
   }
 
-  cameraPosition.y = 0.0f;
+  cameraPosition.y = playerHeight;
+
+  float f = sinf(cameraPosition.x * 4.f) + cosf(cameraPosition.z * 4.f);
+  f /= 35.f;
+  cameraPosition.y += f;
+
   cameraPosition += moveSpeed * deltaTime;
 }
 

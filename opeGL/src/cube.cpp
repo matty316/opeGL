@@ -55,13 +55,10 @@ GLfloat cubeVertices[] = {
 };
 // clang-format on
 
-bool buffersLoaded = false;
-uint32_t instances = 0;
-
 std::vector<Cube> cubes;
 
 void setupCubeBuffers() {
-  glm::mat4 *cubeMatrices = new glm::mat4[instances];
+  glm::mat4 *cubeMatrices = new glm::mat4[cubes.size()];
   for (size_t i = 0; i < cubes.size(); i++)
     cubeMatrices[i] = cubeModelMatrix(cubes[i]);
 
@@ -84,7 +81,7 @@ void setupCubeBuffers() {
 
   glGenBuffers(1, &instanceVbo);
   glBindBuffer(GL_ARRAY_BUFFER, instanceVbo);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(glm::mat4) * instances, &cubeMatrices[0],
+  glBufferData(GL_ARRAY_BUFFER, sizeof(glm::mat4) * cubes.size(), &cubeMatrices[0],
                GL_STATIC_DRAW);
   glBindVertexArray(vao);
   // vertex attributes
@@ -119,8 +116,6 @@ void createCube(const char *diffPath, const char *specPath, glm::vec3 pos,
 
   diff = loadTexture(diffPath);
   spec = loadTexture(specPath);
-
-  instances++;
 
   cubes.push_back(cube);
 }
