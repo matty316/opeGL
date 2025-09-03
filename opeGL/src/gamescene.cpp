@@ -1,5 +1,6 @@
 #include "gamescene.h"
 #include "camera.h"
+#include "cube.h"
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "model.h"
@@ -35,7 +36,7 @@ std::vector<glm::vec3> pLightPositions{glm::vec3{0.7f, 0.2f, 2.0f}};
 glm::vec3 dirLight{-2.0f, 4.0f, -1.0f};
 
 GLuint skyboxVAO, skyboxVBO, skyboxTexture, debugShadowShader, modelShader;
-GLuint shader, skyboxShader, depthShader;
+GLuint shader, skyboxShader, depthShader, cubeShader;
 glm::mat4 lightSpaceMatrix;
 
 void setupSkyboxVAO();
@@ -46,6 +47,8 @@ void renderDebugQuad(float nearPlane, float farPlane);
 
 void createScene() {
   shader = createShader("resources/shader.vert", "resources/shader.frag");
+  cubeShader =
+      createShader("resources/cubeShader.vert", "resources/cubeShader.frag");
   skyboxShader = createShader("resources/skybox.vert", "resources/skybox.frag");
   depthShader = createShader("resources/shadow.vert", "resources/shadow.frag");
   debugShadowShader =
@@ -55,18 +58,28 @@ void createScene() {
 
   setupDepthMap();
   use(shader);
+  setDirLight(shader, dirLight);
   setInt(shader, "numOfPointLights", pLightPositions.size());
   setInt(shader, "shadowMap", 11);
-  setDirLight(shader, dirLight);
   for (size_t i = 0; i < pLightPositions.size(); i++) {
     setPointLight(shader, pLightPositions[i], i);
   }
+
+  use(cubeShader);
+  setDirLight(cubeShader, dirLight);
+
+  use(debugShadowShader);
   setInt(debugShadowShader, "depthMap", 0);
 
   skyboxTexture = loadSkybox();
   setupSkyboxVAO();
   use(skyboxShader);
   setInt(skyboxShader, "skybox", 0);
+}
+
+void addCube(const char *diff, const char *spec, glm::vec3 pos,
+             glm::vec3 rotation, float angle, float scale) {
+  createCube(diff, spec, pos, rotation, angle, scale);
 }
 
 void updateScene(int width, int height) {
@@ -82,12 +95,12 @@ void addModel(const char *path, glm::vec3 pos, glm::vec3 rotation, float angle,
 
 void addPlane(const char *diffusePath, const char *specularPath, glm::vec3 pos,
               glm::vec3 rotation, float angle, float scale, int tiling) {
-  Plane plane =
-      createPlane(diffusePath, specularPath, pos, rotation, angle, scale, tiling);
+  Plane plane = createPlane(diffusePath, specularPath, pos, rotation, angle,
+                            scale, tiling);
   planes.push_back(plane);
 }
 
-void renderModels(GLuint shader, GLuint mShader, glm::mat4 v, glm::mat4 p) {
+void renderModels(GLuint shader) {
   for (auto &plane : planes) {
     drawPlane(plane, shader);
   }
@@ -115,10 +128,19 @@ void renderScene(GLFWwindow *window) {
   setMat4(shader, "view", view);
   setMat4(shader, "lightSpaceMatrix", lightSpaceMatrix);
 
+  use(shader);
+
   glActiveTexture(GL_TEXTURE11);
   glBindTexture(GL_TEXTURE_2D, depthMap);
 
-  renderModels(shader, modelShader, view, projection);
+  renderModels(shader);
+
+  use(cubeShader);
+  setFloat(cubeShader, "material.shininess", 32.0f);
+  setVec3(cubeShader, "viewPos", getCameraPos());
+  setMat4(cubeShader, "view", view);
+  setMat4(cubeShader, "projection", projection);
+  drawCubes(cubeShader);
 
   // draw skybox as last
   glDepthFunc(GL_LEQUAL); // change depth function so depth test passes when
@@ -241,7 +263,7 @@ void renderDepthMap(float nearPlane, float farPlane) {
   glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
   glClear(GL_DEPTH_BUFFER_BIT);
 
-  renderModels(depthShader, depthShader, lightView, lightProjection);
+  renderModels(depthShader);
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
   glViewport(0, 0, screenWidth, screenHeight);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
