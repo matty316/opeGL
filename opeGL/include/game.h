@@ -1,4 +1,4 @@
 #pragma once
 
 void start(bool debug = false);
-void run();
+void run(bool wireframe = false);

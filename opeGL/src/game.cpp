@@ -175,11 +175,12 @@ void start(bool debug) {
   createCamera();
 }
 
-void run() {
+void run(bool wireframe) {
   double timeStamp = glfwGetTime();
   float deltaTime = 0.0f;
-
-  setupCubeBuffers();
+  
+  if (wireframe)
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
   while (!glfwWindowShouldClose(window)) {
     updateCamera(movement, deltaTime, mouseState.pos, mouseState.pressedLeft);

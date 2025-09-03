@@ -7,10 +7,9 @@
 struct Cube {
   glm::vec3 pos, rotation;
   float angle, scale;
-  GLuint diff, spec;
+  GLuint vao, vbo, diff, spec;
+  bool top = true, bottom = true, front = true, back = true, left = true, right = true;
 };
 
-void createCube(const char* diffPath, const char* specPath, glm::vec3 pos, glm::vec3 rotation, float angle, float scale);
-void drawCubes(GLuint shader);
-void setupCubeBuffers();
-glm::mat4 cubeModelMatrix(Cube &cube);
+Cube createCube(GLuint diff, GLuint spec, glm::vec3 pos, glm::vec3 rotation, float angle, float scale);
+void drawCube(Cube &cube, GLuint shader);
