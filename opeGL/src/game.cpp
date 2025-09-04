@@ -130,7 +130,7 @@ void APIENTRY glDebugOutput(GLenum source, GLenum type, unsigned int id,
   std::cout << std::endl;
 }
 
-void start(bool debug) {
+void start(bool debug, bool vSync) {
   glfwInit();
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
@@ -155,6 +155,9 @@ void start(bool debug) {
     std::println("Failed to init glad");
     exit(EXIT_FAILURE);
   }
+
+  if (!vSync)
+    glfwSwapInterval(0);
 
   if (debug) {
     int flags;
