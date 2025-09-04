@@ -130,7 +130,7 @@ void APIENTRY glDebugOutput(GLenum source, GLenum type, unsigned int id,
   std::cout << std::endl;
 }
 
-void start(bool debug) {
+void start(bool debug, bool vSync) {
   glfwInit();
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
@@ -156,6 +156,9 @@ void start(bool debug) {
     exit(EXIT_FAILURE);
   }
 
+  if (!vSync)
+    glfwSwapInterval(0);
+
   if (debug) {
     int flags;
     glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
@@ -175,11 +178,12 @@ void start(bool debug) {
   createCamera();
 }
 
-void run() {
+void run(bool wireframe) {
   double timeStamp = glfwGetTime();
   float deltaTime = 0.0f;
-
-  setupCubeBuffers();
+  
+  if (wireframe)
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
   while (!glfwWindowShouldClose(window)) {
     updateCamera(movement, deltaTime, mouseState.pos, mouseState.pressedLeft);

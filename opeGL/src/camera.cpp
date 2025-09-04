@@ -71,11 +71,7 @@ void updateCamera(CameraMovement movement, float deltaTime,
       moveSpeed = glm::normalize(moveSpeed) * maximumSpeed;
   }
 
-  cameraPosition.y = playerHeight;
-
-  float f = sinf(cameraPosition.x * 4.f) + cosf(cameraPosition.z * 4.f);
-  f /= 35.f;
-  cameraPosition.y += f;
+  //cameraPosition.y = playerHeight;
 
   cameraPosition += moveSpeed * deltaTime;
 }
