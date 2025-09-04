@@ -60,7 +60,7 @@ void createVerts(Chunk &chunk) {
 
         if (z < CHUNK_SIZE - 1)
           lZPositive = chunk.cubes[x][y][z + 1].isActive;
-        
+
         chunk.cubes[x][y][z].left = !lXNegative;
         chunk.cubes[x][y][z].right = !lXPositive;
         chunk.cubes[x][y][z].top = !lYPositive;
@@ -68,10 +68,35 @@ void createVerts(Chunk &chunk) {
         chunk.cubes[x][y][z].back = !lZNegative;
         chunk.cubes[x][y][z].front = !lZPositive;
 
-        setupCubeBuffers(chunk.cubes[x][y][z]);
+        for (auto &vert : cubeVerts(chunk.cubes[x][y][z], x, y, z))
+          chunk.vertices.push_back(vert);
+
+        chunk.vertSize += chunk.cubes[x][y][z].vertSize;
       }
     }
   }
+}
+
+void setupBuffers(Chunk &chunk) {
+  glCreateVertexArrays(1, &chunk.vao);
+  glCreateBuffers(1, &chunk.vbo);
+
+  glNamedBufferStorage(chunk.vbo, sizeof(GLfloat) * chunk.vertices.size(), chunk.vertices.data(), GL_DYNAMIC_STORAGE_BIT);
+
+  glVertexArrayVertexBuffer(chunk.vao, 0, chunk.vbo, 0, sizeof(GLfloat) * 8);
+
+  glEnableVertexArrayAttrib(chunk.vao, 0);
+  glEnableVertexArrayAttrib(chunk.vao, 1);
+  glEnableVertexArrayAttrib(chunk.vao, 2);
+
+  glVertexArrayAttribFormat(chunk.vao, 0, 3, GL_FLOAT, GL_FALSE, 0);
+  glVertexArrayAttribFormat(chunk.vao, 1, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 3);
+  glVertexArrayAttribFormat(chunk.vao, 2, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 6);
+
+  glVertexArrayAttribBinding(chunk.vao, 0, 0);
+  glVertexArrayAttribBinding(chunk.vao, 1, 0);
+  glVertexArrayAttribBinding(chunk.vao, 2, 0);
+
 }
 
 Chunk createChunk(glm::vec3 pos, float scale) {
@@ -83,12 +108,14 @@ Chunk createChunk(glm::vec3 pos, float scale) {
   chunk.pos = pos;
   chunk.diff = diff;
   chunk.spec = spec;
+  chunk.scale = scale;
 
   for (size_t x = 0; x < CHUNK_SIZE; x++) {
     for (size_t y = 0; y < CHUNK_SIZE; y++) {
       for (size_t z = 0; z < CHUNK_SIZE; z++) {
-        Cube cube = createCube(diff, spec, glm::vec3(x * scale, (y - 1.f) * scale, z * scale),
-                               glm::vec3(1.0f), 0.0f, scale, true);
+        Cube cube = createCube(
+            diff, spec, glm::vec3(x * scale, (y - 1.f) * scale, z * scale),
+            glm::vec3(1.0f), 0.0f, scale, true);
         cube.isActive = false;
         chunk.cubes[x][y][z] = cube;
       }
@@ -97,23 +124,19 @@ Chunk createChunk(glm::vec3 pos, float scale) {
 
   makeSphere(chunk);
   createVerts(chunk);
+  setupBuffers(chunk);
 
   return chunk;
 }
 
 void drawChunk(Chunk &chunk, GLuint shader) {
-  for (size_t x = 0; x < CHUNK_SIZE; x++)
-    for (size_t y = 0; y < CHUNK_SIZE; y++)
-      for (size_t z = 0; z < CHUNK_SIZE; z++)
-        drawCube(chunk.cubes[x][y][z], shader);
-  /*
   use(shader);
   setInt(shader, "tiling", 1);
 
   auto model = glm::mat4(1.0f);
   model = glm::translate(model, chunk.pos);
   model = glm::rotate(model, glm::radians(0.0f), glm::vec3(1.0f));
-  model = glm::scale(model, glm::vec3{1.0f});
+  model = glm::scale(model, glm::vec3{chunk.scale});
   setMat4(shader, "model", model);
 
   setInt(shader, "material.diffuse", 0);
@@ -124,5 +147,5 @@ void drawChunk(Chunk &chunk, GLuint shader) {
 
   glBindVertexArray(chunk.vao);
   glDrawArrays(GL_TRIANGLES, 0, chunk.vertSize);
-  glBindVertexArray(0);*/
+  glBindVertexArray(0);
 }

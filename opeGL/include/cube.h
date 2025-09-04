@@ -13,6 +13,6 @@ struct Cube {
   bool isActive = true, top = true, bottom = true, front = true, back = true, left = true, right = true;
 };
 void setupCubeBuffers(Cube &cube);
-std::vector<GLfloat> cubeVerts(Cube &cube);
+std::vector<GLfloat> cubeVerts(Cube &cube, int xoffset, int yoffset, int zoffset);
 Cube createCube(GLuint diff, GLuint spec, glm::vec3 pos, glm::vec3 rotation, float angle, float scale, bool deferBuffers = false);
 void drawCube(Cube &cube, GLuint shader);

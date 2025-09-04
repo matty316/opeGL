@@ -2,7 +2,9 @@
 #include "glm/fwd.hpp"
 #include "shader.h"
 #include "texture.h"
+#include <cstddef>
 #include <glm/ext/matrix_transform.hpp>
+#include <vector>
 
 // clang-format off
 
@@ -61,37 +63,68 @@ GLfloat cubeTopFace[] = {
 };
 // clang-format on
 
-std::vector<GLfloat> cubeVerts(Cube &cube) {
+std::vector<GLfloat> vertsWithOffset(GLfloat oldVerts[48], int xoffset, int yoffset, int zoffset) {
+  std::vector<GLfloat> verts; 
+  for (size_t i = 0; i < 48; i++)
+    verts.push_back(oldVerts[i]);
+  verts[0] += xoffset;
+  verts[1] += yoffset;
+  verts[2] += zoffset;
+  verts[8] += xoffset;
+  verts[9] += yoffset;
+  verts[10] += zoffset;
+  verts[16] += xoffset;
+  verts[17] += yoffset;
+  verts[18] += zoffset;
+  verts[24] += xoffset;
+  verts[25] += yoffset;
+  verts[26] += zoffset;
+  verts[32] += xoffset;
+  verts[33] += yoffset;
+  verts[34] += zoffset;
+  verts[40] += xoffset;
+  verts[41] += yoffset;
+  verts[42] += zoffset;
+  return verts;
+}
+
+std::vector<GLfloat> cubeVerts(Cube &cube, int xoffset, int yoffset, int zoffset) {
   std::vector<GLfloat> verts;
   size_t vertSize = 0;
   if (cube.back) {
+    auto newVerts = vertsWithOffset(cubeBackFace, xoffset, yoffset, zoffset);
     for (size_t i = 0; i < 48; i++)
-      verts.push_back(cubeBackFace[i]);
+      verts.push_back(newVerts[i]);
     vertSize += 6;
   }
   if (cube.front) {
+    auto newVerts = vertsWithOffset(cubeFrontFace, xoffset, yoffset, zoffset);
     for (size_t i = 0; i < 48; i++)
-      verts.push_back(cubeFrontFace[i]);
+      verts.push_back(newVerts[i]);
     vertSize += 6;
   }
   if (cube.left) {
+    auto newVerts = vertsWithOffset(cubeLeftFace, xoffset, yoffset, zoffset);
     for (size_t i = 0; i < 48; i++)
-      verts.push_back(cubeLeftFace[i]);
+      verts.push_back(newVerts[i]);
     vertSize += 6;
   }
   if (cube.right) {
+    auto newVerts = vertsWithOffset(cubeRightFace, xoffset, yoffset, zoffset);
     for (size_t i = 0; i < 48; i++)
-      verts.push_back(cubeRightFace[i]);
+      verts.push_back(newVerts[i]);
     vertSize += 6;
   }
   if (cube.bottom) {
+    auto newVerts = vertsWithOffset(cubeBottomFace, xoffset, yoffset, zoffset);
     for (size_t i = 0; i < 48; i++)
-      verts.push_back(cubeBottomFace[i]);
+      verts.push_back(newVerts[i]);
     vertSize += 6;
   }
   if (cube.top) { 
+    auto newVerts = vertsWithOffset(cubeTopFace, xoffset, yoffset, zoffset);
     for (size_t i = 0; i < 48; i++)
-      verts.push_back(cubeTopFace[i]);
+      verts.push_back(newVerts[i]);
     vertSize += 6;
   }
 
@@ -101,7 +134,7 @@ std::vector<GLfloat> cubeVerts(Cube &cube) {
 }
 
 void setupCubeBuffers(Cube &cube) {
-  auto verts = cubeVerts(cube);
+  auto verts = cubeVerts(cube, 0, 0, 0);
 
   if (verts.size() == 0)
     return;
