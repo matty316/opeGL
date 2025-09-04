@@ -18,3 +18,4 @@ void addModel(const char *path, glm::vec3 pos, glm::vec3 rotation, float angle,
 void addPlane(const char *diffusePath, const char *specularPath, glm::vec3 pos,
               glm::vec3 rotation, float angle, float scale, int tiling = 16);
 void addCube(GLuint diff, GLuint spec, glm::vec3 pos, glm::vec3 rotation, float angle, float scale);
+void addChunk(glm::vec3 pos);

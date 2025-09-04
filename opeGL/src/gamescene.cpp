@@ -1,5 +1,6 @@
 #include "gamescene.h"
 #include "camera.h"
+#include "chunk.h"
 #include "cube.h"
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
@@ -32,6 +33,7 @@ float lastFrame = 0.0f;
 std::vector<Model> models;
 std::vector<Plane> planes;
 std::vector<Cube> cubes;
+std::vector<Chunk> chunks;
 
 std::vector<glm::vec3> pLightPositions{glm::vec3{0.7f, 0.2f, 2.0f}};
 glm::vec3 dirLight{-2.0f, 4.0f, -1.0f};
@@ -73,8 +75,8 @@ void createScene() {
   setInt(skyboxShader, "skybox", 0);
 }
 
-void addCube(GLuint diff, GLuint spec, glm::vec3 pos,
-             glm::vec3 rotation, float angle, float scale) {
+void addCube(GLuint diff, GLuint spec, glm::vec3 pos, glm::vec3 rotation,
+             float angle, float scale) {
   Cube cube = createCube(diff, spec, pos, rotation, angle, scale);
   cubes.push_back(cube);
 }
@@ -98,16 +100,14 @@ void addPlane(const char *diffusePath, const char *specularPath, glm::vec3 pos,
 }
 
 void renderModels(GLuint shader) {
-  for (auto &plane : planes) {
+  for (auto &plane : planes)
     drawPlane(plane, shader);
-  }
-  for (auto &model : models) {
+  for (auto &model : models)
     drawModel(model, shader);
-  }
-
-  for (auto &cube : cubes) {
+  for (auto &cube : cubes)
     drawCube(cube, shader);
-  }
+  for (auto &chunk : chunks)
+    drawChunk(chunk, shader);
 }
 
 void renderScene(GLFWwindow *window) {
@@ -295,4 +295,9 @@ void renderDebugQuad(float nearPlane, float farPlane) {
   glBindVertexArray(quadVAO);
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
   glBindVertexArray(0);
+}
+
+void addChunk(glm::vec3 pos) {
+  Chunk chunk = createChunk(pos);
+  chunks.push_back(chunk);
 }
