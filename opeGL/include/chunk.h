@@ -12,5 +12,5 @@ struct Chunk {
   Cube cubes[CHUNK_SIZE][CHUNK_SIZE][CHUNK_SIZE];
 };
 
-Chunk createChunk(glm::vec3 pos);
+Chunk createChunk(glm::vec3 pos, float scale);
 void drawChunk(Chunk &chunk, GLuint shader);

@@ -74,7 +74,7 @@ void createVerts(Chunk &chunk) {
   }
 }
 
-Chunk createChunk(glm::vec3 pos) {
+Chunk createChunk(glm::vec3 pos, float scale) {
   auto diff =
       loadTexture("resources/beige-textures/beige_wall_001_diff_4k.jpg");
   auto spec =
@@ -87,8 +87,8 @@ Chunk createChunk(glm::vec3 pos) {
   for (size_t x = 0; x < CHUNK_SIZE; x++) {
     for (size_t y = 0; y < CHUNK_SIZE; y++) {
       for (size_t z = 0; z < CHUNK_SIZE; z++) {
-        Cube cube = createCube(diff, spec, glm::vec3(x, y - 1.f, z),
-                               glm::vec3(1.0f), 0.0f, 1.0f, true);
+        Cube cube = createCube(diff, spec, glm::vec3(x * scale, (y - 1.f) * scale, z * scale),
+                               glm::vec3(1.0f), 0.0f, scale, true);
         cube.isActive = false;
         chunk.cubes[x][y][z] = cube;
       }

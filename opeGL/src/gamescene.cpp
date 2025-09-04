@@ -297,7 +297,7 @@ void renderDebugQuad(float nearPlane, float farPlane) {
   glBindVertexArray(0);
 }
 
-void addChunk(glm::vec3 pos) {
-  Chunk chunk = createChunk(pos);
+void addChunk(glm::vec3 pos, float scale) {
+  Chunk chunk = createChunk(pos, scale);
   chunks.push_back(chunk);
 }
