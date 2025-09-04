@@ -3,9 +3,6 @@
 #include "shader.h"
 #include "texture.h"
 #include <glm/ext/matrix_transform.hpp>
-#include <vector>
-
-GLuint vao, vbo;
 
 // clang-format off
 
@@ -64,62 +61,73 @@ GLfloat cubeTopFace[] = {
 };
 // clang-format on
 
-
-void setupCubeBuffers(Cube &cube) {
-  GLfloat verts[48 * 6];
-  int offset = 0;
+std::vector<GLfloat> cubeVerts(Cube &cube) {
+  std::vector<GLfloat> verts;
+  size_t vertSize = 0;
   if (cube.back) {
     for (size_t i = 0; i < 48; i++)
-      verts[i + offset] = cubeBackFace[i];
-    offset += 48;
+      verts.push_back(cubeBackFace[i]);
+    vertSize += 6;
   }
   if (cube.front) {
     for (size_t i = 0; i < 48; i++)
-      verts[i + offset] = cubeFrontFace[i];
-    offset += 48;
+      verts.push_back(cubeFrontFace[i]);
+    vertSize += 6;
   }
   if (cube.left) {
     for (size_t i = 0; i < 48; i++)
-      verts[i + offset] = cubeLeftFace[i];
-    offset += 48;
+      verts.push_back(cubeLeftFace[i]);
+    vertSize += 6;
   }
   if (cube.right) {
     for (size_t i = 0; i < 48; i++)
-      verts[i + offset] = cubeRightFace[i];
-    offset += 48;
+      verts.push_back(cubeRightFace[i]);
+    vertSize += 6;
   }
   if (cube.bottom) {
     for (size_t i = 0; i < 48; i++)
-      verts[i + offset] = cubeBottomFace[i];
-    offset += 48;
+      verts.push_back(cubeBottomFace[i]);
+    vertSize += 6;
   }
-  if (cube.top) {
+  if (cube.top) { 
     for (size_t i = 0; i < 48; i++)
-      verts[i + offset] = cubeTopFace[i];
+      verts.push_back(cubeTopFace[i]);
+    vertSize += 6;
   }
 
-  glCreateVertexArrays(1, &vao);
-  glCreateBuffers(1, &vbo);
+  cube.vertSize = vertSize;
 
-  glNamedBufferStorage(vbo, sizeof(verts), verts, GL_DYNAMIC_STORAGE_BIT);
+  return verts;
+}
 
-  glVertexArrayVertexBuffer(vao, 0, vbo, 0, sizeof(GLfloat) * 8);
+void setupCubeBuffers(Cube &cube) {
+  auto verts = cubeVerts(cube);
 
-  glEnableVertexArrayAttrib(vao, 0);
-  glEnableVertexArrayAttrib(vao, 1);
-  glEnableVertexArrayAttrib(vao, 2);
+  if (verts.size() == 0)
+    return;
 
-  glVertexArrayAttribFormat(vao, 0, 3, GL_FLOAT, GL_FALSE, 0);
-  glVertexArrayAttribFormat(vao, 1, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 3);
-  glVertexArrayAttribFormat(vao, 2, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 6);
+  glCreateVertexArrays(1, &cube.vao);
+  glCreateBuffers(1, &cube.vbo);
 
-  glVertexArrayAttribBinding(vao, 0, 0);
-  glVertexArrayAttribBinding(vao, 1, 0);
-  glVertexArrayAttribBinding(vao, 2, 0);
+  glNamedBufferStorage(cube.vbo, sizeof(GLfloat) * verts.size(), verts.data(), GL_DYNAMIC_STORAGE_BIT);
+
+  glVertexArrayVertexBuffer(cube.vao, 0, cube.vbo, 0, sizeof(GLfloat) * 8);
+
+  glEnableVertexArrayAttrib(cube.vao, 0);
+  glEnableVertexArrayAttrib(cube.vao, 1);
+  glEnableVertexArrayAttrib(cube.vao, 2);
+
+  glVertexArrayAttribFormat(cube.vao, 0, 3, GL_FLOAT, GL_FALSE, 0);
+  glVertexArrayAttribFormat(cube.vao, 1, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 3);
+  glVertexArrayAttribFormat(cube.vao, 2, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 6);
+
+  glVertexArrayAttribBinding(cube.vao, 0, 0);
+  glVertexArrayAttribBinding(cube.vao, 1, 0);
+  glVertexArrayAttribBinding(cube.vao, 2, 0);
 }
 
 Cube createCube(GLuint diff, GLuint spec, glm::vec3 pos, glm::vec3 rotation,
-                float angle, float scale) {
+                float angle, float scale, bool deferBuffers) {
   Cube cube;
   cube.pos = pos;
   cube.rotation = rotation;
@@ -129,7 +137,8 @@ Cube createCube(GLuint diff, GLuint spec, glm::vec3 pos, glm::vec3 rotation,
   cube.diff = diff;
   cube.spec = spec;
 
-  setupCubeBuffers(cube);
+  if (!deferBuffers)
+    setupCubeBuffers(cube);
 
   return cube;
 }
@@ -143,7 +152,7 @@ glm::mat4 cubeModelMatrix(Cube &cube) {
 }
 
 void drawCube(Cube &cube, GLuint shader) {
-  if (!cube.isActive)
+  if (!cube.isActive || cube.vertSize == 0)
     return;
 
   use(shader);
@@ -158,7 +167,7 @@ void drawCube(Cube &cube, GLuint shader) {
   setInt(shader, "material.specular", 1);
   glBindTextureUnit(1, cube.spec);
 
-  glBindVertexArray(vao);
-  glDrawArrays(GL_TRIANGLES, 0, 36);
+  glBindVertexArray(cube.vao);
+  glDrawArrays(GL_TRIANGLES, 0, cube.vertSize);
   glBindVertexArray(0);
 }

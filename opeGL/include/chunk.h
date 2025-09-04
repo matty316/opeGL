@@ -7,6 +7,8 @@
 
 struct Chunk {
   glm::vec3 pos;
+  GLuint vao, vbo, diff, spec;
+  size_t vertSize;
   Cube cubes[CHUNK_SIZE][CHUNK_SIZE][CHUNK_SIZE];
 };
 

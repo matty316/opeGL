@@ -3,13 +3,16 @@
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <glm/fwd.hpp>
+#include <vector>
 
 struct Cube {
   glm::vec3 pos, rotation;
   float angle, scale;
   GLuint vao, vbo, diff, spec;
+  size_t vertSize = 0;
   bool isActive = true, top = true, bottom = true, front = true, back = true, left = true, right = true;
 };
-
-Cube createCube(GLuint diff, GLuint spec, glm::vec3 pos, glm::vec3 rotation, float angle, float scale);
+void setupCubeBuffers(Cube &cube);
+std::vector<GLfloat> cubeVerts(Cube &cube);
+Cube createCube(GLuint diff, GLuint spec, glm::vec3 pos, glm::vec3 rotation, float angle, float scale, bool deferBuffers = false);
 void drawCube(Cube &cube, GLuint shader);
