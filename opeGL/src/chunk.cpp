@@ -5,6 +5,8 @@
 #include "shader.h"
 #include "texture.h"
 #include <cstddef>
+#define STB_PERLIN_IMPLEMENTATION
+#include <PerlinNoise.hpp>
 
 void makeSphere(Chunk &chunk) {
   for (size_t x = 0; x < chunk.chunkSize; x++) {
@@ -18,6 +20,19 @@ void makeSphere(Chunk &chunk) {
           chunk.cubes[x * chunk.chunkSize * chunk.chunkSize + y * chunk.chunkSize + z]
               .isActive = true;
         }
+      }
+    }
+  }
+}
+
+void makeLandscape(Chunk &chunk) {
+  const siv::PerlinNoise::seed_type seed = 0;
+	const siv::PerlinNoise perlin{ seed };
+  for (size_t x = 0; x < chunk.chunkSize; x++) {
+    for (size_t z = 0; z < chunk.chunkSize; z++) {
+      float height = (perlin.octave2D_01(x, z, 8) * (chunk.chunkSize - 1) * 1.0f) * 1.0f; 
+      for (size_t y = 0; y < height; y++) {
+        chunk.cubes[x * chunk.chunkSize * chunk.chunkSize + y * chunk.chunkSize + z].isActive = true;
       }
     }
   }
@@ -159,7 +174,8 @@ Chunk createChunk(glm::vec3 pos, glm::vec3 rotation, float angle, float scale, C
   }
 
   switch (type) {
-    case Sphere: makeSphere(chunk);
+    case Sphere: makeSphere(chunk); break;
+    case Landscape: makeLandscape(chunk); break;
   }
 
   createVerts(chunk);

@@ -12,7 +12,7 @@ float damping = 0.2f;
 float maxSpeed = 10.0f;
 float fastCoef = 10.0f;
 float playerHeight = 3.0f;
-bool fly = false;
+bool fly = true;
 
 glm::vec2 mousePosition = glm::vec2(0.0f);
 glm::vec3 cameraPosition = glm::vec3(0.0f, playerHeight, -3.0f);
