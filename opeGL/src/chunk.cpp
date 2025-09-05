@@ -4,9 +4,9 @@
 #include "glm/fwd.hpp"
 #include "shader.h"
 #include "texture.h"
-#include <cstddef>
-#define STB_PERLIN_IMPLEMENTATION
 #include <PerlinNoise.hpp>
+#include <cstddef>
+#include <print>
 
 void makeSphere(Chunk &chunk) {
   for (size_t x = 0; x < chunk.chunkSize; x++) {
@@ -17,7 +17,9 @@ void makeSphere(Chunk &chunk) {
         auto c = (z - chunk.chunkSize / 2) * (z - chunk.chunkSize / 2);
         auto d = chunk.chunkSize / 2;
         if (sqrtf(a + b + c) <= d) {
-          chunk.cubes[x * chunk.chunkSize * chunk.chunkSize + y * chunk.chunkSize + z]
+          chunk
+              .cubes[x * chunk.chunkSize * chunk.chunkSize +
+                     y * chunk.chunkSize + z]
               .isActive = true;
         }
       }
@@ -26,13 +28,19 @@ void makeSphere(Chunk &chunk) {
 }
 
 void makeLandscape(Chunk &chunk) {
-  const siv::PerlinNoise::seed_type seed = 0;
+  std::println("generating terrain");
+
+  const siv::PerlinNoise::seed_type seed = 6969420;
 	const siv::PerlinNoise perlin{ seed };
+
   for (size_t x = 0; x < chunk.chunkSize; x++) {
     for (size_t z = 0; z < chunk.chunkSize; z++) {
-      float height = (perlin.octave2D_01(x, z, 8) * (chunk.chunkSize - 1) * 1.0f) * 1.0f; 
-      for (size_t y = 0; y < height; y++) {
-        chunk.cubes[x * chunk.chunkSize * chunk.chunkSize + y * chunk.chunkSize + z].isActive = true;
+      const double noise = perlin.octave2D_01((x * 0.01), (z * 0.01), 4) * chunk.chunkSize;
+      for (size_t y = 0; y < noise; y++) {
+        chunk
+            .cubes[x * chunk.chunkSize * chunk.chunkSize + y * chunk.chunkSize +
+                   z]
+            .isActive = true;
       }
     }
   }
@@ -43,7 +51,9 @@ void createVerts(Chunk &chunk) {
   for (size_t x = 0; x < chunk.chunkSize; x++) {
     for (size_t y = 0; y < chunk.chunkSize; y++) {
       for (size_t z = 0; z < chunk.chunkSize; z++) {
-        if (chunk.cubes[x * chunk.chunkSize * chunk.chunkSize + y * chunk.chunkSize + z]
+        if (chunk
+                .cubes[x * chunk.chunkSize * chunk.chunkSize +
+                       y * chunk.chunkSize + z]
                 .isActive == false) {
           continue;
         }
@@ -53,7 +63,8 @@ void createVerts(Chunk &chunk) {
         if (x > 0)
           lXNegative =
               chunk
-                  .cubes[((x - 1) * chunk.chunkSize * chunk.chunkSize) + y * chunk.chunkSize + z]
+                  .cubes[((x - 1) * chunk.chunkSize * chunk.chunkSize) +
+                         y * chunk.chunkSize + z]
                   .isActive;
 
         bool lXPositive = lDefault;
@@ -61,62 +72,77 @@ void createVerts(Chunk &chunk) {
         if (x < chunk.chunkSize - 1)
           lXPositive =
               chunk
-                  .cubes[((x + 1) * chunk.chunkSize * chunk.chunkSize) + y * chunk.chunkSize + z]
+                  .cubes[((x + 1) * chunk.chunkSize * chunk.chunkSize) +
+                         y * chunk.chunkSize + z]
                   .isActive;
 
         bool lYNegative = lDefault;
 
         if (y > 0)
-          lYNegative =
-              chunk
-                  .cubes[x * chunk.chunkSize * chunk.chunkSize + ((y - 1) * chunk.chunkSize) + z]
-                  .isActive;
+          lYNegative = chunk
+                           .cubes[x * chunk.chunkSize * chunk.chunkSize +
+                                  ((y - 1) * chunk.chunkSize) + z]
+                           .isActive;
 
         bool lYPositive = lDefault;
 
         if (y < chunk.chunkSize - 1)
-          lYPositive =
-              chunk
-                  .cubes[x * chunk.chunkSize * chunk.chunkSize + ((y + 1) * chunk.chunkSize) + z]
-                  .isActive;
+          lYPositive = chunk
+                           .cubes[x * chunk.chunkSize * chunk.chunkSize +
+                                  ((y + 1) * chunk.chunkSize) + z]
+                           .isActive;
 
         bool lZNegative = lDefault;
 
         if (z > 0)
-          lZNegative =
-              chunk
-                  .cubes[x * chunk.chunkSize * chunk.chunkSize + y * chunk.chunkSize + (z - 1)]
-                  .isActive;
+          lZNegative = chunk
+                           .cubes[x * chunk.chunkSize * chunk.chunkSize +
+                                  y * chunk.chunkSize + (z - 1)]
+                           .isActive;
 
         bool lZPositive = lDefault;
 
         if (z < chunk.chunkSize - 1)
-          lZPositive =
-              chunk
-                  .cubes[x * chunk.chunkSize * chunk.chunkSize + y * chunk.chunkSize + (z + 1)]
-                  .isActive;
+          lZPositive = chunk
+                           .cubes[x * chunk.chunkSize * chunk.chunkSize +
+                                  y * chunk.chunkSize + (z + 1)]
+                           .isActive;
 
-        chunk.cubes[x * chunk.chunkSize * chunk.chunkSize + y * chunk.chunkSize + z].left =
-            !lXNegative;
-        chunk.cubes[x * chunk.chunkSize * chunk.chunkSize + y * chunk.chunkSize + z].right =
-            !lXPositive;
-        chunk.cubes[x * chunk.chunkSize * chunk.chunkSize + y * chunk.chunkSize + z].top =
-            !lYPositive;
-        chunk.cubes[x * chunk.chunkSize * chunk.chunkSize + y * chunk.chunkSize + z].bottom =
-            !lYNegative;
-        chunk.cubes[x * chunk.chunkSize * chunk.chunkSize + y * chunk.chunkSize + z].back =
-            !lZNegative;
-        chunk.cubes[x * chunk.chunkSize * chunk.chunkSize + y * chunk.chunkSize + z].front =
-            !lZPositive;
+        chunk
+            .cubes[x * chunk.chunkSize * chunk.chunkSize + y * chunk.chunkSize +
+                   z]
+            .left = !lXNegative;
+        chunk
+            .cubes[x * chunk.chunkSize * chunk.chunkSize + y * chunk.chunkSize +
+                   z]
+            .right = !lXPositive;
+        chunk
+            .cubes[x * chunk.chunkSize * chunk.chunkSize + y * chunk.chunkSize +
+                   z]
+            .top = !lYPositive;
+        chunk
+            .cubes[x * chunk.chunkSize * chunk.chunkSize + y * chunk.chunkSize +
+                   z]
+            .bottom = !lYNegative;
+        chunk
+            .cubes[x * chunk.chunkSize * chunk.chunkSize + y * chunk.chunkSize +
+                   z]
+            .back = !lZNegative;
+        chunk
+            .cubes[x * chunk.chunkSize * chunk.chunkSize + y * chunk.chunkSize +
+                   z]
+            .front = !lZPositive;
 
-        for (auto &vert : cubeVerts(
-                 chunk.cubes[x * chunk.chunkSize * chunk.chunkSize + y * chunk.chunkSize + z],
-                 x, y, z))
+        for (auto &vert :
+             cubeVerts(chunk.cubes[x * chunk.chunkSize * chunk.chunkSize +
+                                   y * chunk.chunkSize + z],
+                       x, y, z))
           chunk.vertices.push_back(vert);
 
-        chunk.vertSize +=
-            chunk.cubes[x * chunk.chunkSize * chunk.chunkSize + y * chunk.chunkSize + z]
-                .vertSize;
+        chunk.vertSize += chunk
+                              .cubes[x * chunk.chunkSize * chunk.chunkSize +
+                                     y * chunk.chunkSize + z]
+                              .vertSize;
       }
     }
   }
@@ -146,7 +172,8 @@ void setupBuffers(Chunk &chunk) {
   glVertexArrayAttribBinding(chunk.vao, 2, 0);
 }
 
-Chunk createChunk(glm::vec3 pos, glm::vec3 rotation, float angle, float scale, ChunkType type, size_t chunkSize) {
+Chunk createChunk(glm::vec3 pos, glm::vec3 rotation, float angle, float scale,
+                  ChunkType type, size_t chunkSize) {
   auto diff =
       loadTexture("resources/beige-textures/beige_wall_001_diff_4k.jpg");
   auto spec =
@@ -168,14 +195,19 @@ Chunk createChunk(glm::vec3 pos, glm::vec3 rotation, float angle, float scale, C
             diff, spec, glm::vec3(x * scale, (y - 1.f) * scale, z * scale),
             glm::vec3(1.0f), 0.0f, scale, true);
         cube.isActive = false;
-        chunk.cubes[x * chunk.chunkSize * chunk.chunkSize + y * chunk.chunkSize + z] = cube;
+        chunk.cubes[x * chunk.chunkSize * chunk.chunkSize +
+                    y * chunk.chunkSize + z] = cube;
       }
     }
   }
 
   switch (type) {
-    case Sphere: makeSphere(chunk); break;
-    case Landscape: makeLandscape(chunk); break;
+  case Sphere:
+    makeSphere(chunk);
+    break;
+  case Landscape:
+    makeLandscape(chunk);
+    break;
   }
 
   createVerts(chunk);
