@@ -11,7 +11,7 @@
 const siv::PerlinNoise::seed_type seed = 6969420;
 const siv::PerlinNoise perlin{seed};
 
-void makeSphere(Chunk &chunk) {
+void makeSphere(Chunk &chunk, Cube *cubes) {
   for (size_t x = 0; x < chunk.chunkSize; x++) {
     for (size_t y = 0; y < chunk.chunkSize; y++) {
       for (size_t z = 0; z < chunk.chunkSize; z++) {
@@ -20,9 +20,7 @@ void makeSphere(Chunk &chunk) {
         auto c = (z - chunk.chunkSize / 2) * (z - chunk.chunkSize / 2);
         auto d = chunk.chunkSize / 2;
         if (sqrtf(a + b + c) <= d) {
-          chunk
-              .cubes[x * chunk.chunkSize * chunk.chunkSize +
-                     y * chunk.chunkSize + z]
+          cubes[x * chunk.chunkSize * chunk.chunkSize + y * chunk.chunkSize + z]
               .isActive = true;
         }
       }
@@ -30,7 +28,8 @@ void makeSphere(Chunk &chunk) {
   }
 }
 
-void makeLandscape(Chunk &chunk, float freq = 0.01f, int octave = 4) {
+void makeLandscape(Chunk &chunk, Cube *cubes, float freq = 0.01f,
+                   int octave = 4) {
   std::println("generating terrain");
 
   for (size_t x = 0; x < chunk.chunkSize; x++) {
@@ -39,11 +38,10 @@ void makeLandscape(Chunk &chunk, float freq = 0.01f, int octave = 4) {
           perlin.octave2D_01(
               ((static_cast<float>(x)) * freq) + chunk.pos.x / chunk.chunkSize,
               ((static_cast<float>(z)) * freq) + chunk.pos.z / chunk.chunkSize,
-              octave) * chunk.chunkSize;
+              octave) *
+          chunk.chunkSize;
       for (size_t y = 0; y < noise; y++) {
-        chunk
-            .cubes[x * chunk.chunkSize * chunk.chunkSize + y * chunk.chunkSize +
-                   z]
+        cubes[x * chunk.chunkSize * chunk.chunkSize + y * chunk.chunkSize + z]
             .isActive = true;
       }
     }
@@ -51,13 +49,12 @@ void makeLandscape(Chunk &chunk, float freq = 0.01f, int octave = 4) {
 }
 
 bool lDefault = false;
-void createVerts(Chunk &chunk) {
+void createVerts(Chunk &chunk, Cube *cubes) {
   for (size_t x = 0; x < chunk.chunkSize; x++) {
     for (size_t y = 0; y < chunk.chunkSize; y++) {
       for (size_t z = 0; z < chunk.chunkSize; z++) {
-        if (chunk
-                .cubes[x * chunk.chunkSize * chunk.chunkSize +
-                       y * chunk.chunkSize + z]
+        if (cubes[x * chunk.chunkSize * chunk.chunkSize + y * chunk.chunkSize +
+                  z]
                 .isActive == false) {
           continue;
         }
@@ -66,86 +63,73 @@ void createVerts(Chunk &chunk) {
 
         if (x > 0)
           lXNegative =
-              chunk
-                  .cubes[((x - 1) * chunk.chunkSize * chunk.chunkSize) +
-                         y * chunk.chunkSize + z]
+
+              cubes[((x - 1) * chunk.chunkSize * chunk.chunkSize) +
+                    y * chunk.chunkSize + z]
                   .isActive;
 
         bool lXPositive = lDefault;
 
         if (x < chunk.chunkSize - 1)
           lXPositive =
-              chunk
-                  .cubes[((x + 1) * chunk.chunkSize * chunk.chunkSize) +
-                         y * chunk.chunkSize + z]
+
+              cubes[((x + 1) * chunk.chunkSize * chunk.chunkSize) +
+                    y * chunk.chunkSize + z]
                   .isActive;
 
         bool lYNegative = lDefault;
 
         if (y > 0)
-          lYNegative = chunk
-                           .cubes[x * chunk.chunkSize * chunk.chunkSize +
-                                  ((y - 1) * chunk.chunkSize) + z]
+          lYNegative = cubes[x * chunk.chunkSize * chunk.chunkSize +
+                             ((y - 1) * chunk.chunkSize) + z]
                            .isActive;
 
         bool lYPositive = lDefault;
 
         if (y < chunk.chunkSize - 1)
-          lYPositive = chunk
-                           .cubes[x * chunk.chunkSize * chunk.chunkSize +
-                                  ((y + 1) * chunk.chunkSize) + z]
+          lYPositive = cubes[x * chunk.chunkSize * chunk.chunkSize +
+                             ((y + 1) * chunk.chunkSize) + z]
                            .isActive;
 
         bool lZNegative = lDefault;
 
         if (z > 0)
-          lZNegative = chunk
-                           .cubes[x * chunk.chunkSize * chunk.chunkSize +
-                                  y * chunk.chunkSize + (z - 1)]
+          lZNegative = cubes[x * chunk.chunkSize * chunk.chunkSize +
+                             y * chunk.chunkSize + (z - 1)]
                            .isActive;
 
         bool lZPositive = lDefault;
 
         if (z < chunk.chunkSize - 1)
-          lZPositive = chunk
-                           .cubes[x * chunk.chunkSize * chunk.chunkSize +
-                                  y * chunk.chunkSize + (z + 1)]
+          lZPositive = cubes[x * chunk.chunkSize * chunk.chunkSize +
+                             y * chunk.chunkSize + (z + 1)]
                            .isActive;
 
-        chunk
-            .cubes[x * chunk.chunkSize * chunk.chunkSize + y * chunk.chunkSize +
-                   z]
+        cubes[x * chunk.chunkSize * chunk.chunkSize + y * chunk.chunkSize + z]
             .left = !lXNegative;
-        chunk
-            .cubes[x * chunk.chunkSize * chunk.chunkSize + y * chunk.chunkSize +
-                   z]
+
+        cubes[x * chunk.chunkSize * chunk.chunkSize + y * chunk.chunkSize + z]
             .right = !lXPositive;
-        chunk
-            .cubes[x * chunk.chunkSize * chunk.chunkSize + y * chunk.chunkSize +
-                   z]
+
+        cubes[x * chunk.chunkSize * chunk.chunkSize + y * chunk.chunkSize + z]
             .top = !lYPositive;
-        chunk
-            .cubes[x * chunk.chunkSize * chunk.chunkSize + y * chunk.chunkSize +
-                   z]
+
+        cubes[x * chunk.chunkSize * chunk.chunkSize + y * chunk.chunkSize + z]
             .bottom = !lYNegative;
-        chunk
-            .cubes[x * chunk.chunkSize * chunk.chunkSize + y * chunk.chunkSize +
-                   z]
+
+        cubes[x * chunk.chunkSize * chunk.chunkSize + y * chunk.chunkSize + z]
             .back = !lZNegative;
-        chunk
-            .cubes[x * chunk.chunkSize * chunk.chunkSize + y * chunk.chunkSize +
-                   z]
+        cubes[x * chunk.chunkSize * chunk.chunkSize + y * chunk.chunkSize + z]
             .front = !lZPositive;
 
         for (auto &vert :
-             cubeVerts(chunk.cubes[x * chunk.chunkSize * chunk.chunkSize +
-                                   y * chunk.chunkSize + z],
+             cubeVerts(cubes[x * chunk.chunkSize * chunk.chunkSize +
+                             y * chunk.chunkSize + z],
                        x, y, z))
           chunk.vertices.push_back(vert);
 
-        chunk.vertSize += chunk
-                              .cubes[x * chunk.chunkSize * chunk.chunkSize +
-                                     y * chunk.chunkSize + z]
+        chunk.vertSize += cubes[x * chunk.chunkSize * chunk.chunkSize +
+                                y * chunk.chunkSize + z]
                               .vertSize;
       }
     }
@@ -190,7 +174,7 @@ Chunk createChunk(glm::vec3 pos, glm::vec3 rotation, float angle, float scale,
   chunk.spec = spec;
   chunk.scale = scale;
   chunk.chunkSize = chunkSize;
-  chunk.cubes = new Cube[chunk.chunkSize * chunk.chunkSize * chunk.chunkSize];
+  Cube *cubes = new Cube[chunk.chunkSize * chunk.chunkSize * chunk.chunkSize];
 
   for (size_t x = 0; x < chunk.chunkSize; x++) {
     for (size_t y = 0; y < chunk.chunkSize; y++) {
@@ -199,22 +183,23 @@ Chunk createChunk(glm::vec3 pos, glm::vec3 rotation, float angle, float scale,
             diff, spec, glm::vec3(x * scale, (y - 1.f) * scale, z * scale),
             glm::vec3(1.0f), 0.0f, scale, true);
         cube.isActive = false;
-        chunk.cubes[x * chunk.chunkSize * chunk.chunkSize +
-                    y * chunk.chunkSize + z] = cube;
+        cubes[x * chunk.chunkSize * chunk.chunkSize + y * chunk.chunkSize + z] =
+            cube;
       }
     }
   }
 
   switch (type) {
   case Sphere:
-    makeSphere(chunk);
+    makeSphere(chunk, cubes);
     break;
   case Landscape:
-    makeLandscape(chunk);
+    makeLandscape(chunk, cubes);
     break;
   }
 
-  createVerts(chunk);
+  createVerts(chunk, cubes);
+  delete[] cubes;
   setupBuffers(chunk);
 
   return chunk;

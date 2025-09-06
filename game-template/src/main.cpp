@@ -3,17 +3,17 @@
 #include "gamescene.h"
 
 void createChunks() { 
-  addChunk(glm::vec3(0.0f), glm::vec3(1.0f), 0.0f, 1.f, Landscape); 
-  addChunk(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(1.0f), 0.0f, 1.f, Landscape); 
+  addChunk(glm::vec3(0.0f), glm::vec3(1.0f), 0.0f, 0.1f, Landscape); 
+  //addChunk(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(1.0f), 0.0f, 1.f, Landscape); 
 }
 
 void buildScene() {
   createScene();
   createChunks();
-  addPlane("resources/marble-textures/marble_01_diff_4k.jpg",
+ /* addPlane("resources/marble-textures/marble_01_diff_4k.jpg",
            "resources/marble-textures/marble_01_spec_4k.jpg",
            glm::vec3{0.0f, -2.0f, 0.0f}, glm::vec3{1.0f, 0.0f, 0.0f}, 90.f,
-           100.f);
+           100.f);*/
 }
 
 int main() {
