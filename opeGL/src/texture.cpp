@@ -45,3 +45,10 @@ GLuint loadTexture(const char *path) {
   loadedTextures[path] = textureID;
   return textureID;
 }
+
+GLuint64 loadBindlessTexture(const char* path) {
+  auto textureId = loadTexture(path);
+  auto handle = glGetTextureHandleARB(textureId);
+  glMakeTextureHandleResidentARB(handle);
+  return handle;
+}
