@@ -2,7 +2,10 @@
 #include "game.h"
 #include "gamescene.h"
 
-void createChunks() { addChunk(glm::vec3(0.0f), glm::vec3(1.0f), 0.0f, 0.1f, Landscape); }
+void createChunks() { 
+  addChunk(glm::vec3(0.0f), glm::vec3(1.0f), 0.0f, 1.f, Landscape); 
+  addChunk(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(1.0f), 0.0f, 1.f, Landscape); 
+}
 
 void buildScene() {
   createScene();

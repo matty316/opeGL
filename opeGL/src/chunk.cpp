@@ -8,6 +8,9 @@
 #include <cstddef>
 #include <print>
 
+const siv::PerlinNoise::seed_type seed = 6969420;
+const siv::PerlinNoise perlin{seed};
+
 void makeSphere(Chunk &chunk) {
   for (size_t x = 0; x < chunk.chunkSize; x++) {
     for (size_t y = 0; y < chunk.chunkSize; y++) {
@@ -27,15 +30,16 @@ void makeSphere(Chunk &chunk) {
   }
 }
 
-void makeLandscape(Chunk &chunk) {
+void makeLandscape(Chunk &chunk, float freq = 0.01f, int octave = 4) {
   std::println("generating terrain");
-
-  const siv::PerlinNoise::seed_type seed = 6969420;
-	const siv::PerlinNoise perlin{ seed };
 
   for (size_t x = 0; x < chunk.chunkSize; x++) {
     for (size_t z = 0; z < chunk.chunkSize; z++) {
-      const double noise = perlin.octave2D_01((x * 0.01), (z * 0.01), 4) * chunk.chunkSize;
+      const float noise =
+          perlin.octave2D_01(
+              ((static_cast<float>(x)) * freq) + chunk.pos.x / chunk.chunkSize,
+              ((static_cast<float>(z)) * freq) + chunk.pos.z / chunk.chunkSize,
+              octave) * chunk.chunkSize;
       for (size_t y = 0; y < noise; y++) {
         chunk
             .cubes[x * chunk.chunkSize * chunk.chunkSize + y * chunk.chunkSize +

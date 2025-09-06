@@ -98,6 +98,8 @@ void main() {
 
     vec3 result = calculateDirLight(dirLight, norm, viewDir, shadow);
 
+    //vec3 result = texture(material.diffuse, TexCoords * tiling).rgb;
+
     for (int i = 0; i < numOfPointLights; i++)
         //        result += calculatePointLight(pointLights[i], norm, FragPos, viewDir, shadow);
 
