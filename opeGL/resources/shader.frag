@@ -46,7 +46,8 @@ vec3 calculateDirLight(DirectionalLight light, vec3 normal, vec3 viewDir, float 
     vec3 ambient = light.ambient * texture(material.diffuse, TexCoords * tiling).rgb;
     vec3 diffuse = light.diffuse * diff * texture(material.diffuse, TexCoords * tiling).rgb;
     vec3 specular = light.specular * spec * texture(material.specular, TexCoords * tiling).rgb;
-    return ambient + (1.0 - shadow) * (diffuse + specular);
+    //return ambient + (1.0 - shadow) * (diffuse + specular);
+    return ambient + diffuse + specular;
 }
 
 vec3 calculatePointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir, float shadow) {
@@ -96,6 +97,8 @@ void main() {
     float shadow = calculateShadow(FragPosLightSpace, norm, dirLight.direction);
 
     vec3 result = calculateDirLight(dirLight, norm, viewDir, shadow);
+
+    //vec3 result = texture(material.diffuse, TexCoords * tiling).rgb;
 
     for (int i = 0; i < numOfPointLights; i++)
         //        result += calculatePointLight(pointLights[i], norm, FragPos, viewDir, shadow);
