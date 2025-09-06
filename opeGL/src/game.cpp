@@ -1,6 +1,7 @@
 #include "camera.h"
 #include "cube.h"
 #include "frameCounter.h"
+#include "texture.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include "game.h"
 #include "gamescene.h"
@@ -184,6 +185,8 @@ void run(bool wireframe) {
   
   if (wireframe)
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+  setupTextureBuffer();
 
   while (!glfwWindowShouldClose(window)) {
     updateCamera(movement, deltaTime, mouseState.pos, mouseState.pressedLeft);

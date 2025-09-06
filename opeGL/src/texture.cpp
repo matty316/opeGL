@@ -5,6 +5,7 @@
 #include <unordered_map>
 
 std::unordered_map<std::string, GLuint> loadedTextures;
+std::vector<GLuint64> handles;
 
 GLuint loadTexture(const char *path) {
   if (loadedTextures[path])
@@ -27,7 +28,7 @@ GLuint loadTexture(const char *path) {
     glTextureParameteri(textureID, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTextureParameteri(textureID, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTextureParameteri(textureID, GL_TEXTURE_MIN_FILTER,
-                    GL_LINEAR_MIPMAP_LINEAR);
+                        GL_LINEAR_MIPMAP_LINEAR);
     glTextureParameteri(textureID, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     glTextureStorage2D(textureID, 1, GL_RGBA8, width, height);
@@ -41,14 +42,24 @@ GLuint loadTexture(const char *path) {
     std::println("Texture failed to load at path: {}", path);
     stbi_image_free(data);
   }
-  
+
   loadedTextures[path] = textureID;
   return textureID;
 }
 
-GLuint64 loadBindlessTexture(const char* path) {
+size_t loadBindlessTexture(const char *path) {
   auto textureId = loadTexture(path);
   auto handle = glGetTextureHandleARB(textureId);
   glMakeTextureHandleResidentARB(handle);
-  return handle;
+  handles.push_back(handle);
+  return handles.size() - 1;
+}
+
+void setupTextureBuffer() {
+  GLuint ssbo;
+  glGenBuffers(1, &ssbo);
+  glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
+  glBufferData(GL_SHADER_STORAGE_BUFFER, handles.size() * sizeof(GLuint64),
+               handles.data(), GL_DYNAMIC_DRAW);
+  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssbo);
 }

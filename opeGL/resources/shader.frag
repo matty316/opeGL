@@ -1,5 +1,7 @@
 #version 460 core
 
+#extension GL_ARB_bindless_texture : require
+
 struct Material {
     sampler2D diffuse;
     sampler2D specular;
@@ -37,6 +39,12 @@ uniform PointLight pointLights[16];
 uniform Material material;
 uniform int tiling;
 layout (location = 11) uniform sampler2D shadowMap;
+
+uniform int textureIndex;
+
+layout(binding = 0, std430) readonly buffer ssbo3 {
+    sampler2D textures[];
+};
 
 vec3 calculateDirLight(DirectionalLight light, vec3 normal, vec3 viewDir, float shadow) {
     vec3 lightDir = normalize(-light.direction);
@@ -96,13 +104,15 @@ void main() {
 
     float shadow = calculateShadow(FragPosLightSpace, norm, dirLight.direction);
 
-    vec3 result = calculateDirLight(dirLight, norm, viewDir, shadow);
+    //vec3 result = calculateDirLight(dirLight, norm, viewDir, shadow);
 
-    //vec3 result = texture(material.diffuse, TexCoords * tiling).rgb;
+
+    sampler2D tex = textures[textureIndex];
+    vec3 result = texture(tex, TexCoords * tiling).rgb;
 
     for (int i = 0; i < numOfPointLights; i++)
         //        result += calculatePointLight(pointLights[i], norm, FragPos, viewDir, shadow);
 
-        result = pow(result, vec3(1.0 / 2.2));
+    //result = pow(result, vec3(1.0 / 2.2));
     FragColor = vec4(result, 1.0);
 }

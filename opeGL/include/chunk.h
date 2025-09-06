@@ -12,7 +12,7 @@ struct Chunk {
   float angle, scale;
   GLuint vao, vbo, diff, spec;
   std::vector<GLfloat> vertices;
-  size_t vertSize = 0, chunkSize = 64;
+  size_t vertSize = 0, chunkSize = 64, textureIndex = 0;
 };
 
 Chunk createChunk(glm::vec3 pos, glm::vec3 rotations, float angle, float scale, ChunkType type, size_t chunkSize);

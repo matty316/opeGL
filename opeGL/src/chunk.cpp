@@ -163,15 +163,14 @@ void setupBuffers(Chunk &chunk) {
 Chunk createChunk(glm::vec3 pos, glm::vec3 rotation, float angle, float scale,
                   ChunkType type, size_t chunkSize) {
   auto diff =
-      loadTexture("resources/beige-textures/beige_wall_001_diff_4k.jpg");
+      loadBindlessTexture("resources/beige-textures/beige_wall_001_diff_4k.jpg");
   auto spec =
       loadTexture("resources/beige-textures/beige_wall_001_diff_4k.jpg");
   Chunk chunk;
   chunk.pos = pos;
   chunk.rotation = rotation;
   chunk.angle = angle;
-  chunk.diff = diff;
-  chunk.spec = spec;
+  chunk.textureIndex = diff;
   chunk.scale = scale;
   chunk.chunkSize = chunkSize;
   Cube *cubes = new Cube[chunk.chunkSize * chunk.chunkSize * chunk.chunkSize];
@@ -216,11 +215,7 @@ void drawChunk(Chunk &chunk, GLuint shader) {
   model = glm::scale(model, glm::vec3{chunk.scale});
   setMat4(shader, "model", model);
 
-  setInt(shader, "material.diffuse", 0);
-  glBindTextureUnit(0, chunk.diff);
-
-  setInt(shader, "material.specular", 1);
-  glBindTextureUnit(1, chunk.spec);
+  setInt(shader, "textureIndex", chunk.textureIndex);
 
   glBindVertexArray(chunk.vao);
   glDrawArrays(GL_TRIANGLES, 0, chunk.vertSize);
