@@ -5,11 +5,12 @@
 #include <unordered_map>
 
 std::unordered_map<std::string, GLuint> loadedTextures;
+std::unordered_map<std::string, size_t> loadedBindlessTextures;
 std::vector<GLuint64> handles;
 
 GLuint loadTexture(const char *path) {
-  if (loadedTextures[path])
-    return loadedTextures[path];
+  if (loadedTextures.contains(std::string(path)))
+    return loadedTextures[std::string(path)];
 
   unsigned int textureID;
   glCreateTextures(GL_TEXTURE_2D, 1, &textureID);
@@ -17,7 +18,7 @@ GLuint loadTexture(const char *path) {
   int width, height, nrComponents;
   unsigned char *data = stbi_load(path, &width, &height, &nrComponents, 0);
   if (data) {
-    GLenum format;
+    GLenum format = GL_NONE;
     if (nrComponents == 1)
       format = GL_RED;
     else if (nrComponents == 3)
@@ -43,15 +44,19 @@ GLuint loadTexture(const char *path) {
     stbi_image_free(data);
   }
 
-  loadedTextures[path] = textureID;
+  loadedTextures[std::string(path)] = textureID;
   return textureID;
 }
 
 size_t loadBindlessTexture(const char *path) {
+  if (loadedBindlessTextures.contains(std::string(path)))
+    return loadedBindlessTextures[std::string(path)];
+
   auto textureId = loadTexture(path);
   auto handle = glGetTextureHandleARB(textureId);
   glMakeTextureHandleResidentARB(handle);
   handles.push_back(handle);
+  loadedBindlessTextures[std::string(path)] = handles.size() - 1;
   return handles.size() - 1;
 }
 
