@@ -160,17 +160,14 @@ void setupBuffers(Chunk &chunk) {
   glVertexArrayAttribBinding(chunk.vao, 2, 0);
 }
 
-Chunk createChunk(glm::vec3 pos, glm::vec3 rotation, float angle, float scale,
+Chunk createChunk(size_t diff, size_t spec, glm::vec3 pos, glm::vec3 rotation, float angle, float scale,
                   ChunkType type, size_t chunkSize) {
-  auto diff =
-      loadBindlessTexture("resources/textures/rocky_terrain_02_diff_4k.png");
-  auto spec =
-      loadTexture("resources/beige-textures/beige_wall_001_diff_4k.jpg");
   Chunk chunk;
   chunk.pos = pos;
   chunk.rotation = rotation;
   chunk.angle = angle;
-  chunk.textureIndex = diff;
+  chunk.diff = diff;
+  chunk.spec = spec;
   chunk.scale = scale;
   chunk.chunkSize = chunkSize;
   Cube *cubes = new Cube[chunk.chunkSize * chunk.chunkSize * chunk.chunkSize];
@@ -206,7 +203,7 @@ Chunk createChunk(glm::vec3 pos, glm::vec3 rotation, float angle, float scale,
 
 void drawChunk(Chunk &chunk, GLuint shader) {
   use(shader);
-  setInt(shader, "tiling", 1);
+  setInt(shader, "tiling", 2);
 
   auto model = glm::mat4(1.0f);
   model = glm::translate(model, chunk.pos * chunk.scale *
@@ -215,7 +212,7 @@ void drawChunk(Chunk &chunk, GLuint shader) {
   model = glm::scale(model, glm::vec3{chunk.scale});
   setMat4(shader, "model", model);
 
-  setInt(shader, "textureIndex", chunk.textureIndex);
+  setInt(shader, "textureIndex", chunk.diff);
 
   glBindVertexArray(chunk.vao);
   glDrawArrays(GL_TRIANGLES, 0, chunk.vertSize);

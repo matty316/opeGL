@@ -10,10 +10,11 @@ enum ChunkType {
 struct Chunk {
   glm::vec3 pos, rotation;
   float angle, scale;
-  GLuint vao, vbo, diff, spec;
+  size_t diff, spec;
+  GLuint vao, vbo;
   std::vector<GLfloat> vertices;
-  size_t vertSize = 0, chunkSize = 64, textureIndex = 0;
+  size_t vertSize = 0, chunkSize = 64;
 };
 
-Chunk createChunk(glm::vec3 pos, glm::vec3 rotations, float angle, float scale, ChunkType type, size_t chunkSize);
+Chunk createChunk(size_t diff, size_t spec, glm::vec3 pos, glm::vec3 rotations, float angle, float scale, ChunkType type, size_t chunkSize);
 void drawChunk(Chunk &chunk, GLuint shader);

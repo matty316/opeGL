@@ -18,7 +18,7 @@ void addModel(const char *path, glm::vec3 pos, glm::vec3 rotation, float angle,
               float scale);
 void addPlane(const char *diffusePath, const char *specularPath, glm::vec3 pos,
               glm::vec3 rotation, float angle, float scale, int tiling = 16);
-void addCube(GLuint diff, GLuint spec, glm::vec3 pos, glm::vec3 rotation,
+void addCube(size_t diff, size_t spec, glm::vec3 pos, glm::vec3 rotation,
              float angle, float scale);
-void addChunk(glm::vec3 pos, glm::vec3 rotation, float angle, float scale, ChunkType type = Sphere, size_t chunkSize = 64);
+void addChunk(size_t diff, size_t spec, glm::vec3 pos, glm::vec3 rotation, float angle, float scale, ChunkType type = Sphere, size_t chunkSize = 64);
 
