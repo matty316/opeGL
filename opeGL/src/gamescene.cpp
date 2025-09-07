@@ -75,7 +75,7 @@ void createScene() {
   setInt(skyboxShader, "skybox", 0);
 }
 
-void addCube(GLuint diff, GLuint spec, glm::vec3 pos, glm::vec3 rotation,
+void addCube(size_t diff, size_t spec, glm::vec3 pos, glm::vec3 rotation,
              float angle, float scale) {
   Cube cube = createCube(diff, spec, pos, rotation, angle, scale);
   cubes.push_back(cube);
@@ -111,9 +111,6 @@ void renderModels(GLuint shader) {
 }
 
 void renderScene(GLFWwindow *window) {
-  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
   float nearPlane = 1.0f, farPlane = 7.5f;
   renderDepthMap(nearPlane, farPlane);
 
@@ -122,7 +119,7 @@ void renderScene(GLFWwindow *window) {
   setFloat(shader, "material.shininess", 32.0f);
 
   auto aspect = (float)screenWidth / (float)screenHeight;
-  auto projection = glm::perspective(glm::radians(45.0f), aspect, 0.1f, 100.0f);
+  auto projection = glm::perspective(glm::radians(45.0f), aspect, 0.1f, 1000.0f);
   setMat4(shader, "projection", projection);
 
   auto view = getViewMatrix();
@@ -297,7 +294,7 @@ void renderDebugQuad(float nearPlane, float farPlane) {
   glBindVertexArray(0);
 }
 
-void addChunk(glm::vec3 pos, glm::vec3 rotation, float angle, float scale, ChunkType type, size_t chunkSize) {
-  Chunk chunk = createChunk(pos, rotation, angle, scale, type, chunkSize);
+void addChunk(size_t diff, size_t spec, glm::vec3 pos, glm::vec3 rotation, float angle, float scale, ChunkType type, size_t chunkSize) {
+  Chunk chunk = createChunk(diff, spec, pos, rotation, angle, scale, type, chunkSize);
   chunks.push_back(chunk);
 }

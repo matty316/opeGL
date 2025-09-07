@@ -8,11 +8,12 @@
 struct Cube {
   glm::vec3 pos, rotation;
   float angle, scale;
-  GLuint vao, vbo, diff, spec;
+  size_t diff, spec;
+  GLuint vao, vbo;
   size_t vertSize = 0;
   bool isActive = true, top = true, bottom = true, front = true, back = true, left = true, right = true;
 };
 void setupCubeBuffers(Cube &cube);
 std::vector<GLfloat> cubeVerts(Cube &cube, int xoffset, int yoffset, int zoffset);
-Cube createCube(GLuint diff, GLuint spec, glm::vec3 pos, glm::vec3 rotation, float angle, float scale, bool deferBuffers = false);
+Cube createCube(size_t diff, size_t spec, glm::vec3 pos, glm::vec3 rotation, float angle, float scale, bool deferBuffers = false);
 void drawCube(Cube &cube, GLuint shader);

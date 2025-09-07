@@ -1,6 +1,7 @@
 #include "camera.h"
 #include "cube.h"
 #include "frameCounter.h"
+#include "texture.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include "game.h"
 #include "gamescene.h"
@@ -181,11 +182,15 @@ void start(bool debug, bool vSync) {
 void run(bool wireframe) {
   double timeStamp = glfwGetTime();
   float deltaTime = 0.0f;
-  
+
   if (wireframe)
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
+  setupTextureBuffer();
+
   while (!glfwWindowShouldClose(window)) {
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     updateCamera(movement, deltaTime, mouseState.pos, mouseState.pressedLeft);
 
     const double newTimeStamp = glfwGetTime();

@@ -159,7 +159,7 @@ void setupCubeBuffers(Cube &cube) {
   glVertexArrayAttribBinding(cube.vao, 2, 0);
 }
 
-Cube createCube(GLuint diff, GLuint spec, glm::vec3 pos, glm::vec3 rotation,
+Cube createCube(size_t diff, size_t spec, glm::vec3 pos, glm::vec3 rotation,
                 float angle, float scale, bool deferBuffers) {
   Cube cube;
   cube.pos = pos;
@@ -194,11 +194,7 @@ void drawCube(Cube &cube, GLuint shader) {
   auto model = cubeModelMatrix(cube);
   setMat4(shader, "model", model);
 
-  setInt(shader, "material.diffuse", 0);
-  glBindTextureUnit(0, cube.diff);
-
-  setInt(shader, "material.specular", 1);
-  glBindTextureUnit(1, cube.spec);
+  setInt(shader, "textureIndex", cube.diff);
 
   glBindVertexArray(cube.vao);
   glDrawArrays(GL_TRIANGLES, 0, cube.vertSize);
