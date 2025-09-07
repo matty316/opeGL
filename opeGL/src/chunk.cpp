@@ -163,7 +163,7 @@ void setupBuffers(Chunk &chunk) {
 Chunk createChunk(glm::vec3 pos, glm::vec3 rotation, float angle, float scale,
                   ChunkType type, size_t chunkSize) {
   auto diff =
-      loadBindlessTexture("resources/beige-textures/beige_wall_001_diff_4k.jpg");
+      loadBindlessTexture("resources/textures/rocky_terrain_02_diff_4k.png");
   auto spec =
       loadTexture("resources/beige-textures/beige_wall_001_diff_4k.jpg");
   Chunk chunk;

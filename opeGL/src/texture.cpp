@@ -57,9 +57,8 @@ size_t loadBindlessTexture(const char *path) {
 
 void setupTextureBuffer() {
   GLuint ssbo;
-  glGenBuffers(1, &ssbo);
-  glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
-  glBufferData(GL_SHADER_STORAGE_BUFFER, handles.size() * sizeof(GLuint64),
-               handles.data(), GL_DYNAMIC_DRAW);
+  glCreateBuffers(1, &ssbo);
+  glNamedBufferStorage(ssbo, handles.size() * sizeof(GLuint64), handles.data(), GL_DYNAMIC_STORAGE_BIT); 
+  glNamedBufferSubData(ssbo, 0, handles.size() * sizeof(GLuint64), handles.data()); 
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssbo);
 }
