@@ -131,7 +131,7 @@ void APIENTRY glDebugOutput(GLenum source, GLenum type, unsigned int id,
   std::cout << std::endl;
 }
 
-void start(bool debug, bool vSync) {
+void start(bool debug, bool vSync, bool fullscreen) {
   glfwInit();
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
@@ -140,7 +140,7 @@ void start(bool debug, bool vSync) {
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
 
   window =
-      glfwCreateWindow(800, 600, "OpeGL", glfwGetPrimaryMonitor(), nullptr);
+      glfwCreateWindow(800, 600, "OpeGL", fullscreen ? glfwGetPrimaryMonitor() : nullptr, nullptr);
   if (window == nullptr) {
     std::println("Failed to create window");
     glfwTerminate();

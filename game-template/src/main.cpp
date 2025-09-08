@@ -5,10 +5,10 @@
 
 void createChunks() { 
  auto diff =
-      loadBindlessTexture("resources/textures/rocky_terrain_02_diff_4k.png");
+      loadBindlessTexture("resources/textures/grass2.jpg");
 
   //addCube(diff, 0, glm::vec3(0.0f), glm::vec3(1.0f), 0.0f, 1.f); 
-  addChunk(diff, 0, glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(1.0f), 0.0f, 1.f, Landscape); 
+  addChunk(diff, 0, glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(1.0f), 0.0f, 0.2f, Sphere); 
 }
 
 void buildScene() {
