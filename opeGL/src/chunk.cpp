@@ -160,8 +160,8 @@ void setupBuffers(Chunk &chunk) {
   glVertexArrayAttribBinding(chunk.vao, 2, 0);
 }
 
-Chunk createChunk(size_t diff, size_t spec, glm::vec3 pos, glm::vec3 rotation, float angle, float scale,
-                  ChunkType type, size_t chunkSize) {
+Chunk createChunk(size_t diff, size_t spec, glm::vec3 pos, glm::vec3 rotation,
+                  float angle, float scale, ChunkType type, size_t chunkSize) {
   Chunk chunk;
   chunk.pos = pos;
   chunk.rotation = rotation;
@@ -177,7 +177,7 @@ Chunk createChunk(size_t diff, size_t spec, glm::vec3 pos, glm::vec3 rotation, f
       for (size_t z = 0; z < chunk.chunkSize; z++) {
         Cube cube = createCube(
             diff, spec, glm::vec3(x * scale, (y - 1.f) * scale, z * scale),
-            glm::vec3(1.0f), 0.0f, scale, true);
+            glm::vec3(1.0f), 0.0f, scale, Grass, true);
         cube.isActive = false;
         cubes[x * chunk.chunkSize * chunk.chunkSize + y * chunk.chunkSize + z] =
             cube;
@@ -203,7 +203,7 @@ Chunk createChunk(size_t diff, size_t spec, glm::vec3 pos, glm::vec3 rotation, f
 
 void drawChunk(Chunk &chunk, GLuint shader) {
   use(shader);
-  setInt(shader, "tiling", 2);
+  setInt(shader, "tiling", 1);
 
   auto model = glm::mat4(1.0f);
   model = glm::translate(model, chunk.pos * chunk.scale *

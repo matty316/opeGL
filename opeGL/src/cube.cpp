@@ -1,131 +1,179 @@
 #include "cube.h"
 #include "glm/fwd.hpp"
 #include "shader.h"
-#include "texture.h"
 #include <cstddef>
 #include <glm/ext/matrix_transform.hpp>
 #include <vector>
 
 // clang-format off
-
 GLfloat cubeBackFace[] = {
-    -1.0f, -1.0f, -1.0f,  0.0f, 0.0f, -1.0f, 0.0f, 0.0f, // Bottom-left
-     1.0f,  1.0f, -1.0f,  0.0f, 0.0f, -1.0f, 1.0f, 1.0f, // top-right
-     1.0f, -1.0f, -1.0f,  0.0f, 0.0f, -1.0f, 1.0f, 0.0f, // bottom-right         
-     1.0f,  1.0f, -1.0f,  0.0f, 0.0f, -1.0f, 1.0f, 1.0f, // top-right
-    -1.0f, -1.0f, -1.0f,  0.0f, 0.0f, -1.0f, 0.0f, 0.0f, // bottom-left
-    -1.0f,  1.0f, -1.0f,  0.0f, 0.0f, -1.0f, 0.0f, 1.0f, // top-left
+    -1.0f, -1.0f, -1.0f,  0.0f, 0.0f, -1.0f, // Bottom-left
+     1.0f,  1.0f, -1.0f,  0.0f, 0.0f, -1.0f, // top-right
+     1.0f, -1.0f, -1.0f,  0.0f, 0.0f, -1.0f, // bottom-right         
+     1.0f,  1.0f, -1.0f,  0.0f, 0.0f, -1.0f, // top-right
+    -1.0f, -1.0f, -1.0f,  0.0f, 0.0f, -1.0f, // bottom-left
+    -1.0f,  1.0f, -1.0f,  0.0f, 0.0f, -1.0f, // top-left
 };
 
 GLfloat cubeFrontFace[] = {
-    -1.0f, -1.0f,  1.0f,  0.0f, 0.0f,  1.0f, 0.0f, 0.0f, // bottom-left
-     1.0f, -1.0f,  1.0f,  0.0f, 0.0f,  1.0f, 1.0f, 0.0f, // bottom-right
-     1.0f,  1.0f,  1.0f,  0.0f, 0.0f,  1.0f, 1.0f, 1.0f, // top-right
-     1.0f,  1.0f,  1.0f,  0.0f, 0.0f,  1.0f, 1.0f, 1.0f, // top-right
-    -1.0f,  1.0f,  1.0f,  0.0f, 0.0f,  1.0f, 0.0f, 1.0f, // top-left
-    -1.0f, -1.0f,  1.0f,  0.0f, 0.0f,  1.0f, 0.0f, 0.0f, // bottom-left
+    -1.0f, -1.0f,  1.0f,  0.0f, 0.0f,  1.0f, // bottom-left
+     1.0f, -1.0f,  1.0f,  0.0f, 0.0f,  1.0f, // bottom-right
+     1.0f,  1.0f,  1.0f,  0.0f, 0.0f,  1.0f, // top-right
+     1.0f,  1.0f,  1.0f,  0.0f, 0.0f,  1.0f, // top-right
+    -1.0f,  1.0f,  1.0f,  0.0f, 0.0f,  1.0f, // top-left
+    -1.0f, -1.0f,  1.0f,  0.0f, 0.0f,  1.0f, // bottom-left
 };
 
 GLfloat cubeLeftFace[] = {
-    -1.0f,  1.0f,  1.0f, -1.0f, 0.0f,  0.0f, 1.0f, 0.0f, // top-right
-    -1.0f,  1.0f, -1.0f, -1.0f, 0.0f,  0.0f, 1.0f, 1.0f, // top-left
-    -1.0f, -1.0f, -1.0f, -1.0f, 0.0f,  0.0f, 0.0f, 1.0f, // bottom-left
-    -1.0f, -1.0f, -1.0f, -1.0f, 0.0f,  0.0f, 0.0f, 1.0f, // bottom-left
-    -1.0f, -1.0f,  1.0f, -1.0f, 0.0f,  0.0f, 0.0f, 0.0f, // bottom-right
-    -1.0f,  1.0f,  1.0f, -1.0f, 0.0f,  0.0f, 1.0f, 0.0f, // top-right
+    -1.0f,  1.0f,  1.0f, -1.0f, 0.0f,  0.0f, // top-right
+    -1.0f,  1.0f, -1.0f, -1.0f, 0.0f,  0.0f, // top-left
+    -1.0f, -1.0f, -1.0f, -1.0f, 0.0f,  0.0f, // bottom-left
+    -1.0f, -1.0f, -1.0f, -1.0f, 0.0f,  0.0f, // bottom-left
+    -1.0f, -1.0f,  1.0f, -1.0f, 0.0f,  0.0f, // bottom-right
+    -1.0f,  1.0f,  1.0f, -1.0f, 0.0f,  0.0f, // top-right
 };
 
 GLfloat cubeRightFace[] = {
-     1.0f,  1.0f,  1.0f,  1.0f, 0.0f,  0.0f, 1.0f, 0.0f, // top-left
-     1.0f, -1.0f, -1.0f,  1.0f, 0.0f,  0.0f, 0.0f, 1.0f, // bottom-right
-     1.0f,  1.0f, -1.0f,  1.0f, 0.0f,  0.0f, 1.0f, 1.0f, // top-right         
-     1.0f, -1.0f, -1.0f,  1.0f, 0.0f,  0.0f, 0.0f, 1.0f, // bottom-right
-     1.0f,  1.0f,  1.0f,  1.0f, 0.0f,  0.0f, 1.0f, 0.0f, // top-left
-     1.0f, -1.0f,  1.0f,  1.0f, 0.0f,  0.0f, 0.0f, 0.0f, // bottom-left
+     1.0f,  1.0f,  1.0f,  1.0f, 0.0f,  0.0f, // top-left
+     1.0f, -1.0f, -1.0f,  1.0f, 0.0f,  0.0f, // bottom-right
+     1.0f,  1.0f, -1.0f,  1.0f, 0.0f,  0.0f, // top-right         
+     1.0f, -1.0f, -1.0f,  1.0f, 0.0f,  0.0f, // bottom-right
+     1.0f,  1.0f,  1.0f,  1.0f, 0.0f,  0.0f, // top-left
+     1.0f, -1.0f,  1.0f,  1.0f, 0.0f,  0.0f, // bottom-left
 };
 
 GLfloat cubeBottomFace[] = {
-    -1.0f, -1.0f, -1.0f,  0.0f, -1.0f, 0.0f, 0.0f, 1.0f, // top-right
-     1.0f, -1.0f, -1.0f,  0.0f, -1.0f, 0.0f, 1.0f, 1.0f, // top-left
-     1.0f, -1.0f,  1.0f,  0.0f, -1.0f, 0.0f, 1.0f, 0.0f, // bottom-left
-     1.0f, -1.0f,  1.0f,  0.0f, -1.0f, 0.0f, 1.0f, 0.0f, // bottom-left
-    -1.0f, -1.0f,  1.0f,  0.0f, -1.0f, 0.0f, 0.0f, 0.0f, // bottom-right
-    -1.0f, -1.0f, -1.0f,  0.0f, -1.0f, 0.0f, 0.0f, 1.0f, // top-right 
+    -1.0f, -1.0f, -1.0f,  0.0f, -1.0f, 0.0f, // top-right
+     1.0f, -1.0f, -1.0f,  0.0f, -1.0f, 0.0f, // top-left
+     1.0f, -1.0f,  1.0f,  0.0f, -1.0f, 0.0f, // bottom-left
+     1.0f, -1.0f,  1.0f,  0.0f, -1.0f, 0.0f, // bottom-left
+    -1.0f, -1.0f,  1.0f,  0.0f, -1.0f, 0.0f, // bottom-right
+    -1.0f, -1.0f, -1.0f,  0.0f, -1.0f, 0.0f, // top-right 
 };
 
 GLfloat cubeTopFace[] = {
-    -1.0f,  1.0f, -1.0f,  0.0f,  1.0f, 0.0f, 0.0f, 1.0f, // top-left
-     1.0f,  1.0f,  1.0f,  0.0f,  1.0f, 0.0f, 1.0f, 0.0f, // bottom-right
-     1.0f,  1.0f, -1.0f,  0.0f,  1.0f, 0.0f, 1.0f, 1.0f, // top-right     
-     1.0f,  1.0f,  1.0f,  0.0f,  1.0f, 0.0f, 1.0f, 0.0f, // bottom-right
-    -1.0f,  1.0f, -1.0f,  0.0f,  1.0f, 0.0f, 0.0f, 1.0f, // top-left
-    -1.0f,  1.0f,  1.0f,  0.0f,  1.0f, 0.0f, 0.0f, 0.0f  // bottom-left
+    -1.0f,  1.0f, -1.0f,  0.0f,  1.0f, 0.0f, // top-left
+     1.0f,  1.0f,  1.0f,  0.0f,  1.0f, 0.0f, // bottom-right
+     1.0f,  1.0f, -1.0f,  0.0f,  1.0f, 0.0f, // top-right     
+     1.0f,  1.0f,  1.0f,  0.0f,  1.0f, 0.0f, // bottom-right
+    -1.0f,  1.0f, -1.0f,  0.0f,  1.0f, 0.0f, // top-left
+    -1.0f,  1.0f,  1.0f,  0.0f,  1.0f, 0.0f, // bottom-left
+};
+
+GLfloat backUVs[] = {
+      0.0f, 0.0f, // Bottom-left
+      1.0f, 1.0f, // top-right
+      1.0f, 0.0f, // bottom-right
+      1.0f, 1.0f, // top-right
+      0.0f, 0.0f, // bottom-left
+      0.0f, 1.0f, // top-left
+};
+GLfloat frontUVs[] = {
+      0.0f, 0.0f, // bottom-left
+      1.0f, 0.0f, // bottom-right
+      1.0f, 1.0f, // top-right
+      1.0f, 1.0f, // top-right
+      0.0f, 1.0f, // top-left
+      0.0f, 0.0f, // bottom-left
+};
+GLfloat leftUVs[] = {
+      1.0f, 0.0f, // top-right
+      1.0f, 1.0f, // top-left
+      0.0f, 1.0f, // bottom-left
+      0.0f, 1.0f, // bottom-left
+      0.0f, 0.0f, // bottom-right
+      1.0f, 0.0f, // top-right
+};
+GLfloat rightUVs[] = {
+      1.0f, 0.0f, // top-left
+      0.0f, 1.0f, // bottom-right
+      1.0f, 1.0f, // top-right
+      0.0f, 1.0f, // bottom-right
+      1.0f, 0.0f, // top-left
+      0.0f, 0.0f, // bottom-left
+};
+GLfloat bottomUVs[] = {
+      0.0f, 1.0f, // top-right
+      1.0f, 1.0f, // top-left
+      1.0f, 0.0f, // bottom-left
+      1.0f, 0.0f, // bottom-left
+      0.0f, 0.0f, // bottom-right
+      0.0f, 1.0f, // top-right
+};
+GLfloat topUVs[] = {
+      0.0f, 1.0f, // top-left
+      1.0f, 0.0f, // bottom-right
+      1.0f, 1.0f, // top-right
+      1.0f, 0.0f, // bottom-right
+      0.0f, 1.0f, // top-left
+      0.0f, 0.0f  // bottom-left
 };
 // clang-format on
 
-std::vector<GLfloat> vertsWithOffset(GLfloat oldVerts[48], int xoffset, int yoffset, int zoffset) {
+
+std::vector<GLfloat> vertsWithOffset(GLfloat oldVerts[36], GLfloat uvs[12], int xoffset, int yoffset, int zoffset) {
+  const size_t vertBufferRowSize = 6, numOfVertRows = 6, vertBufferRowSizeWithUVs = 8;
   std::vector<GLfloat> verts; 
-  for (size_t i = 0; i < 48; i++)
-    verts.push_back(oldVerts[i]);
-  verts[0] += xoffset;
-  verts[1] += yoffset;
-  verts[2] += zoffset;
-  verts[8] += xoffset;
-  verts[9] += yoffset;
-  verts[10] += zoffset;
-  verts[16] += xoffset;
-  verts[17] += yoffset;
-  verts[18] += zoffset;
-  verts[24] += xoffset;
-  verts[25] += yoffset;
-  verts[26] += zoffset;
-  verts[32] += xoffset;
-  verts[33] += yoffset;
-  verts[34] += zoffset;
-  verts[40] += xoffset;
-  verts[41] += yoffset;
-  verts[42] += zoffset;
+  
+  for (size_t i = 0; i < vertBufferRowSize; i++) {
+    for (size_t j = 0; j < numOfVertRows; j++)
+      verts.push_back(oldVerts[i * numOfVertRows +  j]);
+
+    verts.push_back(uvs[i * 2]);
+    verts.push_back(uvs[i * 2 + 1]);
+  }
+
+  for (size_t i = 0; i < numOfVertRows; i++) {
+    verts[i * vertBufferRowSizeWithUVs] += xoffset;
+    verts[i * vertBufferRowSizeWithUVs + 1] += yoffset;
+    verts[i * vertBufferRowSizeWithUVs + 2] += zoffset;
+  }
+
   return verts;
 }
 
 std::vector<GLfloat> cubeVerts(Cube &cube, int xoffset, int yoffset, int zoffset) {
+  if (!cube.isActive)
+    return {};
+
   std::vector<GLfloat> verts;
-  size_t vertSize = 0;
+  size_t vertSize = 0; 
+  const size_t vertsPerRow = 6;
   if (cube.back) {
-    auto newVerts = vertsWithOffset(cubeBackFace, xoffset, yoffset, zoffset);
-    for (size_t i = 0; i < 48; i++)
-      verts.push_back(newVerts[i]);
-    vertSize += 6;
+    auto newVerts = vertsWithOffset(cubeBackFace, backUVs, xoffset, yoffset, zoffset); 
+    for (auto &vert : newVerts)
+      verts.push_back(vert);
+    vertSize += vertsPerRow;
   }
   if (cube.front) {
-    auto newVerts = vertsWithOffset(cubeFrontFace, xoffset, yoffset, zoffset);
-    for (size_t i = 0; i < 48; i++)
-      verts.push_back(newVerts[i]);
-    vertSize += 6;
+    auto newVerts = vertsWithOffset(cubeFrontFace, frontUVs, xoffset, yoffset, zoffset); 
+    for (auto &vert : newVerts)
+      verts.push_back(vert);
+    vertSize += vertsPerRow;
   }
   if (cube.left) {
-    auto newVerts = vertsWithOffset(cubeLeftFace, xoffset, yoffset, zoffset);
-    for (size_t i = 0; i < 48; i++)
-      verts.push_back(newVerts[i]);
-    vertSize += 6;
+    auto newVerts = vertsWithOffset(cubeLeftFace, leftUVs, xoffset, yoffset, zoffset); 
+    for (auto &vert : newVerts)
+      verts.push_back(vert);
+    vertSize += vertsPerRow;
   }
   if (cube.right) {
-    auto newVerts = vertsWithOffset(cubeRightFace, xoffset, yoffset, zoffset);
-    for (size_t i = 0; i < 48; i++)
-      verts.push_back(newVerts[i]);
-    vertSize += 6;
+    auto newVerts = vertsWithOffset(cubeRightFace, rightUVs, xoffset, yoffset, zoffset); 
+    for (auto &vert : newVerts)
+      verts.push_back(vert);
+    vertSize += vertsPerRow;
   }
   if (cube.bottom) {
-    auto newVerts = vertsWithOffset(cubeBottomFace, xoffset, yoffset, zoffset);
-    for (size_t i = 0; i < 48; i++)
-      verts.push_back(newVerts[i]);
-    vertSize += 6;
+    auto newVerts = vertsWithOffset(cubeBottomFace, bottomUVs, xoffset, yoffset, zoffset); 
+    for (auto &vert : newVerts)
+      verts.push_back(vert);
+    vertSize += vertsPerRow;
   }
   if (cube.top) { 
-    auto newVerts = vertsWithOffset(cubeTopFace, xoffset, yoffset, zoffset);
-    for (size_t i = 0; i < 48; i++)
-      verts.push_back(newVerts[i]);
-    vertSize += 6;
+    auto newVerts = vertsWithOffset(cubeTopFace, topUVs, xoffset, yoffset, zoffset); 
+    for (auto &vert : newVerts)
+      verts.push_back(vert);
+    vertSize += vertsPerRow;
   }
 
   cube.vertSize = vertSize;
@@ -160,13 +208,13 @@ void setupCubeBuffers(Cube &cube) {
 }
 
 Cube createCube(size_t diff, size_t spec, glm::vec3 pos, glm::vec3 rotation,
-                float angle, float scale, bool deferBuffers) {
+                float angle, float scale, BlockType blockType, bool deferBuffers) {
   Cube cube;
   cube.pos = pos;
   cube.rotation = rotation;
   cube.angle = angle;
   cube.scale = scale;
-
+  cube.blockType = blockType;
   cube.diff = diff;
   cube.spec = spec;
 

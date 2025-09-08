@@ -11,7 +11,7 @@ struct Chunk {
   glm::vec3 pos, rotation;
   float angle, scale;
   size_t diff, spec;
-  GLuint vao, vbo;
+  GLuint vao, vbo, uvBuffer;
   std::vector<GLfloat> vertices;
   size_t vertSize = 0, chunkSize = 64;
 };
