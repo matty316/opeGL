@@ -128,61 +128,12 @@ void createVerts(Chunk &chunk, Cube *cubes) {
                        x, y, z))
           chunk.vertices.push_back(vert);
 
-
-
         chunk.vertSize += cubes[x * chunk.chunkSize * chunk.chunkSize +
                                 y * chunk.chunkSize + z]
                               .vertSize;
       }
     }
   }
-}
-
-std::vector<GLfloat> getUVs() {
-  std::vector<GLfloat> uvs = {
-   0.0f, 0.0f, // Bottom-left
-   1.0f, 1.0f, // top-right
-   1.0f, 0.0f, // bottom-right         
-   1.0f, 1.0f, // top-right
-   0.0f, 0.0f, // bottom-left
-   0.0f, 1.0f, // top-left
-   
-   0.0f, 0.0f, // bottom-left
-   1.0f, 0.0f, // bottom-right
-   1.0f, 1.0f, // top-right
-   1.0f, 1.0f, // top-right
-   0.0f, 1.0f, // top-left
-   0.0f, 0.0f, // bottom-left
-   
-   1.0f, 0.0f, // top-right
-   1.0f, 1.0f, // top-left
-   0.0f, 1.0f, // bottom-left
-   0.0f, 1.0f, // bottom-left
-   0.0f, 0.0f, // bottom-right
-   1.0f, 0.0f, // top-right
-   
-   1.0f, 0.0f, // top-left
-   0.0f, 1.0f, // bottom-right
-   1.0f, 1.0f, // top-right         
-   0.0f, 1.0f, // bottom-right
-   1.0f, 0.0f, // top-left
-   0.0f, 0.0f, // bottom-left     
-   
-   0.0f, 1.0f, // top-right
-   1.0f, 1.0f, // top-left
-   1.0f, 0.0f, // bottom-left
-   1.0f, 0.0f, // bottom-left
-   0.0f, 0.0f, // bottom-right
-   0.0f, 1.0f, // top-right
-   
-   0.0f, 1.0f, // top-left
-   1.0f, 0.0f, // bottom-right
-   1.0f, 1.0f, // top-right     
-   1.0f, 0.0f, // bottom-right
-   0.0f, 1.0f, // top-left
-   0.0f, 0.0f  // bottom-left       
-  };
-  return uvs;
 }
 
 void setupBuffers(Chunk &chunk) {
@@ -192,33 +143,25 @@ void setupBuffers(Chunk &chunk) {
   glNamedBufferStorage(chunk.vbo, sizeof(GLfloat) * chunk.vertices.size(),
                        chunk.vertices.data(), GL_DYNAMIC_STORAGE_BIT);
 
-  glVertexArrayVertexBuffer(chunk.vao, 0, chunk.vbo, 0, sizeof(GLfloat) * 6);
+  glVertexArrayVertexBuffer(chunk.vao, 0, chunk.vbo, 0, sizeof(GLfloat) * 8);
 
   glEnableVertexArrayAttrib(chunk.vao, 0);
   glEnableVertexArrayAttrib(chunk.vao, 1);
+  glEnableVertexArrayAttrib(chunk.vao, 2);
 
   glVertexArrayAttribFormat(chunk.vao, 0, 3, GL_FLOAT, GL_FALSE, 0);
   glVertexArrayAttribFormat(chunk.vao, 1, 3, GL_FLOAT, GL_FALSE,
                             sizeof(GLfloat) * 3);
+  glVertexArrayAttribFormat(chunk.vao, 2, 2, GL_FLOAT, GL_FALSE,
+                            sizeof(GLfloat) * 6);
 
   glVertexArrayAttribBinding(chunk.vao, 0, 0);
   glVertexArrayAttribBinding(chunk.vao, 1, 0);
-
-  glCreateBuffers(1, &chunk.uvBuffer);
-  auto uvs = getUVs();
-
-  glNamedBufferStorage(chunk.uvBuffer, sizeof(GLfloat) * uvs.size(), uvs.data(), GL_DYNAMIC_STORAGE_BIT);
-  glVertexArrayVertexBuffer(chunk.vao, 0, chunk.uvBuffer, 0, sizeof(GLfloat) * 2);
-
-  glEnableVertexArrayAttrib(chunk.vao, 2);
-
-  glVertexArrayAttribFormat(chunk.vao, 2, 2, GL_FLOAT, GL_FALSE, 0);
-
   glVertexArrayAttribBinding(chunk.vao, 2, 0);
 }
 
-Chunk createChunk(size_t diff, size_t spec, glm::vec3 pos, glm::vec3 rotation, float angle, float scale,
-                  ChunkType type, size_t chunkSize) {
+Chunk createChunk(size_t diff, size_t spec, glm::vec3 pos, glm::vec3 rotation,
+                  float angle, float scale, ChunkType type, size_t chunkSize) {
   Chunk chunk;
   chunk.pos = pos;
   chunk.rotation = rotation;
