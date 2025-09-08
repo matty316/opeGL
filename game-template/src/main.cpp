@@ -4,11 +4,10 @@
 #include "texture.h"
 
 void createChunks() { 
- auto diff =
-      loadBindlessTexture("resources/textures/grass2.jpg");
+ auto diff = loadBindlessTexture("resources/textures/grass2.jpg");
 
   //addCube(diff, 0, glm::vec3(0.0f), glm::vec3(1.0f), 0.0f, 1.f); 
-  addChunk(diff, 0, glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(1.0f), 0.0f, 0.2f, Sphere); 
+  addChunk(diff, 0, glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(1.0f), 0.0f, 0.2f, Landscape); 
 }
 
 void buildScene() {

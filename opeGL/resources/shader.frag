@@ -46,16 +46,18 @@ layout(binding = 0, std430) readonly buffer ssbo3 {
     sampler2D textures[];
 };
 
-vec3 calculateDirLight(DirectionalLight light, vec3 normal, vec3 viewDir, float shadow) {
+vec3 calculateDirLight(DirectionalLight light, vec3 normal, vec3 viewDir, float shadow, sampler2D tex) {
+    vec3 color = texture(tex, TexCoords * tiling).rgb;
+    //color = vec3(1.0, 0.0, 0.0);
     vec3 lightDir = normalize(-light.direction);
     float diff = max(dot(normal, lightDir), 0.0);
     vec3 halfwayDir = normalize(lightDir + viewDir);
-    float spec = pow(max(dot(normal, halfwayDir), 0.0), material.shininess);
-    vec3 ambient = light.ambient * texture(material.diffuse, TexCoords * tiling).rgb;
-    vec3 diffuse = light.diffuse * diff * texture(material.diffuse, TexCoords * tiling).rgb;
-    vec3 specular = light.specular * spec * texture(material.specular, TexCoords * tiling).rgb;
-    //return ambient + (1.0 - shadow) * (diffuse + specular);
-    return ambient + diffuse + specular;
+    float spec = pow(max(dot(normal, halfwayDir), 0.0), 32.0);
+    vec3 ambient = light.ambient * color;
+    vec3 diffuse = light.diffuse * diff * color;
+    vec3 specular = light.specular * spec * color;
+    return ambient + (1.0 - shadow) * (diffuse + specular);
+    //return ambient + diffuse + specular;
 }
 
 vec3 calculatePointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir, float shadow) {
@@ -104,15 +106,13 @@ void main() {
 
     float shadow = calculateShadow(FragPosLightSpace, norm, dirLight.direction);
 
-    //vec3 result = calculateDirLight(dirLight, norm, viewDir, shadow);
-
-
     sampler2D tex = textures[textureIndex];
-    vec3 result = texture(tex, TexCoords * tiling).rgb;
+    vec3 result = calculateDirLight(dirLight, norm, viewDir, shadow, tex);
+    //vec3 result = texture(tex, TexCoords * tiling).rgb;
 
     for (int i = 0; i < numOfPointLights; i++)
         //        result += calculatePointLight(pointLights[i], norm, FragPos, viewDir, shadow);
 
-    //result = pow(result, vec3(1.0 / 2.2));
+    result = pow(result, vec3(1.0 / 2.2));
     FragColor = vec4(result, 1.0);
 }
