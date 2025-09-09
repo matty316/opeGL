@@ -19,9 +19,8 @@ GLuint indices[6] = {
     1, 2, 3  // second triangle
 };
 
-Plane createPlane(const char *diffusePath, const char *specularPath,
-                  glm::vec3 pos, glm::vec3 rotation, float angle, float scale,
-                  int tiling) {
+Plane createPlane(GLuint64 diff, glm::vec3 pos, glm::vec3 rotation, float angle,
+                  float scale, int tiling) {
   Plane plane;
   glGenVertexArrays(1, &plane.vao);
   glGenBuffers(1, &plane.vbo);
@@ -47,9 +46,7 @@ Plane createPlane(const char *diffusePath, const char *specularPath,
                         (void *)(6 * sizeof(float)));
   glEnableVertexAttribArray(2);
 
-  plane.diffuse = loadTexture(diffusePath);
-  if (specularPath)
-    plane.specular = loadTexture(specularPath);
+  plane.diff = diff;
 
   plane.pos = pos;
   plane.angle = angle;
@@ -67,13 +64,7 @@ void drawPlane(Plane plane, GLuint shader) {
   model = glm::scale(model, glm::vec3{plane.scale});
   setMat4(shader, "model", model);
 
-  setInt(shader, "material.diffuse", 0);
-  glBindTextureUnit(0, plane.diffuse);
-
-  if (plane.specular) {
-    setInt(shader, "material.specular", 1);
-    glBindTextureUnit(1, plane.specular);
-  }
+  setInt(shader, "textureIndex", plane.diff);
 
   glBindVertexArray(plane.vao);
   glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);

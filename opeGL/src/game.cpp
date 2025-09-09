@@ -176,10 +176,10 @@ void start(bool debug, bool vSync, bool fullscreen) {
   glEnable(GL_DEPTH_TEST);
   stbi_set_flip_vertically_on_load(true);
   glEnable(GL_CULL_FACE);
-  createCamera();
 }
 
-void run(bool wireframe) {
+void run(CameraType cameraType, glm::vec3 cameraPosition, bool wireframe) {
+  createCamera(cameraType, cameraPosition);
   double timeStamp = glfwGetTime();
   float deltaTime = 0.0f;
 
