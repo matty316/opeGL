@@ -56,6 +56,7 @@ void makeWall(Chunk &chunk, Cube *cubes) {
 }
 
 void makeRoof(Chunk &chunk, Cube *cubes) {
+  chunk.pos.y += 1.0f;
   for (size_t x = 0; x < chunk.chunkSize; x++)
     for (size_t z = 0; z < chunk.chunkSize; z++)
       cubes[x * chunk.chunkSize * chunk.chunkSize + z]
