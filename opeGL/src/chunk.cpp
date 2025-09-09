@@ -48,8 +48,22 @@ void makeLandscape(Chunk &chunk, Cube *cubes, float freq = 0.01f,
   }
 }
 
-bool lDefault = false;
+void makeWall(Chunk &chunk, Cube *cubes) {
+  for (size_t x = 0; x < chunk.chunkSize; x++)
+    for (size_t y = 0; y < chunk.chunkSize; y++)
+      cubes[x * chunk.chunkSize * chunk.chunkSize + y * chunk.chunkSize]
+          .isActive = true;
+}
+
+void makeRoof(Chunk &chunk, Cube *cubes) {
+  for (size_t x = 0; x < chunk.chunkSize; x++)
+    for (size_t z = 0; z < chunk.chunkSize; z++)
+      cubes[x * chunk.chunkSize * chunk.chunkSize + z]
+          .isActive = true;
+}
+
 void createVerts(Chunk &chunk, Cube *cubes) {
+  bool lDefault = false;
   for (size_t x = 0; x < chunk.chunkSize; x++) {
     for (size_t y = 0; y < chunk.chunkSize; y++) {
       for (size_t z = 0; z < chunk.chunkSize; z++) {
@@ -191,6 +205,12 @@ Chunk createChunk(size_t diff, size_t spec, glm::vec3 pos, glm::vec3 rotation,
     break;
   case Landscape:
     makeLandscape(chunk, cubes);
+    break;
+  case Wall:
+    makeWall(chunk, cubes);
+    break;
+  case Roof:
+    makeRoof(chunk, cubes);
     break;
   }
 

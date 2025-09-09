@@ -92,10 +92,9 @@ void addModel(const char *path, glm::vec3 pos, glm::vec3 rotation, float angle,
   models.push_back(model);
 }
 
-void addPlane(const char *diffusePath, const char *specularPath, glm::vec3 pos,
-              glm::vec3 rotation, float angle, float scale, int tiling) {
-  Plane plane = createPlane(diffusePath, specularPath, pos, rotation, angle,
-                            scale, tiling);
+void addPlane(GLuint64 diff, glm::vec3 pos, glm::vec3 rotation, float angle,
+              float scale, int tiling) {
+  Plane plane = createPlane(diff, pos, rotation, angle, scale, tiling);
   planes.push_back(plane);
 }
 
@@ -119,7 +118,8 @@ void renderScene(GLFWwindow *window) {
   setFloat(shader, "material.shininess", 32.0f);
 
   auto aspect = (float)screenWidth / (float)screenHeight;
-  auto projection = glm::perspective(glm::radians(45.0f), aspect, 0.1f, 1000.0f);
+  auto projection =
+      glm::perspective(glm::radians(45.0f), aspect, 0.1f, 1000.0f);
   setMat4(shader, "projection", projection);
 
   auto view = getViewMatrix();
@@ -294,7 +294,9 @@ void renderDebugQuad(float nearPlane, float farPlane) {
   glBindVertexArray(0);
 }
 
-void addChunk(size_t diff, size_t spec, glm::vec3 pos, glm::vec3 rotation, float angle, float scale, ChunkType type, size_t chunkSize) {
-  Chunk chunk = createChunk(diff, spec, pos, rotation, angle, scale, type, chunkSize);
+void addChunk(size_t diff, size_t spec, glm::vec3 pos, glm::vec3 rotation,
+              float angle, float scale, ChunkType type, size_t chunkSize) {
+  Chunk chunk =
+      createChunk(diff, spec, pos, rotation, angle, scale, type, chunkSize);
   chunks.push_back(chunk);
 }

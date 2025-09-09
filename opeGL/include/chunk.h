@@ -4,7 +4,7 @@
 #include <glm/glm.hpp>
 
 enum ChunkType {
-  Sphere, Landscape
+  Sphere, Landscape, Wall, Roof
 };
 
 struct Chunk {
