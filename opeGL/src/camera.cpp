@@ -20,7 +20,12 @@ glm::quat cameraOrientation = glm::quat(glm::vec3(0.0f));
 glm::vec3 moveSpeed = glm::vec3(0.0f);
 glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
-void createCamera() {
+void createCamera(CameraType type, glm::vec3 pos) {
+  fly = type == Fly ? true : false;
+  if (!fly)
+    cameraPosition = glm::vec3(pos.x, playerHeight, pos.z);
+  else
+    cameraPosition = pos;
   auto target = glm::vec3(0.0f, playerHeight, 0.0f);
   cameraOrientation = glm::quat(glm::lookAt(cameraPosition, target, cameraUp));
 }

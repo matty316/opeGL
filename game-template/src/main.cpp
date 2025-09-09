@@ -7,12 +7,11 @@ void createChunks() {
   auto diff =
       loadBindlessTexture("resources/textures/beige_wall_001_diff_4k.jpg");
 
-  // addCube(diff, 0, glm::vec3(0.0f), glm::vec3(1.0f), 0.0f, 1.f);
   addChunk(diff, 0, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f), 0.0f, 1.f, Wall);
   addChunk(diff, 0, glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(1.0f), 0.0f, 1.f, Wall);
   addChunk(diff, 0, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), 90.0f, 1.f, Wall);
   addChunk(diff, 0, glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), 90.0f, 1.f, Wall);
-  addChunk(diff, 0, glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(1.0f), 0.0f, 1.f, Roof);
+  addChunk(diff, 0, glm::vec3(0.0f, -0.75f, -1.0f), glm::vec3(1.0f), 0.0f, 1.f, Roof);
 }
 
 void buildScene() {
@@ -27,6 +26,6 @@ void buildScene() {
 int main() {
   start(true);
   buildScene();
-  run();
+  run(FPS, glm::vec3(20.0f, 0.0f, -20.0f));
   return 0;
 }
