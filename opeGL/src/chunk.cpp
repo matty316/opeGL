@@ -49,18 +49,17 @@ void makeLandscape(Chunk &chunk, Cube *cubes, float freq = 0.01f,
 }
 
 void makeWall(Chunk &chunk, Cube *cubes) {
-  for (size_t x = 0; x < chunk.chunkSize; x++)
-    for (size_t y = 0; y < chunk.chunkSize; y++)
+  for (size_t x = 0; x < chunk.width; x++)
+    for (size_t y = 0; y < chunk.height; y++)
       cubes[x * chunk.chunkSize * chunk.chunkSize + y * chunk.chunkSize]
           .isActive = true;
 }
 
 void makeRoof(Chunk &chunk, Cube *cubes) {
-  chunk.pos.y += 1.0f;
-  for (size_t x = 0; x < chunk.chunkSize; x++)
-    for (size_t z = 0; z < chunk.chunkSize; z++)
-      cubes[x * chunk.chunkSize * chunk.chunkSize + z]
-          .isActive = true;
+  chunk.pos.y += chunk.chunkSize;
+  for (size_t x = 0; x < chunk.width; x++)
+    for (size_t z = 0; z < chunk.depth; z++)
+      cubes[x * chunk.chunkSize * chunk.chunkSize + z].isActive = true;
 }
 
 void createVerts(Chunk &chunk, Cube *cubes) {
@@ -176,7 +175,13 @@ void setupBuffers(Chunk &chunk) {
 }
 
 Chunk createChunk(size_t diff, size_t spec, glm::vec3 pos, glm::vec3 rotation,
-                  float angle, float scale, ChunkType type, size_t chunkSize) {
+                  float angle, float scale, ChunkType type, size_t chunkSize,
+                  size_t height, size_t width, size_t depth) {
+  if (height > chunkSize || width > chunkSize || depth > chunkSize) {
+    std::println("height, width and depth must be lower than chunk size");
+    exit(1);
+  }
+
   Chunk chunk;
   chunk.pos = pos;
   chunk.rotation = rotation;
@@ -185,6 +190,10 @@ Chunk createChunk(size_t diff, size_t spec, glm::vec3 pos, glm::vec3 rotation,
   chunk.spec = spec;
   chunk.scale = scale;
   chunk.chunkSize = chunkSize;
+  chunk.height = height == 0 ? chunkSize : height;
+  chunk.width = width == 0 ? chunkSize : width;
+  chunk.depth = depth == 0 ? chunkSize : depth;
+
   Cube *cubes = new Cube[chunk.chunkSize * chunk.chunkSize * chunk.chunkSize];
 
   for (size_t x = 0; x < chunk.chunkSize; x++) {
@@ -227,8 +236,7 @@ void drawChunk(Chunk &chunk, GLuint shader) {
   setInt(shader, "tiling", 1);
 
   auto model = glm::mat4(1.0f);
-  model = glm::translate(model, chunk.pos * chunk.scale *
-                                    static_cast<float>(chunk.chunkSize));
+  model = glm::translate(model, chunk.pos * chunk.scale);
   model = glm::rotate(model, glm::radians(chunk.angle), chunk.rotation);
   model = glm::scale(model, glm::vec3{chunk.scale});
   setMat4(shader, "model", model);
