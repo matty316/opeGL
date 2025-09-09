@@ -7,6 +7,12 @@ void createChunks() {
   auto diff =
       loadBindlessTexture("resources/textures/beige_wall_001_diff_4k.jpg");
 
+  auto grass = loadBindlessTexture("resources/textures/grass2.jpg");
+/*
+  addChunk(grass, 0, glm::vec3(0.0f * 64.0f, 0.0f, -0.0f * 64.0f ), glm::vec3(1.0f), 0.0f, 1.f, Landscape);
+  addChunk(grass, 0, glm::vec3(0.0f * 64.0f, 0.0f, -1.0f * 64.0f), glm::vec3(1.0f), 0.0f, 1.f, Landscape);
+  addChunk(grass, 0, glm::vec3(0.0f * 64.0f, 0.0f, -2.0f * 64.0f), glm::vec3(1.0f), 0.0f, 1.f, Landscape);
+*/
   size_t chunkSize = 64, height = 18, width = 64, depth = 64;
   float chunkSizeFloat = static_cast<float>(chunkSize);
   addChunk(diff, 0, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f), 0.0f, 1.f, Wall, chunkSize, height, width, depth);
@@ -28,6 +34,6 @@ void buildScene() {
 int main() {
   start(true);
   buildScene();
-  run(FPS, glm::vec3(20.0f, 0.0f, -20.0f));
+  run(FPS, glm::vec3(20.0f, 70.0f, -20.0f));
   return 0;
 }

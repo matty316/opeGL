@@ -9,8 +9,8 @@
 float mouseSpeed = 4.0f;
 float acceleration = 150.0f;
 float damping = 0.2f;
-float maxSpeed = 10.0f;
-float fastCoef = 10.0f;
+float maxSpeed = 15.0f;
+float fastCoef = 2.0f;
 float playerHeight = 5.0f;
 bool fly = false;
 

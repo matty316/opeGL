@@ -48,6 +48,8 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action,
     movement.left = pressed;
   if (key == GLFW_KEY_D)
     movement.right = pressed;
+  if (key == GLFW_KEY_LEFT_SHIFT)
+    movement.fastSpeed = pressed;
 }
 
 void APIENTRY glDebugOutput(GLenum source, GLenum type, unsigned int id,
