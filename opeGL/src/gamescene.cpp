@@ -36,7 +36,7 @@ std::vector<Cube> cubes;
 std::vector<Chunk> chunks;
 
 std::vector<glm::vec3> pLightPositions{glm::vec3{0.7f, 0.2f, 2.0f}};
-glm::vec3 dirLight{-2.0f, 4.0f, -1.0f};
+glm::vec3 dirLight{4.0f, 4.0f, 4.0f};
 
 GLuint skyboxVAO, skyboxVBO, skyboxTexture, debugShadowShader, modelShader;
 GLuint shader, skyboxShader, depthShader;
