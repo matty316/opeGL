@@ -3,10 +3,8 @@
 #include "glm/ext/matrix_transform.hpp"
 #include "glm/fwd.hpp"
 #include "shader.h"
-#include "texture.h"
 #include <PerlinNoise.hpp>
 #include <cstddef>
-#include <iterator>
 #include <print>
 
 const siv::PerlinNoise::seed_type seed = 6969420;
@@ -37,8 +35,8 @@ void makeLandscape(Chunk &chunk, Cube *cubes, float freq = 0.01f,
     for (size_t z = 0; z < chunk.chunkSize; z++) {
       const float noise =
           perlin.octave2D_01(
-              static_cast<float>(x) * freq + chunk.pos.x,
-              static_cast<float>(z) * freq + chunk.pos.z,
+              (static_cast<float>(x) + chunk.pos.x * chunk.chunkSize) * freq,
+              (static_cast<float>(z) + chunk.pos.z * chunk.chunkSize) * freq,
               octave) *
           chunk.chunkSize;
       for (size_t y = 0; y < static_cast<size_t>(noise); y++) {
@@ -201,9 +199,12 @@ Chunk createChunk(size_t diff, size_t spec, glm::vec3 pos, glm::vec3 rotation,
     for (size_t y = 0; y < chunk.chunkSize; y++) {
       for (size_t z = 0; z < chunk.chunkSize; z++) {
         Cube cube = createCube(
-            diff, spec, glm::vec3(x * scale, (y - 1.f) * scale, z * scale),
+            diff, spec, glm::vec3(x * scale, y * scale, z * scale),
             glm::vec3(1.0f), 0.0f, scale, Grass, true);
         cube.isActive = false;
+        cube.x = x;
+        cube.y = y;
+        cube.z = z;
         cubes[x * chunk.chunkSize * chunk.chunkSize + y * chunk.chunkSize + z] =
             cube;
       }
@@ -237,7 +238,7 @@ void drawChunk(Chunk &chunk, GLuint shader) {
   setInt(shader, "tiling", 1);
 
   auto model = glm::mat4(1.0f);
-  model = glm::translate(model, chunk.pos);
+  model = glm::translate(model, chunk.pos * chunk.scale * static_cast<float>(chunk.chunkSize));
   model = glm::rotate(model, glm::radians(chunk.angle), chunk.rotation);
   model = glm::scale(model, glm::vec3{chunk.scale});
   setMat4(shader, "model", model);

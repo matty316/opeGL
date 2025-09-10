@@ -15,6 +15,7 @@ struct Cube {
   size_t diff, spec;
   GLuint vao, vbo;
   size_t vertSize = 0;
+  uint32_t x = 0, y = 0, z = 0;
   bool isActive = true, top = true, bottom = true, front = true, back = true, left = true, right = true;
   BlockType blockType;
 };
