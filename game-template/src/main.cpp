@@ -9,7 +9,7 @@ void createChunks() {
 
   auto grass = loadBindlessTexture("resources/textures/grass2.jpg");
 
-  int chunks = 8;
+  int chunks = 16;
   for (int x = 0; x < chunks; x++)
     for (int z = 0; z < chunks; z++)
       addChunk(grass, 0, glm::vec3(static_cast<float>(x), 0.0f, -static_cast<float>(z)), glm::vec3(1.0f), 0.0f, 0.1f, Landscape);
@@ -30,13 +30,13 @@ void buildScene() {
   createChunks();
   auto marble =
       loadBindlessTexture("resources/textures/marble_01_diff_4k.jpg");
-  addPlane(marble, glm::vec3{0.0f}, glm::vec3{1.0f, 0.0f, 0.0f},
-           90.f, 200.f);
+  //addPlane(marble, glm::vec3{0.0f}, glm::vec3{1.0f, 0.0f, 0.0f},
+    //       90.f, 200.f);
 }
 
 int main() {
   start(true);
   buildScene();
-  run(Fly, glm::vec3(20.0f, 70.0f, -20.0f));
+  run(Fly, glm::vec3(20.0f, 70.0f, -20.0f), true);
   return 0;
 }
