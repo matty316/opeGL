@@ -109,10 +109,10 @@ GLfloat topUVs[] = {
       0.0f, 0.0f  // bottom-left
 };
 
-GLfloat greenColor[] = { 0.0f, 1.0f, 0.0f };
-GLfloat whiteColor = 1.0f;
-GLfloat blueColor[] = { 0.0f, 0.0f, 1.0f };
-GLfloat grayColor = 0.1f;
+GLfloat grassColor[] = {0.427f, 0.549f, 0.196f};
+GLfloat snowColor[] = {1.0f, 0.957f, 0.878f};
+GLfloat waterColor[] = {0.271f, 0.486f, 0.839f};
+GLfloat dirtColor[] = {0.173f, 0.106f, 0.18f};
 // clang-format on
 
 std::vector<GLfloat> vertsWithOffset(Cube &cube, GLfloat oldVerts[36],
@@ -131,24 +131,24 @@ std::vector<GLfloat> vertsWithOffset(Cube &cube, GLfloat oldVerts[36],
 
     switch (cube.blockType) {
     case Grass:
-      verts.push_back(greenColor[0]);
-      verts.push_back(greenColor[1]);
-      verts.push_back(greenColor[2]);
+      verts.push_back(grassColor[0]);
+      verts.push_back(grassColor[1]);
+      verts.push_back(grassColor[2]);
       break;
     case Snow:
-      verts.push_back(whiteColor);
-      verts.push_back(whiteColor);
-      verts.push_back(whiteColor);
+      verts.push_back(snowColor[0]);
+      verts.push_back(snowColor[1]);
+      verts.push_back(snowColor[2]);
       break;
     case Dirt:
-      verts.push_back(grayColor);
-      verts.push_back(grayColor);
-      verts.push_back(grayColor);
+      verts.push_back(dirtColor[0]);
+      verts.push_back(dirtColor[1]);
+      verts.push_back(dirtColor[2]);
       break;
     case Water:
-      verts.push_back(blueColor[0]);
-      verts.push_back(blueColor[1]);
-      verts.push_back(blueColor[2]);
+      verts.push_back(waterColor[0]);
+      verts.push_back(waterColor[1]);
+      verts.push_back(waterColor[2]);
     }
   }
 

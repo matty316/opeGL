@@ -133,7 +133,7 @@ void APIENTRY glDebugOutput(GLenum source, GLenum type, unsigned int id,
   std::cout << std::endl;
 }
 
-void start(bool debug, bool vSync, bool fullscreen) {
+void start(bool debug, bool fullscreen, bool vSync) {
   glfwInit();
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
