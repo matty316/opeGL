@@ -60,6 +60,8 @@ GLuint createShader(const char *vertexPath, const char *fragmentPath) {
     std::println("Error linking program {}", infoLog);
     exit(EXIT_FAILURE);
   }
+  glDeleteShader(vertex);
+  glDeleteShader(fragment);
   return program;
 }
 

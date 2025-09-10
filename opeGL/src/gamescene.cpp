@@ -111,7 +111,9 @@ void renderModels(GLuint shader) {
 
 void renderScene(GLFWwindow *window) {
   float nearPlane = 1.0f, farPlane = 7.5f;
+  glCullFace(GL_FRONT);
   renderDepthMap(nearPlane, farPlane);
+  glCullFace(GL_BACK);
 
   use(shader);
   setVec3(shader, "viewPos", getCameraPos());
@@ -124,6 +126,7 @@ void renderScene(GLFWwindow *window) {
 
   auto view = getViewMatrix();
   setMat4(shader, "view", view);
+  
   setMat4(shader, "lightSpaceMatrix", lightSpaceMatrix);
 
   use(shader);
@@ -149,7 +152,7 @@ void renderScene(GLFWwindow *window) {
   glBindVertexArray(0);
   glDepthFunc(GL_LESS); // set depth function back to default
 
-  // renderDebugQuad(nearPlane, farPlane);
+  //renderDebugQuad(nearPlane, farPlane);
 }
 
 unsigned int loadSkybox() {
