@@ -108,19 +108,48 @@ GLfloat topUVs[] = {
       0.0f, 1.0f, // top-left
       0.0f, 0.0f  // bottom-left
 };
+
+GLfloat greenColor[] = { 0.0f, 1.0f, 0.0f };
+GLfloat whiteColor = 1.0f;
+GLfloat blueColor[] = { 0.0f, 0.0f, 1.0f };
+GLfloat grayColor = 0.1f;
 // clang-format on
 
+std::vector<GLfloat> vertsWithOffset(Cube &cube, GLfloat oldVerts[36],
+                                     GLfloat uvs[12], int xoffset, int yoffset,
+                                     int zoffset) {
+  const size_t vertBufferRowSize = 6, numOfVertRows = 6,
+               vertBufferRowSizeWithUVs = 11;
+  std::vector<GLfloat> verts;
 
-std::vector<GLfloat> vertsWithOffset(GLfloat oldVerts[36], GLfloat uvs[12], int xoffset, int yoffset, int zoffset) {
-  const size_t vertBufferRowSize = 6, numOfVertRows = 6, vertBufferRowSizeWithUVs = 8;
-  std::vector<GLfloat> verts; 
-  
   for (size_t i = 0; i < vertBufferRowSize; i++) {
     for (size_t j = 0; j < numOfVertRows; j++)
-      verts.push_back(oldVerts[i * numOfVertRows +  j]);
+      verts.push_back(oldVerts[i * numOfVertRows + j]);
 
     verts.push_back(uvs[i * 2]);
     verts.push_back(uvs[i * 2 + 1]);
+
+    switch (cube.blockType) {
+    case Grass:
+      verts.push_back(greenColor[0]);
+      verts.push_back(greenColor[1]);
+      verts.push_back(greenColor[2]);
+      break;
+    case Snow:
+      verts.push_back(whiteColor);
+      verts.push_back(whiteColor);
+      verts.push_back(whiteColor);
+      break;
+    case Dirt:
+      verts.push_back(grayColor);
+      verts.push_back(grayColor);
+      verts.push_back(grayColor);
+      break;
+    case Water:
+      verts.push_back(blueColor[0]);
+      verts.push_back(blueColor[1]);
+      verts.push_back(blueColor[2]);
+    }
   }
 
   for (size_t i = 0; i < numOfVertRows; i++) {
@@ -132,45 +161,52 @@ std::vector<GLfloat> vertsWithOffset(GLfloat oldVerts[36], GLfloat uvs[12], int 
   return verts;
 }
 
-std::vector<GLfloat> cubeVerts(Cube &cube, int xoffset, int yoffset, int zoffset) {
+std::vector<GLfloat> cubeVerts(Cube &cube, int xoffset, int yoffset,
+                               int zoffset) {
   if (!cube.isActive)
     return {};
 
   std::vector<GLfloat> verts;
-  size_t vertSize = 0; 
+  size_t vertSize = 0;
   const size_t vertsPerRow = 6;
   if (cube.back) {
-    auto newVerts = vertsWithOffset(cubeBackFace, backUVs, xoffset, yoffset, zoffset); 
+    auto newVerts =
+        vertsWithOffset(cube, cubeBackFace, backUVs, xoffset, yoffset, zoffset);
     for (auto &vert : newVerts)
       verts.push_back(vert);
     vertSize += vertsPerRow;
   }
   if (cube.front) {
-    auto newVerts = vertsWithOffset(cubeFrontFace, frontUVs, xoffset, yoffset, zoffset); 
+    auto newVerts = vertsWithOffset(cube, cubeFrontFace, frontUVs, xoffset,
+                                    yoffset, zoffset);
     for (auto &vert : newVerts)
       verts.push_back(vert);
     vertSize += vertsPerRow;
   }
   if (cube.left) {
-    auto newVerts = vertsWithOffset(cubeLeftFace, leftUVs, xoffset, yoffset, zoffset); 
+    auto newVerts =
+        vertsWithOffset(cube, cubeLeftFace, leftUVs, xoffset, yoffset, zoffset);
     for (auto &vert : newVerts)
       verts.push_back(vert);
     vertSize += vertsPerRow;
   }
   if (cube.right) {
-    auto newVerts = vertsWithOffset(cubeRightFace, rightUVs, xoffset, yoffset, zoffset); 
+    auto newVerts = vertsWithOffset(cube, cubeRightFace, rightUVs, xoffset,
+                                    yoffset, zoffset);
     for (auto &vert : newVerts)
       verts.push_back(vert);
     vertSize += vertsPerRow;
   }
   if (cube.bottom) {
-    auto newVerts = vertsWithOffset(cubeBottomFace, bottomUVs, xoffset, yoffset, zoffset); 
+    auto newVerts = vertsWithOffset(cube, cubeBottomFace, bottomUVs, xoffset,
+                                    yoffset, zoffset);
     for (auto &vert : newVerts)
       verts.push_back(vert);
     vertSize += vertsPerRow;
   }
-  if (cube.top) { 
-    auto newVerts = vertsWithOffset(cubeTopFace, topUVs, xoffset, yoffset, zoffset); 
+  if (cube.top) {
+    auto newVerts =
+        vertsWithOffset(cube, cubeTopFace, topUVs, xoffset, yoffset, zoffset);
     for (auto &vert : newVerts)
       verts.push_back(vert);
     vertSize += vertsPerRow;
@@ -190,25 +226,33 @@ void setupCubeBuffers(Cube &cube) {
   glCreateVertexArrays(1, &cube.vao);
   glCreateBuffers(1, &cube.vbo);
 
-  glNamedBufferStorage(cube.vbo, sizeof(GLfloat) * verts.size(), verts.data(), GL_DYNAMIC_STORAGE_BIT);
+  glNamedBufferStorage(cube.vbo, sizeof(GLfloat) * verts.size(), verts.data(),
+                       GL_DYNAMIC_STORAGE_BIT);
 
-  glVertexArrayVertexBuffer(cube.vao, 0, cube.vbo, 0, sizeof(GLfloat) * 8);
+  glVertexArrayVertexBuffer(cube.vao, 0, cube.vbo, 0, sizeof(GLfloat) * 11);
 
   glEnableVertexArrayAttrib(cube.vao, 0);
   glEnableVertexArrayAttrib(cube.vao, 1);
   glEnableVertexArrayAttrib(cube.vao, 2);
+  glEnableVertexArrayAttrib(cube.vao, 3);
 
   glVertexArrayAttribFormat(cube.vao, 0, 3, GL_FLOAT, GL_FALSE, 0);
-  glVertexArrayAttribFormat(cube.vao, 1, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 3);
-  glVertexArrayAttribFormat(cube.vao, 2, 2, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 6);
+  glVertexArrayAttribFormat(cube.vao, 1, 3, GL_FLOAT, GL_FALSE,
+                            sizeof(GLfloat) * 3);
+  glVertexArrayAttribFormat(cube.vao, 2, 2, GL_FLOAT, GL_FALSE,
+                            sizeof(GLfloat) * 6);
+  glVertexArrayAttribFormat(cube.vao, 3, 3, GL_FLOAT, GL_FALSE,
+                            sizeof(GLfloat) * 8);
 
   glVertexArrayAttribBinding(cube.vao, 0, 0);
   glVertexArrayAttribBinding(cube.vao, 1, 0);
   glVertexArrayAttribBinding(cube.vao, 2, 0);
+  glVertexArrayAttribBinding(cube.vao, 3, 0);
 }
 
 Cube createCube(size_t diff, size_t spec, glm::vec3 pos, glm::vec3 rotation,
-                float angle, float scale, BlockType blockType, bool deferBuffers) {
+                float angle, float scale, BlockType blockType,
+                bool deferBuffers) {
   Cube cube;
   cube.pos = pos;
   cube.rotation = rotation;

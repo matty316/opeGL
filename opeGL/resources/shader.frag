@@ -30,6 +30,7 @@ out vec4 FragColor;
 in vec3 FragPos;
 in vec3 Normal;
 in vec2 TexCoords;
+in vec3 Color;
 in vec4 FragPosLightSpace;
 
 uniform vec3 viewPos;
@@ -47,7 +48,7 @@ layout(binding = 0, std430) readonly buffer ssbo3 {
 };
 
 vec3 calculateDirLight(DirectionalLight light, vec3 normal, vec3 viewDir, float shadow, sampler2D tex) {
-    vec3 color = texture(tex, TexCoords * tiling).rgb;
+    vec3 color = Color;
     //color = vec3(1.0, 0.0, 0.0);
     vec3 lightDir = normalize(-light.direction);
     float diff = max(dot(normal, lightDir), 0.0);
