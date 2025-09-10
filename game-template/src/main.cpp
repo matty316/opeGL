@@ -37,6 +37,6 @@ void buildScene() {
 int main() {
   start(true);
   buildScene();
-  run(Fly, glm::vec3(20.0f, 70.0f, -20.0f), true);
+  run(Fly, glm::vec3(20.0f, 70.0f, -20.0f), false);
   return 0;
 }

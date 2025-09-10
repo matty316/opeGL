@@ -6,7 +6,7 @@
 #include <vector>
 
 enum BlockType {
-  Grass,
+  Grass, Snow, Water, Dirt
 };
 
 struct Cube {
