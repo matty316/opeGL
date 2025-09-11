@@ -2,6 +2,7 @@
 #include "camera.h"
 #include "chunk.h"
 #include "cube.h"
+#include "glm/fwd.hpp"
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "model.h"
@@ -73,6 +74,9 @@ void createScene() {
   setupSkyboxVAO();
   use(skyboxShader);
   setInt(skyboxShader, "skybox", 0);
+  Terrain terrain = createTerrain(16, 16);
+  for (auto &chunk : terrain.chunks)
+    chunks.push_back(chunk);
 }
 
 void addCube(size_t diff, size_t spec, glm::vec3 pos, glm::vec3 rotation,
@@ -107,6 +111,7 @@ void renderModels(GLuint shader) {
     drawCube(cube, shader);
   for (auto &chunk : chunks)
     drawChunk(chunk, shader);
+  //drawTerrain(terrain, shader);
 }
 
 void renderScene(GLFWwindow *window) {

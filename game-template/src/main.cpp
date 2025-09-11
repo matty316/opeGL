@@ -2,6 +2,9 @@
 #include "game.h"
 #include "gamescene.h"
 #include "texture.h"
+#include <cstddef>
+
+auto pos = glm::vec3(20.0f, 20.0f, -20.0f);
 
 void createChunks() {
   auto diff =
@@ -10,9 +13,11 @@ void createChunks() {
   auto grass = loadBindlessTexture("resources/textures/grass2.jpg");
 
   int chunks = 16;
-  for (int x = 0; x < chunks; x++)
-    for (int z = 0; z < chunks; z++)
-      addChunk(grass, 0, glm::vec3(static_cast<float>(x), 0.0f, -static_cast<float>(z)), glm::vec3(1.0f), 0.0f, 0.1f, Landscape);
+  auto xpos = static_cast<size_t>(pos.x);
+  auto zpos = static_cast<size_t>(pos.z);
+  for (int x = -(chunks / 2); x < chunks / 2; x++)
+    for (int z = -(chunks / 2); z < chunks / 2; z++)
+      addChunk(grass, 0, glm::vec3(static_cast<float>(x) + pos.x, 0.0f, static_cast<float>(z) + pos.z), glm::vec3(1.0f), 0.0f, 0.1f, Landscape);
 /*
   size_t chunkSize = 64, height = 18, width = 64, depth = 64;
   float chunkSizeFloat = static_cast<float>(chunkSize);
@@ -27,7 +32,7 @@ void createChunks() {
 
 void buildScene() {
   createScene();
-  createChunks();
+  //createChunks();
   auto marble =
       loadBindlessTexture("resources/textures/marble_01_diff_4k.jpg");
   //addPlane(marble, glm::vec3{0.0f}, glm::vec3{1.0f, 0.0f, 0.0f},
@@ -37,6 +42,6 @@ void buildScene() {
 int main() {
   start(true, true);
   buildScene();
-  run(Fly, glm::vec3(20.0f, 20.0f, -20.0f), false);
+  run(Fly, pos, false);
   return 0;
 }

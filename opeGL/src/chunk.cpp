@@ -1,5 +1,6 @@
 #include "chunk.h"
 #include "cube.h"
+#include "camera.h"
 #include "glm/ext/matrix_transform.hpp"
 #include "glm/fwd.hpp"
 #include "shader.h"
@@ -158,7 +159,8 @@ void createVerts(Chunk &chunk, Cube *cubes) {
         if (z == chunk.chunkSize - 1)
           cubes[xpos + ypos + z].front = false;
 
-        for (auto &vert : cubeVerts(cubes[xpos + ypos + z], x, y, z))
+        for (auto &vert : cubeVerts(cubes[xpos + ypos + z], x + chunk.xoffset,
+                                    y, z + chunk.zoffset))
           chunk.vertices.push_back(vert);
 
         chunk.vertSize += cubes[xpos + ypos + z].vertSize;
@@ -196,8 +198,9 @@ void setupBuffers(Chunk &chunk) {
 }
 
 Chunk createChunk(size_t diff, size_t spec, glm::vec3 pos, glm::vec3 rotation,
-                  float angle, float scale, ChunkType type, size_t chunkSize,
-                  size_t height, size_t width, size_t depth) {
+                  float angle, float scale, ChunkType type,
+                  bool shouldSetupBuffers, size_t xoffset, size_t zoffset,
+                  size_t chunkSize, size_t height, size_t width, size_t depth) {
   if (height > chunkSize || width > chunkSize || depth > chunkSize) {
     std::println("height, width and depth must be lower than chunk size");
     exit(1);
@@ -214,6 +217,8 @@ Chunk createChunk(size_t diff, size_t spec, glm::vec3 pos, glm::vec3 rotation,
   chunk.height = height == 0 ? chunkSize : height;
   chunk.width = width == 0 ? chunkSize : width;
   chunk.depth = depth == 0 ? chunkSize : depth;
+  chunk.xoffset = xoffset;
+  chunk.zoffset = zoffset;
 
   Cube *cubes = new Cube[chunk.chunkSize * chunk.chunkSize * chunk.chunkSize];
 
@@ -222,9 +227,8 @@ Chunk createChunk(size_t diff, size_t spec, glm::vec3 pos, glm::vec3 rotation,
       for (size_t z = 0; z < chunk.chunkSize; z++) {
         size_t xpos = x * chunk.chunkSize * chunk.chunkSize,
                ypos = y * chunk.chunkSize;
-        Cube cube =
-            createCube(diff, spec, glm::vec3(x * scale, y * scale, z * scale),
-                       glm::vec3(1.0f), 0.0f, scale, Grass, true);
+        Cube cube = createCube(diff, spec, glm::vec3(0.0f), glm::vec3(1.0f),
+                               0.0f, 1.0f, Grass, true);
         cube.isActive = false;
         cube.x = x;
         cube.y = y;
@@ -250,8 +254,10 @@ Chunk createChunk(size_t diff, size_t spec, glm::vec3 pos, glm::vec3 rotation,
   }
 
   createVerts(chunk, cubes);
+  std::println("size of verts: {}", sizeof(GLfloat) * chunk.vertices.size());
   delete[] cubes;
-  setupBuffers(chunk);
+  if (shouldSetupBuffers)
+    setupBuffers(chunk);
 
   return chunk;
 }
@@ -272,4 +278,76 @@ void drawChunk(Chunk &chunk, GLuint shader) {
   glBindVertexArray(chunk.vao);
   glDrawArrays(GL_TRIANGLES, 0, chunk.vertSize);
   glBindVertexArray(0);
+}
+
+Terrain createTerrain(size_t width, size_t depth) {
+  Terrain terrain;
+  terrain.pos = getCameraPos();
+ // terrain.rotation = rotation;
+  //terrain.angle = angle;
+  //terrain.scale = scale;
+  terrain.width = width;
+  terrain.depth = depth;
+
+  for (size_t x = 0; x < width; x++) {
+    for (size_t z = 0; z < depth; z++) {
+      Chunk chunk = createChunk(
+          0, 0, glm::vec3(static_cast<float>(x) + terrain.pos.x, 0.0f, -static_cast<float>(z) + terrain.pos.z),
+          glm::vec3(1.0f), 0.0f, 0.1f, Landscape, true);
+      terrain.chunks.push_back(chunk);
+      // for (auto &vert : chunk.vertices)
+      // terrain.vertices.push_back(vert);
+      // terrain.vertSize += chunk.vertSize;
+    }
+  }
+
+  /*
+  glCreateVertexArrays(1, &terrain.vao);
+  glCreateBuffers(1, &terrain.vbo);
+
+  glNamedBufferStorage(terrain.vbo, sizeof(GLfloat) * terrain.vertices.size(),
+                       terrain.vertices.data(), GL_DYNAMIC_STORAGE_BIT);
+
+  glVertexArrayVertexBuffer(terrain.vao, 0, terrain.vbo, 0,
+                            sizeof(GLfloat) * 11);
+
+  glEnableVertexArrayAttrib(terrain.vao, 0);
+  glEnableVertexArrayAttrib(terrain.vao, 1);
+  glEnableVertexArrayAttrib(terrain.vao, 2);
+  glEnableVertexArrayAttrib(terrain.vao, 3);
+
+  glVertexArrayAttribFormat(terrain.vao, 0, 3, GL_FLOAT, GL_FALSE, 0);
+  glVertexArrayAttribFormat(terrain.vao, 1, 3, GL_FLOAT, GL_FALSE,
+                            sizeof(GLfloat) * 3);
+  glVertexArrayAttribFormat(terrain.vao, 2, 2, GL_FLOAT, GL_FALSE,
+                            sizeof(GLfloat) * 6);
+  glVertexArrayAttribFormat(terrain.vao, 3, 3, GL_FLOAT, GL_FALSE,
+                            sizeof(GLfloat) * 8);
+
+  glVertexArrayAttribBinding(terrain.vao, 0, 0);
+  glVertexArrayAttribBinding(terrain.vao, 1, 0);
+  glVertexArrayAttribBinding(terrain.vao, 2, 0);
+  glVertexArrayAttribBinding(terrain.vao, 3, 0);*/
+
+  return terrain;
+}
+
+void drawTerrain(Terrain terrain, GLuint shader) {
+  for (auto &chunk : terrain.chunks)
+    drawChunk(chunk, shader);
+
+  /*use(shader);
+  setInt(shader, "tiling", 1);
+
+  auto model = glm::mat4(1.0f);
+  model = glm::translate(model, terrain.pos);
+  model = glm::rotate(model, glm::radians(terrain.angle), terrain.rotation);
+  model = glm::scale(model, glm::vec3{terrain.scale});
+  setMat4(shader, "model", model);
+
+  setInt(shader, "textureIndex", 0);
+
+  glBindVertexArray(terrain.vao);
+  glDrawArrays(GL_TRIANGLES, 0, terrain.vertSize);
+  glBindVertexArray(0);*/
 }
