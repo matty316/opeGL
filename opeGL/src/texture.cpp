@@ -48,22 +48,3 @@ GLuint loadTexture(const char *path) {
   return textureID;
 }
 
-size_t loadBindlessTexture(const char *path) {
-  if (loadedBindlessTextures.contains(std::string(path)))
-    return loadedBindlessTextures[std::string(path)];
-
-  auto textureId = loadTexture(path);
-  auto handle = glGetTextureHandleARB(textureId);
-  glMakeTextureHandleResidentARB(handle);
-  handles.push_back(handle);
-  loadedBindlessTextures[std::string(path)] = handles.size() - 1;
-  return handles.size() - 1;
-}
-
-void setupTextureBuffer() {
-  GLuint ssbo;
-  glCreateBuffers(1, &ssbo);
-  glNamedBufferStorage(ssbo, handles.size() * sizeof(GLuint64), handles.data(), GL_DYNAMIC_STORAGE_BIT); 
-  glNamedBufferSubData(ssbo, 0, handles.size() * sizeof(GLuint64), handles.data()); 
-  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssbo);
-}
