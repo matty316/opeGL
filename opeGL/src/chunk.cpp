@@ -39,10 +39,12 @@ void makeLandscape(Chunk &chunk, Cube *cubes, float freq = 0.01f,
                ypos = y * chunk.chunkSize;
         float yFloat = static_cast<float>(y),
               chunkSize = static_cast<float>(chunk.chunkSize);
-        if (yFloat < chunkSize * 0.2f && yFloat >= chunkSize * 0.2f - 4.0f) {
+        float waterLevel = 0.3f;
+        if (yFloat < chunkSize * waterLevel &&
+            yFloat >= chunkSize * 0.2f - 4.0f) {
           cubes[xpos + ypos + z].blockType = Water;
           cubes[xpos + ypos + z].isActive = true;
-        } else if (yFloat < chunkSize * 0.2f - 4.0f) {
+        } else if (yFloat < chunkSize * waterLevel - 4.0f) {
           cubes[xpos + ypos + z].blockType = Dirt;
           cubes[xpos + ypos + z].isActive = true;
         }
@@ -151,8 +153,6 @@ void createVerts(Chunk &chunk, Cube *cubes) {
           cubes[xpos + ypos + z].right = false;
         if (y == 0)
           cubes[xpos + ypos + z].bottom = false;
-        if (y == chunk.chunkSize - 1)
-          cubes[xpos + ypos + z].top = false;
         if (z == 0)
           cubes[xpos + ypos + z].back = false;
         if (z == chunk.chunkSize - 1)
