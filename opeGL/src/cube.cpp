@@ -115,47 +115,48 @@ GLfloat waterColor[] = {0.271f, 0.486f, 0.839f};
 GLfloat dirtColor[] = {0.173f, 0.106f, 0.18f};
 // clang-format on
 
+  const size_t vertBufferRowSize = 6, numOfVertRows = 6,
+               totalVertBufferRowSize = 9;
 std::vector<GLfloat> vertsWithOffset(Cube &cube, GLfloat oldVerts[36],
                                      GLfloat uvs[12], int xoffset, int yoffset,
-                                     int zoffset) {
-  const size_t vertBufferRowSize = 6, numOfVertRows = 6,
-               vertBufferRowSizeWithUVs = 11;
+                                     int zoffset, bool darken = false) {
   std::vector<GLfloat> verts;
 
   for (size_t i = 0; i < vertBufferRowSize; i++) {
     for (size_t j = 0; j < numOfVertRows; j++)
       verts.push_back(oldVerts[i * numOfVertRows + j]);
 
-    verts.push_back(uvs[i * 2]);
-    verts.push_back(uvs[i * 2 + 1]);
+    //verts.push_back(uvs[i * 2]);
+    //verts.push_back(uvs[i * 2 + 1]);
 
+    float darkenVal = 1.0f;
     switch (cube.blockType) {
     case Grass:
-      verts.push_back(grassColor[0]);
-      verts.push_back(grassColor[1]);
-      verts.push_back(grassColor[2]);
+      verts.push_back(darken ? grassColor[0] * darkenVal : grassColor[0]);
+      verts.push_back(darken ? grassColor[1] * darkenVal : grassColor[1]);
+      verts.push_back(darken ? grassColor[2] * darkenVal : grassColor[2]);
       break;
     case Snow:
-      verts.push_back(snowColor[0]);
-      verts.push_back(snowColor[1]);
-      verts.push_back(snowColor[2]);
+      verts.push_back(darken ? snowColor[0] * darkenVal : snowColor[0]);
+      verts.push_back(darken ? snowColor[1] * darkenVal : snowColor[1]);
+      verts.push_back(darken ? snowColor[2] * darkenVal : snowColor[2]);
       break;
     case Dirt:
-      verts.push_back(dirtColor[0]);
-      verts.push_back(dirtColor[1]);
-      verts.push_back(dirtColor[2]);
+      verts.push_back(darken ? dirtColor[0] * darkenVal : dirtColor[0]);
+      verts.push_back(darken ? dirtColor[1] * darkenVal : dirtColor[1]);
+      verts.push_back(darken ? dirtColor[2] * darkenVal : dirtColor[2]);
       break;
     case Water:
-      verts.push_back(waterColor[0]);
-      verts.push_back(waterColor[1]);
-      verts.push_back(waterColor[2]);
+      verts.push_back(darken ? waterColor[0] * darkenVal : waterColor[0]);
+      verts.push_back(darken ? waterColor[1] * darkenVal : waterColor[1]);
+      verts.push_back(darken ? waterColor[2] * darkenVal : waterColor[2]);
     }
   }
 
   for (size_t i = 0; i < numOfVertRows; i++) {
-    verts[i * vertBufferRowSizeWithUVs] += xoffset;
-    verts[i * vertBufferRowSizeWithUVs + 1] += yoffset;
-    verts[i * vertBufferRowSizeWithUVs + 2] += zoffset;
+    verts[i * totalVertBufferRowSize] += xoffset;
+    verts[i * totalVertBufferRowSize + 1] += yoffset;
+    verts[i * totalVertBufferRowSize + 2] += zoffset;
   }
 
   return verts;
@@ -178,14 +179,14 @@ std::vector<GLfloat> cubeVerts(Cube &cube, int xoffset, int yoffset,
   }
   if (cube.front) {
     auto newVerts = vertsWithOffset(cube, cubeFrontFace, frontUVs, xoffset,
-                                    yoffset, zoffset);
+                                    yoffset, zoffset, true);
     for (auto &vert : newVerts)
       verts.push_back(vert);
     vertSize += vertsPerRow;
   }
   if (cube.left) {
     auto newVerts =
-        vertsWithOffset(cube, cubeLeftFace, leftUVs, xoffset, yoffset, zoffset);
+        vertsWithOffset(cube, cubeLeftFace, leftUVs, xoffset, yoffset, zoffset, true);
     for (auto &vert : newVerts)
       verts.push_back(vert);
     vertSize += vertsPerRow;
@@ -199,7 +200,7 @@ std::vector<GLfloat> cubeVerts(Cube &cube, int xoffset, int yoffset,
   }
   if (cube.bottom) {
     auto newVerts = vertsWithOffset(cube, cubeBottomFace, bottomUVs, xoffset,
-                                    yoffset, zoffset);
+                                    yoffset, zoffset, true);
     for (auto &vert : newVerts)
       verts.push_back(vert);
     vertSize += vertsPerRow;
@@ -229,7 +230,7 @@ void setupCubeBuffers(Cube &cube) {
   glNamedBufferStorage(cube.vbo, sizeof(GLfloat) * verts.size(), verts.data(),
                        GL_DYNAMIC_STORAGE_BIT);
 
-  glVertexArrayVertexBuffer(cube.vao, 0, cube.vbo, 0, sizeof(GLfloat) * 11);
+  glVertexArrayVertexBuffer(cube.vao, 0, cube.vbo, 0, sizeof(GLfloat) * totalVertBufferRowSize);
 
   glEnableVertexArrayAttrib(cube.vao, 0);
   glEnableVertexArrayAttrib(cube.vao, 1);

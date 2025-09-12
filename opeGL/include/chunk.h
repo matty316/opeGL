@@ -20,7 +20,7 @@ Chunk createChunk(size_t diff, size_t spec, glm::vec3 pos, glm::vec3 rotations,
                   bool shouldSetupBuffers = true, size_t xoffset = 0,
                   size_t zoffset = 0, size_t chunkSize = 64, size_t height = 0,
                   size_t width = 0, size_t depth = 0);
-void drawChunk(Chunk &chunk, GLuint shader);
+void drawChunk(Chunk &chunk, GLuint shader, glm::mat4 vp);
 
 struct Terrain {
   glm::vec3 pos, rotation;

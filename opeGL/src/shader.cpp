@@ -38,6 +38,7 @@ GLuint compileShader(const char *path, GLenum type) {
     }
     return shader;
   } else {
+    std::println("cannot open shader file");
     exit(EXIT_FAILURE);
   }
 }

@@ -39,7 +39,7 @@ std::vector<Chunk> chunks;
 std::vector<glm::vec3> pLightPositions{glm::vec3{0.7f, 0.2f, 2.0f}};
 glm::vec3 dirLight{4.0f, 4.0f, 4.0f};
 
-GLuint skyboxVAO, skyboxVBO, skyboxTexture, debugShadowShader, modelShader;
+GLuint skyboxVAO, skyboxVBO, skyboxTexture, debugShadowShader, modelShader, chunkShader;
 GLuint shader, skyboxShader, depthShader;
 glm::mat4 lightSpaceMatrix;
 
@@ -57,7 +57,7 @@ void createScene() {
       createShader("resources/shadowDebug.vert", "resources/shadowDebug.frag");
   modelShader =
       createShader("resources/modelShader.vert", "resources/modelShader.frag");
-
+  chunkShader = createShader("resources/chunkShader.vert", "resources/chunkShader.frag");
   setupDepthMap();
   use(shader);
   setDirLight(shader, dirLight);
@@ -102,7 +102,7 @@ void addPlane(GLuint64 diff, glm::vec3 pos, glm::vec3 rotation, float angle,
   planes.push_back(plane);
 }
 
-void renderModels(GLuint shader) {
+void renderModels(GLuint shader, glm::mat4 vp) {
   for (auto &plane : planes)
     drawPlane(plane, shader);
   for (auto &model : models)
@@ -110,7 +110,7 @@ void renderModels(GLuint shader) {
   for (auto &cube : cubes)
     drawCube(cube, shader);
   for (auto &chunk : chunks)
-    drawChunk(chunk, shader);
+    drawChunk(chunk, chunkShader, vp);
   //drawTerrain(terrain, shader);
 }
 
@@ -139,7 +139,14 @@ void renderScene(GLFWwindow *window) {
   glActiveTexture(GL_TEXTURE11);
   glBindTexture(GL_TEXTURE_2D, depthMap);
 
-  renderModels(shader);
+  use(chunkShader);
+  setVec3(chunkShader, "viewPos", getCameraPos());
+  setVec3(chunkShader, "light.direction", glm::vec3(-0.2f, -1.0f, -0.3f));
+  setVec3(chunkShader, "light.ambient", glm::vec3(0.2f));
+  setVec3(chunkShader, "light.diffuse", glm::vec3(0.5f));
+  setVec3(chunkShader, "light.specular", glm::vec3(1.0f));
+
+  renderModels(shader, projection * view);
 
   // draw skybox as last
   glDepthFunc(GL_LEQUAL); // change depth function so depth test passes when
@@ -262,7 +269,7 @@ void renderDepthMap(float nearPlane, float farPlane) {
   glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
   glClear(GL_DEPTH_BUFFER_BIT);
 
-  renderModels(depthShader);
+  renderModels(depthShader, lightProjection * lightView);
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
   glViewport(0, 0, screenWidth, screenHeight);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

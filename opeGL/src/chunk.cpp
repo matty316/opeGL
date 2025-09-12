@@ -176,25 +176,21 @@ void setupBuffers(Chunk &chunk) {
   glNamedBufferStorage(chunk.vbo, sizeof(GLfloat) * chunk.vertices.size(),
                        chunk.vertices.data(), GL_DYNAMIC_STORAGE_BIT);
 
-  glVertexArrayVertexBuffer(chunk.vao, 0, chunk.vbo, 0, sizeof(GLfloat) * 11);
+  glVertexArrayVertexBuffer(chunk.vao, 0, chunk.vbo, 0, sizeof(GLfloat) * 9);
 
   glEnableVertexArrayAttrib(chunk.vao, 0);
   glEnableVertexArrayAttrib(chunk.vao, 1);
   glEnableVertexArrayAttrib(chunk.vao, 2);
-  glEnableVertexArrayAttrib(chunk.vao, 3);
 
   glVertexArrayAttribFormat(chunk.vao, 0, 3, GL_FLOAT, GL_FALSE, 0);
   glVertexArrayAttribFormat(chunk.vao, 1, 3, GL_FLOAT, GL_FALSE,
                             sizeof(GLfloat) * 3);
-  glVertexArrayAttribFormat(chunk.vao, 2, 2, GL_FLOAT, GL_FALSE,
+  glVertexArrayAttribFormat(chunk.vao, 2, 3, GL_FLOAT, GL_FALSE,
                             sizeof(GLfloat) * 6);
-  glVertexArrayAttribFormat(chunk.vao, 3, 3, GL_FLOAT, GL_FALSE,
-                            sizeof(GLfloat) * 8);
 
   glVertexArrayAttribBinding(chunk.vao, 0, 0);
   glVertexArrayAttribBinding(chunk.vao, 1, 0);
   glVertexArrayAttribBinding(chunk.vao, 2, 0);
-  glVertexArrayAttribBinding(chunk.vao, 3, 0);
 }
 
 Chunk createChunk(size_t diff, size_t spec, glm::vec3 pos, glm::vec3 rotation,
@@ -262,18 +258,17 @@ Chunk createChunk(size_t diff, size_t spec, glm::vec3 pos, glm::vec3 rotation,
   return chunk;
 }
 
-void drawChunk(Chunk &chunk, GLuint shader) {
+void drawChunk(Chunk &chunk, GLuint shader, glm::mat4 vp) {
   use(shader);
-  setInt(shader, "tiling", 1);
 
   auto model = glm::mat4(1.0f);
   model = glm::translate(model, chunk.pos * chunk.scale *
                                     static_cast<float>(chunk.chunkSize));
   model = glm::rotate(model, glm::radians(chunk.angle), chunk.rotation);
   model = glm::scale(model, glm::vec3{chunk.scale});
-  setMat4(shader, "model", model);
 
-  setInt(shader, "textureIndex", chunk.diff);
+  setMat4(shader, "model", model);
+  setMat4(shader, "vp", vp);
 
   glBindVertexArray(chunk.vao);
   glDrawArrays(GL_TRIANGLES, 0, chunk.vertSize);
@@ -332,9 +327,9 @@ Terrain createTerrain(size_t width, size_t depth) {
   return terrain;
 }
 
-void drawTerrain(Terrain terrain, GLuint shader) {
+void drawTerrain(Terrain terrain, GLuint shader, glm::mat4 view, glm::mat4 projection) {
   for (auto &chunk : terrain.chunks)
-    drawChunk(chunk, shader);
+    drawChunk(chunk, shader, projection * view);
 
   /*use(shader);
   setInt(shader, "tiling", 1);
