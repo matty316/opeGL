@@ -32,4 +32,4 @@ struct Terrain {
 };
 
 Terrain createTerrain(size_t width, size_t depth);
-void drawTerrain(Terrain terrain, GLuint shader);
+void drawTerrain(Terrain &terrain, GLuint shader, glm::mat4 vp);

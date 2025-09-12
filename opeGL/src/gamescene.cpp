@@ -42,6 +42,7 @@ glm::vec3 dirLight{4.0f, 4.0f, 4.0f};
 GLuint skyboxVAO, skyboxVBO, skyboxTexture, debugShadowShader, modelShader, chunkShader;
 GLuint shader, skyboxShader, depthShader;
 glm::mat4 lightSpaceMatrix;
+Terrain terrain;
 
 void setupSkyboxVAO();
 unsigned int loadSkybox();
@@ -74,9 +75,7 @@ void createScene() {
   setupSkyboxVAO();
   use(skyboxShader);
   setInt(skyboxShader, "skybox", 0);
-  Terrain terrain = createTerrain(16, 16);
-  for (auto &chunk : terrain.chunks)
-    chunks.push_back(chunk);
+  terrain = createTerrain(16, 16);
 }
 
 void addCube(size_t diff, size_t spec, glm::vec3 pos, glm::vec3 rotation,
@@ -111,7 +110,7 @@ void renderModels(GLuint shader, glm::mat4 vp) {
     drawCube(cube, shader);
   for (auto &chunk : chunks)
     drawChunk(chunk, chunkShader, vp);
-  //drawTerrain(terrain, shader);
+  drawTerrain(terrain, chunkShader, vp);
 }
 
 void renderScene(GLFWwindow *window) {

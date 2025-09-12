@@ -1,6 +1,6 @@
 #include "chunk.h"
-#include "cube.h"
 #include "camera.h"
+#include "cube.h"
 #include "glm/ext/matrix_transform.hpp"
 #include "glm/fwd.hpp"
 #include "shader.h"
@@ -11,6 +11,20 @@
 
 const siv::PerlinNoise::seed_type seed = 6969420;
 const siv::PerlinNoise perlin{seed};
+
+struct DrawArraysIndirectCommand {
+  GLuint count;
+  GLuint instanceCount;
+  GLuint firstVertex;
+  GLuint baseVertex;
+};
+
+struct PerChunkData {
+  glm::mat4 model;
+};
+
+std::vector<DrawArraysIndirectCommand> drawCommands;
+GLuint drawCommandBuffer, perChunkBuffer;
 
 void makeSphere(Chunk &chunk, Cube *cubes) {
   for (size_t x = 0; x < chunk.chunkSize; x++) {
@@ -169,28 +183,26 @@ void createVerts(Chunk &chunk, Cube *cubes) {
   }
 }
 
-void setupBuffers(Chunk &chunk) {
-  glCreateVertexArrays(1, &chunk.vao);
-  glCreateBuffers(1, &chunk.vbo);
+void setupBuffers(GLuint &vao, GLuint &vbo, std::vector<GLfloat> vertices) {
+  glCreateVertexArrays(1, &vao);
+  glCreateBuffers(1, &vbo);
 
-  glNamedBufferStorage(chunk.vbo, sizeof(GLfloat) * chunk.vertices.size(),
-                       chunk.vertices.data(), GL_DYNAMIC_STORAGE_BIT);
+  glNamedBufferStorage(vbo, sizeof(GLfloat) * vertices.size(), vertices.data(),
+                       GL_DYNAMIC_STORAGE_BIT);
 
-  glVertexArrayVertexBuffer(chunk.vao, 0, chunk.vbo, 0, sizeof(GLfloat) * 9);
+  glVertexArrayVertexBuffer(vao, 0, vbo, 0, sizeof(GLfloat) * 9);
 
-  glEnableVertexArrayAttrib(chunk.vao, 0);
-  glEnableVertexArrayAttrib(chunk.vao, 1);
-  glEnableVertexArrayAttrib(chunk.vao, 2);
+  glEnableVertexArrayAttrib(vao, 0);
+  glEnableVertexArrayAttrib(vao, 1);
+  glEnableVertexArrayAttrib(vao, 2);
 
-  glVertexArrayAttribFormat(chunk.vao, 0, 3, GL_FLOAT, GL_FALSE, 0);
-  glVertexArrayAttribFormat(chunk.vao, 1, 3, GL_FLOAT, GL_FALSE,
-                            sizeof(GLfloat) * 3);
-  glVertexArrayAttribFormat(chunk.vao, 2, 3, GL_FLOAT, GL_FALSE,
-                            sizeof(GLfloat) * 6);
+  glVertexArrayAttribFormat(vao, 0, 3, GL_FLOAT, GL_FALSE, 0);
+  glVertexArrayAttribFormat(vao, 1, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 3);
+  glVertexArrayAttribFormat(vao, 2, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 6);
 
-  glVertexArrayAttribBinding(chunk.vao, 0, 0);
-  glVertexArrayAttribBinding(chunk.vao, 1, 0);
-  glVertexArrayAttribBinding(chunk.vao, 2, 0);
+  glVertexArrayAttribBinding(vao, 0, 0);
+  glVertexArrayAttribBinding(vao, 1, 0);
+  glVertexArrayAttribBinding(vao, 2, 0);
 }
 
 Chunk createChunk(size_t diff, size_t spec, glm::vec3 pos, glm::vec3 rotation,
@@ -253,7 +265,7 @@ Chunk createChunk(size_t diff, size_t spec, glm::vec3 pos, glm::vec3 rotation,
   std::println("size of verts: {}", sizeof(GLfloat) * chunk.vertices.size());
   delete[] cubes;
   if (shouldSetupBuffers)
-    setupBuffers(chunk);
+    setupBuffers(chunk.vao, chunk.vbo, chunk.vertices);
 
   return chunk;
 }
@@ -278,71 +290,76 @@ void drawChunk(Chunk &chunk, GLuint shader, glm::mat4 vp) {
 Terrain createTerrain(size_t width, size_t depth) {
   Terrain terrain;
   terrain.pos = getCameraPos();
- // terrain.rotation = rotation;
-  //terrain.angle = angle;
-  //terrain.scale = scale;
+  // terrain.rotation = rotation;
+  // terrain.angle = angle;
+  // terrain.scale = scale;
   terrain.width = width;
   terrain.depth = depth;
 
+  size_t numVertices = 0;
+  std::vector<GLfloat> vertices;
   for (size_t x = 0; x < width; x++) {
     for (size_t z = 0; z < depth; z++) {
-      Chunk chunk = createChunk(
-          0, 0, glm::vec3(static_cast<float>(x) + terrain.pos.x, 0.0f, -static_cast<float>(z) + terrain.pos.z),
-          glm::vec3(1.0f), 0.0f, 0.1f, Landscape, true);
+
+      Chunk chunk =
+          createChunk(0, 0,
+                      glm::vec3(static_cast<float>(x) + terrain.pos.x, 0.0f,
+                                -static_cast<float>(z) + terrain.pos.z),
+                      glm::vec3(1.0f), 0.0f, 0.1f, Landscape, false);
       terrain.chunks.push_back(chunk);
-      // for (auto &vert : chunk.vertices)
-      // terrain.vertices.push_back(vert);
-      // terrain.vertSize += chunk.vertSize;
+
+      for (auto &vert : chunk.vertices)
+        vertices.push_back(vert);
+
+      DrawArraysIndirectCommand cmd;
+      numVertices += chunk.vertSize;
+      cmd.count = chunk.vertSize;
+      cmd.instanceCount = 1;
+      cmd.firstVertex = numVertices;
+      cmd.baseVertex = 0;
+      drawCommands.push_back(cmd);
     }
   }
 
-  /*
-  glCreateVertexArrays(1, &terrain.vao);
-  glCreateBuffers(1, &terrain.vbo);
+  setupBuffers(terrain.vao, terrain.vbo, vertices);
 
-  glNamedBufferStorage(terrain.vbo, sizeof(GLfloat) * terrain.vertices.size(),
-                       terrain.vertices.data(), GL_DYNAMIC_STORAGE_BIT);
+  glCreateBuffers(1, &drawCommandBuffer);
+  glNamedBufferStorage(drawCommandBuffer,
+                       sizeof(DrawArraysIndirectCommand) * drawCommands.size(),
+                       drawCommands.data(), GL_DYNAMIC_STORAGE_BIT);
 
-  glVertexArrayVertexBuffer(terrain.vao, 0, terrain.vbo, 0,
-                            sizeof(GLfloat) * 11);
-
-  glEnableVertexArrayAttrib(terrain.vao, 0);
-  glEnableVertexArrayAttrib(terrain.vao, 1);
-  glEnableVertexArrayAttrib(terrain.vao, 2);
-  glEnableVertexArrayAttrib(terrain.vao, 3);
-
-  glVertexArrayAttribFormat(terrain.vao, 0, 3, GL_FLOAT, GL_FALSE, 0);
-  glVertexArrayAttribFormat(terrain.vao, 1, 3, GL_FLOAT, GL_FALSE,
-                            sizeof(GLfloat) * 3);
-  glVertexArrayAttribFormat(terrain.vao, 2, 2, GL_FLOAT, GL_FALSE,
-                            sizeof(GLfloat) * 6);
-  glVertexArrayAttribFormat(terrain.vao, 3, 3, GL_FLOAT, GL_FALSE,
-                            sizeof(GLfloat) * 8);
-
-  glVertexArrayAttribBinding(terrain.vao, 0, 0);
-  glVertexArrayAttribBinding(terrain.vao, 1, 0);
-  glVertexArrayAttribBinding(terrain.vao, 2, 0);
-  glVertexArrayAttribBinding(terrain.vao, 3, 0);*/
+  glCreateBuffers(1, &perChunkBuffer);
+  glNamedBufferStorage(perChunkBuffer,
+                       sizeof(PerChunkData) * terrain.chunks.size(), nullptr,
+                       GL_DYNAMIC_STORAGE_BIT);
 
   return terrain;
 }
 
-void drawTerrain(Terrain terrain, GLuint shader, glm::mat4 view, glm::mat4 projection) {
-  for (auto &chunk : terrain.chunks)
-    drawChunk(chunk, shader, projection * view);
+void drawTerrain(Terrain &terrain, GLuint shader, glm::mat4 vp) {
+  use(shader);
+  setMat4(shader, "vp", vp);
 
-  /*use(shader);
-  setInt(shader, "tiling", 1);
+  std::vector<PerChunkData> perChunkData;
+  for (auto &chunk : terrain.chunks) {
+      auto model = glm::mat4(1.0f);
+      model = glm::translate(model, chunk.pos * chunk.scale *
+                                        static_cast<float>(chunk.chunkSize));
+      model = glm::rotate(model, glm::radians(chunk.angle), chunk.rotation);
+      model = glm::scale(model, glm::vec3{chunk.scale});
 
-  auto model = glm::mat4(1.0f);
-  model = glm::translate(model, terrain.pos);
-  model = glm::rotate(model, glm::radians(terrain.angle), terrain.rotation);
-  model = glm::scale(model, glm::vec3{terrain.scale});
-  setMat4(shader, "model", model);
-
-  setInt(shader, "textureIndex", 0);
+      PerChunkData data;
+      data.model = model;
+      perChunkData.push_back(data);
+  }
+  glNamedBufferSubData(perChunkBuffer, 0,
+                       sizeof(PerChunkData) * perChunkData.size(),
+                       perChunkData.data());
+  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, perChunkBuffer);
 
   glBindVertexArray(terrain.vao);
-  glDrawArrays(GL_TRIANGLES, 0, terrain.vertSize);
-  glBindVertexArray(0);*/
+  glBindBuffer(GL_DRAW_INDIRECT_BUFFER, drawCommandBuffer);
+  glMultiDrawArraysIndirect(GL_TRIANGLES, 0, drawCommands.size(), 0);
+  glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
+  glBindVertexArray(0);
 }

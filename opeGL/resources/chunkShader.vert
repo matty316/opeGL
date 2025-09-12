@@ -7,12 +7,21 @@ out vec3 FragPos;
 out vec3 Normal;
 out vec3 Color;
 
-uniform mat4 model;
+struct PerChunkData {
+    mat4 model;
+};
+
+
+layout(std430, binding = 0) restrict readonly buffer PerChunkSSBO {
+    PerChunkData o[];
+};
+
 uniform mat4 vp;
 
 void main() {
-    FragPos = vec3(model * vec4(aPos, 1.0));
-    Normal = mat3(transpose(inverse(model))) * aNormal;
-    Color = aColor;
-    gl_Position = vp * vec4(FragPos, 1.0);
+  mat4 model = o[gl_DrawID].model;
+  FragPos = vec3(model * vec4(aPos, 1.0));
+  Normal = mat3(transpose(inverse(model))) * aNormal;
+  Color = aColor;
+  gl_Position = vp * vec4(FragPos, 1.0);
 }
