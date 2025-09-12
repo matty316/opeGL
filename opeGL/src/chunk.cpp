@@ -312,12 +312,12 @@ Terrain createTerrain(size_t width, size_t depth) {
         vertices.push_back(vert);
 
       DrawArraysIndirectCommand cmd;
-      numVertices += chunk.vertSize;
       cmd.count = chunk.vertSize;
       cmd.instanceCount = 1;
       cmd.firstVertex = numVertices;
       cmd.baseVertex = 0;
       drawCommands.push_back(cmd);
+      numVertices += cmd.count;
     }
   }
 
