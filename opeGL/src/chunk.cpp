@@ -23,6 +23,7 @@ struct PerChunkData {
   glm::mat4 model;
 };
 
+std::vector<PerChunkData> perChunkData;
 std::vector<DrawArraysIndirectCommand> drawCommands;
 GLuint drawCommandBuffer, perChunkBuffer;
 
@@ -327,11 +328,22 @@ Terrain createTerrain(size_t width, size_t depth) {
   glNamedBufferStorage(drawCommandBuffer,
                        sizeof(DrawArraysIndirectCommand) * drawCommands.size(),
                        drawCommands.data(), GL_DYNAMIC_STORAGE_BIT);
+  for (auto &chunk : terrain.chunks) {
+    auto model = glm::mat4(1.0f);
+    model = glm::translate(model, chunk.pos * chunk.scale *
+                                      static_cast<float>(chunk.chunkSize));
+    model = glm::rotate(model, glm::radians(chunk.angle), chunk.rotation);
+    model = glm::scale(model, glm::vec3{chunk.scale});
 
+    PerChunkData data;
+    data.model = model;
+    perChunkData.push_back(data);
+  }
   glCreateBuffers(1, &perChunkBuffer);
   glNamedBufferStorage(perChunkBuffer,
-                       sizeof(PerChunkData) * terrain.chunks.size(), nullptr,
+                       sizeof(PerChunkData) * perChunkData.size(), perChunkData.data(),
                        GL_DYNAMIC_STORAGE_BIT);
+  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, perChunkBuffer);
 
   return terrain;
 }
@@ -339,23 +351,6 @@ Terrain createTerrain(size_t width, size_t depth) {
 void drawTerrain(Terrain &terrain, GLuint shader, glm::mat4 vp) {
   use(shader);
   setMat4(shader, "vp", vp);
-
-  std::vector<PerChunkData> perChunkData;
-  for (auto &chunk : terrain.chunks) {
-      auto model = glm::mat4(1.0f);
-      model = glm::translate(model, chunk.pos * chunk.scale *
-                                        static_cast<float>(chunk.chunkSize));
-      model = glm::rotate(model, glm::radians(chunk.angle), chunk.rotation);
-      model = glm::scale(model, glm::vec3{chunk.scale});
-
-      PerChunkData data;
-      data.model = model;
-      perChunkData.push_back(data);
-  }
-  glNamedBufferSubData(perChunkBuffer, 0,
-                       sizeof(PerChunkData) * perChunkData.size(),
-                       perChunkData.data());
-  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, perChunkBuffer);
 
   glBindVertexArray(terrain.vao);
   glBindBuffer(GL_DRAW_INDIRECT_BUFFER, drawCommandBuffer);
