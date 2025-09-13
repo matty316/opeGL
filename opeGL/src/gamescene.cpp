@@ -11,6 +11,7 @@
 #include "stb_image.h"
 
 #include <X11/Xlib.h>
+#include <cmath>
 #include <cstddef>
 #include <cstdio>
 #include <cstdlib>
@@ -43,6 +44,7 @@ GLuint skyboxVAO, skyboxVBO, skyboxTexture, debugShadowShader, modelShader, chun
 GLuint shader, skyboxShader, depthShader;
 glm::mat4 lightSpaceMatrix;
 Terrain terrain;
+int xpos = 0, zpos = 0;
 
 void setupSkyboxVAO();
 unsigned int loadSkybox();
@@ -314,4 +316,17 @@ void addChunk(size_t diff, size_t spec, glm::vec3 pos, glm::vec3 rotation,
   Chunk chunk = createChunk(diff, spec, pos, rotation, angle, scale, type,
                             chunkSize, height, width, depth);
   chunks.push_back(chunk);
+}
+
+void updateCameraPos(float x, float z) {
+  int newx = floorf(x);
+  int newz = floorf(z);
+
+  if (abs(newx - xpos) > 64 || abs(newz - zpos) > 64) {
+    updateTerrain(terrain, getCameraPos());
+    subTerrainData(terrain);
+    std::println("updated data ({}, {})", newx, newz);
+    xpos = newx;
+    zpos = newz;
+  }
 }

@@ -1,4 +1,5 @@
 #include "camera.h"
+#include "gamescene.h"
 #include "glm/ext/quaternion_geometric.hpp"
 #include "glm/fwd.hpp"
 #include <algorithm>
@@ -81,6 +82,7 @@ void updateCamera(CameraMovement movement, float deltaTime,
     cameraPosition.y = playerHeight;
 
   cameraPosition += moveSpeed * deltaTime;
+  updateCameraPos(cameraPosition.x, cameraPosition.z);
 }
 
 glm::mat4 getViewMatrix() {

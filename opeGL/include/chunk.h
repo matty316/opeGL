@@ -33,3 +33,5 @@ struct Terrain {
 
 Terrain createTerrain(size_t width, size_t depth);
 void drawTerrain(Terrain &terrain, GLuint shader, glm::mat4 vp);
+void updateTerrain(Terrain &terrain, glm::vec3 pos);
+void subTerrainData(Terrain &terrain);

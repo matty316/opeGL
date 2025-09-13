@@ -31,6 +31,7 @@ std::vector<PerChunkData> perChunkData;
 std::vector<DrawArraysIndirectCommand> drawCommands;
 GLuint drawCommandBuffer, perChunkBuffer;
 const size_t num_threads = 8;
+std::vector<GLfloat> terrainVertices;
 std::barrier sync_point(num_threads);
 
 void makeSphere(Chunk &chunk, Cube *cubes) {
@@ -313,41 +314,63 @@ void createChunks(std::vector<Chunk> &chunks, float posx, float posz,
 
 Terrain createTerrain(size_t width, size_t depth) {
   Terrain terrain;
-  terrain.pos = getCameraPos();
   // terrain.rotation = rotation;
   // terrain.angle = angle;
   // terrain.scale = scale;
   terrain.width = width;
   terrain.depth = depth;
 
-  auto time = glfwGetTime();
-  int outer_loop_limit = width;
-  int inner_loop_limit = depth;
-  int num_threads = 8;
-  std::vector<GLfloat> vertices;
-  std::mutex mtx;
   terrain.chunks.resize(width * depth);
 
-  bool multithreaded = true;
-  if (multithreaded) {
-    std::vector<std::thread> threads;
-    int chunk_size = outer_loop_limit / num_threads;
+  updateTerrain(terrain, getCameraPos());
 
-    for (int t = 0; t < num_threads; ++t) {
-      int start_i = t * chunk_size;
-      int end_i =
-          (t == num_threads - 1) ? outer_loop_limit : (t + 1) * chunk_size;
-      threads.emplace_back(createChunks, std::ref(terrain.chunks),
-                           terrain.pos.x, terrain.pos.z, width, depth, start_i,
-                           end_i, inner_loop_limit, std::ref(mtx));
-    }
+  setupBuffers(terrain.vao, terrain.vbo, terrainVertices);
 
-    for (std::thread &t : threads) {
-      t.join();
-    }
-  } else {
-    createChunks(terrain.chunks, terrain.pos.x, terrain.pos.z, width, depth, 0,
-                 width, depth, mtx);
+  glCreateBuffers(1, &drawCommandBuffer);
+  glNamedBufferStorage(drawCommandBuffer,
+                       sizeof(DrawArraysIndirectCommand) * drawCommands.size(),
+                       drawCommands.data(), GL_DYNAMIC_STORAGE_BIT);
+  glCreateBuffers(1, &perChunkBuffer);
+  glNamedBufferStorage(perChunkBuffer,
+                       sizeof(PerChunkData) * perChunkData.size(),
+                       perChunkData.data(), GL_DYNAMIC_STORAGE_BIT);
+  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, perChunkBuffer);
+  return terrain;
+}
+
+void drawTerrain(Terrain &terrain, GLuint shader, glm::mat4 vp) {
+  use(shader);
+  setMat4(shader, "vp", vp);
+
+  glBindVertexArray(terrain.vao);
+  glBindBuffer(GL_DRAW_INDIRECT_BUFFER, drawCommandBuffer);
+  glMultiDrawArraysIndirect(GL_TRIANGLES, 0, drawCommands.size(), 0);
+  glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
+  glBindVertexArray(0);
+}
+
+void updateTerrain(Terrain &terrain, glm::vec3 pos) {
+  auto time = glfwGetTime();
+  terrain.pos = pos;
+  int outer_loop_limit = terrain.width;
+  int inner_loop_limit = terrain.depth;
+  int num_threads = 8;
+  std::mutex mtx;
+
+  std::vector<std::thread> threads;
+  int chunk_size = outer_loop_limit / num_threads;
+
+  for (int t = 0; t < num_threads; ++t) {
+    int start_i = t * chunk_size;
+    int end_i =
+        (t == num_threads - 1) ? outer_loop_limit : (t + 1) * chunk_size;
+    threads.emplace_back(createChunks, std::ref(terrain.chunks), terrain.pos.x,
+                         terrain.pos.z, terrain.width, terrain.depth, start_i,
+                         end_i, inner_loop_limit, std::ref(mtx));
+  }
+
+  for (std::thread &t : threads) {
+    t.join();
   }
 
   size_t numVertices = 0;
@@ -366,35 +389,17 @@ Terrain createTerrain(size_t width, size_t depth) {
 
     drawCommands.push_back(cmd);
     for (auto &vert : chunk.vertices)
-      vertices.push_back(vert);
+      terrainVertices.push_back(vert);
 
     PerChunkData data;
     data.model = model;
     perChunkData.push_back(data);
   }
-
-  setupBuffers(terrain.vao, terrain.vbo, vertices);
-
-  glCreateBuffers(1, &drawCommandBuffer);
-  glNamedBufferStorage(drawCommandBuffer,
-                       sizeof(DrawArraysIndirectCommand) * drawCommands.size(),
-                       drawCommands.data(), GL_DYNAMIC_STORAGE_BIT);
-  glCreateBuffers(1, &perChunkBuffer);
-  glNamedBufferStorage(perChunkBuffer,
-                       sizeof(PerChunkData) * perChunkData.size(),
-                       perChunkData.data(), GL_DYNAMIC_STORAGE_BIT);
-  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, perChunkBuffer);
   std::println("terrain generated in {} seconds", glfwGetTime() - time);
-  return terrain;
 }
 
-void drawTerrain(Terrain &terrain, GLuint shader, glm::mat4 vp) {
-  use(shader);
-  setMat4(shader, "vp", vp);
-
-  glBindVertexArray(terrain.vao);
-  glBindBuffer(GL_DRAW_INDIRECT_BUFFER, drawCommandBuffer);
-  glMultiDrawArraysIndirect(GL_TRIANGLES, 0, drawCommands.size(), 0);
-  glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
-  glBindVertexArray(0);
+void subTerrainData(Terrain &terrain) {
+  glNamedBufferSubData(terrain.vbo,0, terrainVertices.size() * sizeof(GLfloat), terrainVertices.data());
+  glNamedBufferSubData(drawCommandBuffer,0, drawCommands.size() * sizeof(DrawArraysIndirectCommand), drawCommands.data());
+  glNamedBufferSubData(perChunkBuffer, 0, perChunkData.size() * sizeof(PerChunkData), perChunkData.data());
 }

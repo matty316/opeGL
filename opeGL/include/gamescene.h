@@ -24,3 +24,4 @@ void addCube(size_t diff, size_t spec, glm::vec3 pos, glm::vec3 rotation,
 void addChunk(size_t diff, size_t spec, glm::vec3 pos, glm::vec3 rotation,
               float angle, float scale, ChunkType type,
               size_t chunkSize = 64, size_t height = 0, size_t width = 0, size_t depth = 0);
+void updateCameraPos(float x, float z); 
