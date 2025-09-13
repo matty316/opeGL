@@ -319,7 +319,7 @@ void addChunk(size_t diff, size_t spec, glm::vec3 pos, glm::vec3 rotation,
 }
 
 void updateCameraPos(float x, float z) {
-  int newx = floorf(x);
+ /* int newx = floorf(x);
   int newz = floorf(z);
 
   if (abs(newx - xpos) > 64 || abs(newz - zpos) > 64) {
@@ -329,4 +329,5 @@ void updateCameraPos(float x, float z) {
     xpos = newx;
     zpos = newz;
   }
+  */
 }

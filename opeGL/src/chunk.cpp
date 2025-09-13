@@ -30,9 +30,8 @@ struct PerChunkData {
 std::vector<PerChunkData> perChunkData;
 std::vector<DrawArraysIndirectCommand> drawCommands;
 GLuint drawCommandBuffer, perChunkBuffer;
-const size_t num_threads = 8;
+size_t numVertices = 0;
 std::vector<GLfloat> terrainVertices;
-std::barrier sync_point(num_threads);
 
 void makeSphere(Chunk &chunk, Cube *cubes) {
   for (size_t x = 0; x < chunk.chunkSize; x++) {
@@ -294,6 +293,32 @@ void drawChunk(Chunk &chunk, GLuint shader, glm::mat4 vp) {
   glDrawArrays(GL_TRIANGLES, 0, chunk.vertSize);
   glBindVertexArray(0);
 }
+void createDrawCommand(Chunk &chunk, size_t x, size_t z) {
+  DrawArraysIndirectCommand cmd;
+  cmd.count = chunk.vertSize;
+  cmd.instanceCount = 1;
+  cmd.firstVertex = numVertices;
+  cmd.baseVertex = 0;
+  numVertices += cmd.count;
+  drawCommands[x + z] = cmd;
+}
+
+void createChunkVertices(Chunk &chunk) {
+  for (auto &vert : chunk.vertices)
+    terrainVertices.push_back(vert);
+}
+
+void createPerChunkData(Chunk &chunk, size_t x, size_t z) {
+  auto model = glm::mat4(1.0f);
+  model = glm::translate(model, chunk.pos * chunk.scale *
+                                    static_cast<float>(chunk.chunkSize));
+  model = glm::rotate(model, glm::radians(chunk.angle), chunk.rotation);
+  model = glm::scale(model, glm::vec3{chunk.scale});
+
+  PerChunkData data;
+  data.model = model;
+  perChunkData[x + z] = data;
+}
 
 void createChunks(std::vector<Chunk> &chunks, float posx, float posz,
                   size_t width, size_t depth, size_t start_x, size_t end_x,
@@ -308,6 +333,7 @@ void createChunks(std::vector<Chunk> &chunks, float posx, float posz,
 
       std::lock_guard<std::mutex> lock(mtx);
       chunks[x * width + z] = chunk;
+      createPerChunkData(chunk, x * width, z);
     }
   }
 }
@@ -321,6 +347,9 @@ Terrain createTerrain(size_t width, size_t depth) {
   terrain.depth = depth;
 
   terrain.chunks.resize(width * depth);
+  drawCommands.resize(width * depth);
+  perChunkData.resize(width * depth);
+  
 
   updateTerrain(terrain, getCameraPos());
 
@@ -349,6 +378,7 @@ void drawTerrain(Terrain &terrain, GLuint shader, glm::mat4 vp) {
   glBindVertexArray(0);
 }
 
+
 void updateTerrain(Terrain &terrain, glm::vec3 pos) {
   auto time = glfwGetTime();
   terrain.pos = pos;
@@ -372,34 +402,25 @@ void updateTerrain(Terrain &terrain, glm::vec3 pos) {
   for (std::thread &t : threads) {
     t.join();
   }
-
-  size_t numVertices = 0;
-  for (auto chunk : terrain.chunks) {
-    DrawArraysIndirectCommand cmd;
-    cmd.count = chunk.vertSize;
-    cmd.instanceCount = 1;
-    cmd.firstVertex = numVertices;
-    cmd.baseVertex = 0;
-    numVertices += cmd.count;
-    auto model = glm::mat4(1.0f);
-    model = glm::translate(model, chunk.pos * chunk.scale *
-                                      static_cast<float>(chunk.chunkSize));
-    model = glm::rotate(model, glm::radians(chunk.angle), chunk.rotation);
-    model = glm::scale(model, glm::vec3{chunk.scale});
-
-    drawCommands.push_back(cmd);
-    for (auto &vert : chunk.vertices)
-      terrainVertices.push_back(vert);
-
-    PerChunkData data;
-    data.model = model;
-    perChunkData.push_back(data);
-  }
   std::println("terrain generated in {} seconds", glfwGetTime() - time);
+  for (size_t x = 0; x < terrain.width; x++) {
+    for (size_t z = 0; z < terrain.depth; z++) {
+      auto chunk = terrain.chunks[x * terrain.width + z];
+      createChunkVertices(chunk);
+      createDrawCommand(chunk, x * terrain.width, z);
+    }
+  }
+
+  std::println("rest of terrain data generated in {} seconds", glfwGetTime() - time);
 }
 
 void subTerrainData(Terrain &terrain) {
-  glNamedBufferSubData(terrain.vbo,0, terrainVertices.size() * sizeof(GLfloat), terrainVertices.data());
-  glNamedBufferSubData(drawCommandBuffer,0, drawCommands.size() * sizeof(DrawArraysIndirectCommand), drawCommands.data());
-  glNamedBufferSubData(perChunkBuffer, 0, perChunkData.size() * sizeof(PerChunkData), perChunkData.data());
+  glNamedBufferSubData(terrain.vbo, 0, terrainVertices.size() * sizeof(GLfloat),
+                       terrainVertices.data());
+  glNamedBufferSubData(drawCommandBuffer, 0,
+                       drawCommands.size() * sizeof(DrawArraysIndirectCommand),
+                       drawCommands.data());
+  glNamedBufferSubData(perChunkBuffer, 0,
+                       perChunkData.size() * sizeof(PerChunkData),
+                       perChunkData.data());
 }
