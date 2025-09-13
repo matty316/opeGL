@@ -5,6 +5,7 @@
 #include <cmath>
 #include <glm/ext.hpp>
 #include <glm/ext/matrix_transform.hpp>
+#include <print>
 
 float mouseSpeed = 4.0f;
 float acceleration = 150.0f;
@@ -22,15 +23,16 @@ glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
 void createCamera(CameraType type, glm::vec3 pos) {
   fly = type == Fly ? true : false;
-  if (!fly)
+  if (!fly) {
     cameraPosition = glm::vec3(pos.x, playerHeight, pos.z);
-  else
+  } else {
     cameraPosition = pos;
-  auto target = glm::vec3(0.0f, playerHeight, 0.0f);
+  }
+  auto target = cameraPosition + glm::vec3(1.0f, 0.0f, 0.0f);
   cameraOrientation = glm::quat(glm::lookAt(cameraPosition, target, cameraUp));
 }
 
-void setUpVector(const glm::vec3& up) {
+void setUpVector(const glm::vec3 &up) {
   const glm::mat4 view = getViewMatrix();
   const glm::vec3 dir = -glm::vec3(view[0][2], view[1][2], view[2][2]);
   cameraOrientation = glm::lookAt(cameraPosition, cameraPosition + dir, up);
@@ -66,9 +68,7 @@ void updateCamera(CameraMovement movement, float deltaTime,
     accel *= fastCoef;
 
   if (accel == glm::vec3(0.0f)) {
-    moveSpeed -=
-        moveSpeed *
-        std::min((1.0f / damping) * deltaTime, 1.0f);
+    moveSpeed -= moveSpeed * std::min((1.0f / damping) * deltaTime, 1.0f);
   } else {
     moveSpeed += accel * acceleration * deltaTime;
     const float maximumSpeed =

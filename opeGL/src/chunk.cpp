@@ -1,13 +1,17 @@
 #include "chunk.h"
+#include "GLFW/glfw3.h"
 #include "camera.h"
 #include "cube.h"
 #include "glm/ext/matrix_transform.hpp"
 #include "glm/fwd.hpp"
 #include "shader.h"
 #include <PerlinNoise.hpp>
+#include <barrier>
 #include <cstddef>
 #include <format>
+#include <mutex>
 #include <print>
+#include <thread>
 
 const siv::PerlinNoise::seed_type seed = 6969420;
 const siv::PerlinNoise perlin{seed};
@@ -26,6 +30,8 @@ struct PerChunkData {
 std::vector<PerChunkData> perChunkData;
 std::vector<DrawArraysIndirectCommand> drawCommands;
 GLuint drawCommandBuffer, perChunkBuffer;
+const size_t num_threads = 8;
+std::barrier sync_point(num_threads);
 
 void makeSphere(Chunk &chunk, Cube *cubes) {
   for (size_t x = 0; x < chunk.chunkSize; x++) {
@@ -288,6 +294,23 @@ void drawChunk(Chunk &chunk, GLuint shader, glm::mat4 vp) {
   glBindVertexArray(0);
 }
 
+void createChunks(std::vector<Chunk> &chunks, float posx, float posz,
+                  size_t width, size_t depth, size_t start_x, size_t end_x,
+                  size_t inner_loop_limit, std::mutex &mtx) {
+  for (size_t x = start_x; x < end_x; x++) {
+    for (size_t z = 0; z < inner_loop_limit; z++) {
+      Chunk chunk = createChunk(
+          0, 0,
+          glm::vec3(posx - x + static_cast<float>(width) / 2.0f, 0.0f,
+                    posz + z - static_cast<float>(depth) / 2.0f),
+          glm::vec3(1.0f), 0.0f, 1.0f, Landscape, false);
+
+      std::lock_guard<std::mutex> lock(mtx);
+      chunks[x * width + z] = chunk;
+    }
+  }
+}
+
 Terrain createTerrain(size_t width, size_t depth) {
   Terrain terrain;
   terrain.pos = getCameraPos();
@@ -297,29 +320,57 @@ Terrain createTerrain(size_t width, size_t depth) {
   terrain.width = width;
   terrain.depth = depth;
 
-  size_t numVertices = 0;
+  auto time = glfwGetTime();
+  int outer_loop_limit = width;
+  int inner_loop_limit = depth;
+  int num_threads = 8;
   std::vector<GLfloat> vertices;
-  for (size_t x = 0; x < width; x++) {
-    for (size_t z = 0; z < depth; z++) {
+  std::mutex mtx;
+  terrain.chunks.resize(width * depth);
 
-      Chunk chunk =
-          createChunk(0, 0,
-                      glm::vec3(static_cast<float>(x) + terrain.pos.x, 0.0f,
-                                -static_cast<float>(z) + terrain.pos.z),
-                      glm::vec3(1.0f), 0.0f, 0.1f, Landscape, false);
-      terrain.chunks.push_back(chunk);
+  bool multithreaded = true;
+  if (multithreaded) {
+    std::vector<std::thread> threads;
+    int chunk_size = outer_loop_limit / num_threads;
 
-      for (auto &vert : chunk.vertices)
-        vertices.push_back(vert);
-
-      DrawArraysIndirectCommand cmd;
-      cmd.count = chunk.vertSize;
-      cmd.instanceCount = 1;
-      cmd.firstVertex = numVertices;
-      cmd.baseVertex = 0;
-      drawCommands.push_back(cmd);
-      numVertices += cmd.count;
+    for (int t = 0; t < num_threads; ++t) {
+      int start_i = t * chunk_size;
+      int end_i =
+          (t == num_threads - 1) ? outer_loop_limit : (t + 1) * chunk_size;
+      threads.emplace_back(createChunks, std::ref(terrain.chunks),
+                           terrain.pos.x, terrain.pos.z, width, depth, start_i,
+                           end_i, inner_loop_limit, std::ref(mtx));
     }
+
+    for (std::thread &t : threads) {
+      t.join();
+    }
+  } else {
+    createChunks(terrain.chunks, terrain.pos.x, terrain.pos.z, width, depth, 0,
+                 width, depth, mtx);
+  }
+
+  size_t numVertices = 0;
+  for (auto chunk : terrain.chunks) {
+    DrawArraysIndirectCommand cmd;
+    cmd.count = chunk.vertSize;
+    cmd.instanceCount = 1;
+    cmd.firstVertex = numVertices;
+    cmd.baseVertex = 0;
+    numVertices += cmd.count;
+    auto model = glm::mat4(1.0f);
+    model = glm::translate(model, chunk.pos * chunk.scale *
+                                      static_cast<float>(chunk.chunkSize));
+    model = glm::rotate(model, glm::radians(chunk.angle), chunk.rotation);
+    model = glm::scale(model, glm::vec3{chunk.scale});
+
+    drawCommands.push_back(cmd);
+    for (auto &vert : chunk.vertices)
+      vertices.push_back(vert);
+
+    PerChunkData data;
+    data.model = model;
+    perChunkData.push_back(data);
   }
 
   setupBuffers(terrain.vao, terrain.vbo, vertices);
@@ -328,23 +379,12 @@ Terrain createTerrain(size_t width, size_t depth) {
   glNamedBufferStorage(drawCommandBuffer,
                        sizeof(DrawArraysIndirectCommand) * drawCommands.size(),
                        drawCommands.data(), GL_DYNAMIC_STORAGE_BIT);
-  for (auto &chunk : terrain.chunks) {
-    auto model = glm::mat4(1.0f);
-    model = glm::translate(model, chunk.pos * chunk.scale *
-                                      static_cast<float>(chunk.chunkSize));
-    model = glm::rotate(model, glm::radians(chunk.angle), chunk.rotation);
-    model = glm::scale(model, glm::vec3{chunk.scale});
-
-    PerChunkData data;
-    data.model = model;
-    perChunkData.push_back(data);
-  }
   glCreateBuffers(1, &perChunkBuffer);
   glNamedBufferStorage(perChunkBuffer,
-                       sizeof(PerChunkData) * perChunkData.size(), perChunkData.data(),
-                       GL_DYNAMIC_STORAGE_BIT);
+                       sizeof(PerChunkData) * perChunkData.size(),
+                       perChunkData.data(), GL_DYNAMIC_STORAGE_BIT);
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, perChunkBuffer);
-
+  std::println("terrain generated in {} seconds", glfwGetTime() - time);
   return terrain;
 }
 

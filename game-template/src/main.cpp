@@ -4,7 +4,7 @@
 #include "texture.h"
 #include <cstddef>
 
-auto pos = glm::vec3(20.0f, 20.0f, -20.0f);
+auto pos = glm::vec3(0.0f, 40.0f, 0.0f);
 
 void buildScene() {
   createScene();
