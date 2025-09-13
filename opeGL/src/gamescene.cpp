@@ -77,7 +77,7 @@ void createScene() {
   setupSkyboxVAO();
   use(skyboxShader);
   setInt(skyboxShader, "skybox", 0);
-  terrain = createTerrain(16, 16);
+  terrain = createTerrain(16, 16, 1.0f);
 }
 
 void addCube(size_t diff, size_t spec, glm::vec3 pos, glm::vec3 rotation,
@@ -319,15 +319,14 @@ void addChunk(size_t diff, size_t spec, glm::vec3 pos, glm::vec3 rotation,
 }
 
 void updateCameraPos(float x, float z) {
- /* int newx = floorf(x);
+  int newx = floorf(x);
   int newz = floorf(z);
 
-  if (abs(newx - xpos) > 64 || abs(newz - zpos) > 64) {
+  if (abs(newx - xpos) > 64 * terrain.scale || abs(newz - zpos) > 64 * terrain.scale) {
     updateTerrain(terrain, getCameraPos());
     subTerrainData(terrain);
     std::println("updated data ({}, {})", newx, newz);
     xpos = newx;
     zpos = newz;
   }
-  */
 }

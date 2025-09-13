@@ -26,12 +26,10 @@ struct Terrain {
   glm::vec3 pos, rotation;
   float angle, scale;
   GLuint vao, vbo;
-  std::vector<Chunk> chunks;
-  std::vector<GLfloat> vertices;
   size_t width = 16, depth = 16, vertSize = 0;
 };
 
-Terrain createTerrain(size_t width, size_t depth);
+Terrain createTerrain(size_t width, size_t depth, float scale = 1.0f);
 void drawTerrain(Terrain &terrain, GLuint shader, glm::mat4 vp);
 void updateTerrain(Terrain &terrain, glm::vec3 pos);
 void subTerrainData(Terrain &terrain);

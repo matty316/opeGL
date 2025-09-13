@@ -32,6 +32,7 @@ std::vector<DrawArraysIndirectCommand> drawCommands;
 GLuint drawCommandBuffer, perChunkBuffer;
 size_t numVertices = 0;
 std::vector<GLfloat> terrainVertices;
+std::vector<Chunk> terrainChunks;
 
 void makeSphere(Chunk &chunk, Cube *cubes) {
   for (size_t x = 0; x < chunk.chunkSize; x++) {
@@ -194,8 +195,8 @@ void setupBuffers(GLuint &vao, GLuint &vbo, std::vector<GLfloat> vertices) {
   glCreateVertexArrays(1, &vao);
   glCreateBuffers(1, &vbo);
 
-  glNamedBufferStorage(vbo, sizeof(GLfloat) * vertices.size(), vertices.data(),
-                       GL_DYNAMIC_STORAGE_BIT);
+  glNamedBufferData(vbo, sizeof(GLfloat) * vertices.size(), vertices.data(),
+                       GL_DYNAMIC_DRAW);
 
   glVertexArrayVertexBuffer(vao, 0, vbo, 0, sizeof(GLfloat) * 9);
 
@@ -320,37 +321,31 @@ void createPerChunkData(Chunk &chunk, size_t x, size_t z) {
   perChunkData[x + z] = data;
 }
 
-void createChunks(std::vector<Chunk> &chunks, float posx, float posz,
+void createChunks(std::vector<Chunk> &terrainChunks, float posx, float posz,
                   size_t width, size_t depth, size_t start_x, size_t end_x,
-                  size_t inner_loop_limit, std::mutex &mtx) {
+                  size_t inner_loop_limit, float scale, std::mutex &mtx) {
   for (size_t x = start_x; x < end_x; x++) {
     for (size_t z = 0; z < inner_loop_limit; z++) {
       Chunk chunk = createChunk(
           0, 0,
           glm::vec3(posx - x + static_cast<float>(width) / 2.0f, 0.0f,
                     posz + z - static_cast<float>(depth) / 2.0f),
-          glm::vec3(1.0f), 0.0f, 1.0f, Landscape, false);
+          glm::vec3(1.0f), 0.0f, scale, Landscape, false);
 
       std::lock_guard<std::mutex> lock(mtx);
-      chunks[x * width + z] = chunk;
+      terrainChunks[x * width + z] = chunk;
       createPerChunkData(chunk, x * width, z);
     }
   }
 }
 
-Terrain createTerrain(size_t width, size_t depth) {
+Terrain createTerrain(size_t width, size_t depth, float scale) {
   Terrain terrain;
   // terrain.rotation = rotation;
   // terrain.angle = angle;
-  // terrain.scale = scale;
+  terrain.scale = scale;
   terrain.width = width;
   terrain.depth = depth;
-
-  terrain.chunks.resize(width * depth);
-  drawCommands.resize(width * depth);
-  perChunkData.resize(width * depth);
-  
-
   updateTerrain(terrain, getCameraPos());
 
   setupBuffers(terrain.vao, terrain.vbo, terrainVertices);
@@ -378,8 +373,16 @@ void drawTerrain(Terrain &terrain, GLuint shader, glm::mat4 vp) {
   glBindVertexArray(0);
 }
 
-
 void updateTerrain(Terrain &terrain, glm::vec3 pos) {
+  numVertices = 0;
+  terrainChunks.clear();
+  drawCommands.clear();
+  perChunkData.clear();
+  terrainVertices.clear();
+  terrainChunks.resize(terrain.width * terrain.depth);
+  drawCommands.resize(terrain.width * terrain.depth);
+  perChunkData.resize(terrain.width * terrain.depth);
+
   auto time = glfwGetTime();
   terrain.pos = pos;
   int outer_loop_limit = terrain.width;
@@ -394,9 +397,9 @@ void updateTerrain(Terrain &terrain, glm::vec3 pos) {
     int start_i = t * chunk_size;
     int end_i =
         (t == num_threads - 1) ? outer_loop_limit : (t + 1) * chunk_size;
-    threads.emplace_back(createChunks, std::ref(terrain.chunks), terrain.pos.x,
+    threads.emplace_back(createChunks, std::ref(terrainChunks), terrain.pos.x,
                          terrain.pos.z, terrain.width, terrain.depth, start_i,
-                         end_i, inner_loop_limit, std::ref(mtx));
+                         end_i, inner_loop_limit, terrain.scale, std::ref(mtx));
   }
 
   for (std::thread &t : threads) {
@@ -405,22 +408,28 @@ void updateTerrain(Terrain &terrain, glm::vec3 pos) {
   std::println("terrain generated in {} seconds", glfwGetTime() - time);
   for (size_t x = 0; x < terrain.width; x++) {
     for (size_t z = 0; z < terrain.depth; z++) {
-      auto chunk = terrain.chunks[x * terrain.width + z];
+      auto chunk = terrainChunks[x * terrain.width + z];
       createChunkVertices(chunk);
       createDrawCommand(chunk, x * terrain.width, z);
     }
   }
 
-  std::println("rest of terrain data generated in {} seconds", glfwGetTime() - time);
+  std::println("rest of terrain data generated in {} seconds",
+               glfwGetTime() - time);
 }
 
 void subTerrainData(Terrain &terrain) {
-  glNamedBufferSubData(terrain.vbo, 0, terrainVertices.size() * sizeof(GLfloat),
-                       terrainVertices.data());
-  glNamedBufferSubData(drawCommandBuffer, 0,
-                       drawCommands.size() * sizeof(DrawArraysIndirectCommand),
+  glBindVertexArray(terrain.vao);
+
+  auto vertSize = terrainVertices.size() * sizeof(GLfloat);
+  glNamedBufferData(terrain.vbo, vertSize, nullptr, GL_DYNAMIC_DRAW);
+  glNamedBufferSubData(terrain.vbo, 0, vertSize, terrainVertices.data());
+
+  auto drawBufferSize = drawCommands.size() * sizeof(DrawArraysIndirectCommand);
+  glNamedBufferSubData(drawCommandBuffer, 0, drawBufferSize,
                        drawCommands.data());
-  glNamedBufferSubData(perChunkBuffer, 0,
-                       perChunkData.size() * sizeof(PerChunkData),
+
+  auto perChunkBufferSize = perChunkData.size() * sizeof(PerChunkData);
+  glNamedBufferSubData(perChunkBuffer, 0, perChunkBufferSize,
                        perChunkData.data());
 }
