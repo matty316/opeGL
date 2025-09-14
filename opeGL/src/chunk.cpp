@@ -8,10 +8,12 @@
 #include <PerlinNoise.hpp>
 #include <barrier>
 #include <cstddef>
+#include <cstdint>
 #include <format>
 #include <mutex>
 #include <print>
 #include <thread>
+#include <unordered_map>
 
 const siv::PerlinNoise::seed_type seed = 6969420;
 const siv::PerlinNoise perlin{seed};
@@ -33,6 +35,7 @@ GLuint drawCommandBuffer, perChunkBuffer;
 size_t numVertices = 0;
 std::vector<GLfloat> terrainVertices;
 std::vector<Chunk> terrainChunks;
+std::unordered_map<size_t, Chunk> loadedChunks;
 
 void makeSphere(Chunk &chunk, Cube *cubes) {
   for (size_t x = 0; x < chunk.chunkSize; x++) {
@@ -196,17 +199,17 @@ void setupBuffers(GLuint &vao, GLuint &vbo, std::vector<GLfloat> vertices) {
   glCreateBuffers(1, &vbo);
 
   glNamedBufferData(vbo, sizeof(GLfloat) * vertices.size(), vertices.data(),
-                       GL_DYNAMIC_DRAW);
+                    GL_DYNAMIC_DRAW);
 
-  glVertexArrayVertexBuffer(vao, 0, vbo, 0, sizeof(GLfloat) * 9);
+  glVertexArrayVertexBuffer(vao, 0, vbo, 0, sizeof(GLint) * 5);
 
   glEnableVertexArrayAttrib(vao, 0);
   glEnableVertexArrayAttrib(vao, 1);
   glEnableVertexArrayAttrib(vao, 2);
 
-  glVertexArrayAttribFormat(vao, 0, 3, GL_FLOAT, GL_FALSE, 0);
-  glVertexArrayAttribFormat(vao, 1, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 3);
-  glVertexArrayAttribFormat(vao, 2, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 6);
+  glVertexArrayAttribFormat(vao, 0, 3, GL_INT, GL_FALSE, 0);
+  glVertexArrayAttribFormat(vao, 1, 3, GL_INT, GL_FALSE, sizeof(GLfloat) * 3);
+  glVertexArrayAttribFormat(vao, 2, 3, GL_INT, GL_FALSE, sizeof(GLfloat) * 6);
 
   glVertexArrayAttribBinding(vao, 0, 0);
   glVertexArrayAttribBinding(vao, 1, 0);
@@ -305,8 +308,9 @@ void createDrawCommand(Chunk &chunk, size_t x, size_t z) {
 }
 
 void createChunkVertices(Chunk &chunk) {
-  for (auto &vert : chunk.vertices)
+  for (auto &vert : chunk.vertices) {
     terrainVertices.push_back(vert);
+  }
 }
 
 void createPerChunkData(Chunk &chunk, size_t x, size_t z) {
@@ -326,13 +330,17 @@ void createChunks(std::vector<Chunk> &terrainChunks, float posx, float posz,
                   size_t inner_loop_limit, float scale, std::mutex &mtx) {
   for (size_t x = start_x; x < end_x; x++) {
     for (size_t z = 0; z < inner_loop_limit; z++) {
-      Chunk chunk = createChunk(
-          0, 0,
-          glm::vec3(posx - x + static_cast<float>(width) / 2.0f, 0.0f,
-                    posz + z - static_cast<float>(depth) / 2.0f),
-          glm::vec3(1.0f), 0.0f, scale, Landscape, false);
-
+      Chunk chunk;
+      if (loadedChunks.contains(x * width + z)) {
+        chunk = loadedChunks[x * width + z];
+      } else {
+      float xpos = (posx - x + static_cast<float>(width) / 2.0f);
+      float zpos = (posz + z - static_cast<float>(depth) / 2.0f);
+      chunk = createChunk(0, 0, glm::vec3(xpos, 0.0f, zpos),
+                                glm::vec3(1.0f), 0.0f, scale, Landscape, false);
+      }
       std::lock_guard<std::mutex> lock(mtx);
+      loadedChunks[x * width + z] = chunk;
       terrainChunks[x * width + z] = chunk;
       createPerChunkData(chunk, x * width, z);
     }
@@ -406,12 +414,19 @@ void updateTerrain(Terrain &terrain, glm::vec3 pos) {
     t.join();
   }
   std::println("terrain generated in {} seconds", glfwGetTime() - time);
+
+  std::vector<std::thread> bg;
+
   for (size_t x = 0; x < terrain.width; x++) {
     for (size_t z = 0; z < terrain.depth; z++) {
       auto chunk = terrainChunks[x * terrain.width + z];
       createChunkVertices(chunk);
       createDrawCommand(chunk, x * terrain.width, z);
     }
+  }
+
+  for (std::thread &t : bg) {
+    t.join();
   }
 
   std::println("rest of terrain data generated in {} seconds",

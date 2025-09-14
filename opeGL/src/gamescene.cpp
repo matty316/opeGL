@@ -44,6 +44,7 @@ GLuint skyboxVAO, skyboxVBO, skyboxTexture, debugShadowShader, modelShader, chun
 GLuint shader, skyboxShader, depthShader;
 glm::mat4 lightSpaceMatrix;
 Terrain terrain;
+bool renderTerrain = false;
 int xpos = 0, zpos = 0;
 
 void setupSkyboxVAO();
@@ -77,7 +78,12 @@ void createScene() {
   setupSkyboxVAO();
   use(skyboxShader);
   setInt(skyboxShader, "skybox", 0);
-  terrain = createTerrain(16, 16, 1.0f);
+}
+
+void createScene(Terrain &newTerrain) {
+  createScene();
+  renderTerrain = true;
+  terrain = newTerrain;
 }
 
 void addCube(size_t diff, size_t spec, glm::vec3 pos, glm::vec3 rotation,
@@ -112,7 +118,8 @@ void renderModels(GLuint shader, glm::mat4 vp) {
     drawCube(cube, shader);
   for (auto &chunk : chunks)
     drawChunk(chunk, chunkShader, vp);
-  drawTerrain(terrain, chunkShader, vp);
+  if (renderTerrain)
+    drawTerrain(terrain, chunkShader, vp);
 }
 
 void renderScene(GLFWwindow *window) {
@@ -319,6 +326,9 @@ void addChunk(size_t diff, size_t spec, glm::vec3 pos, glm::vec3 rotation,
 }
 
 void updateCameraPos(float x, float z) {
+  if (!renderTerrain)
+    return;
+
   int newx = floorf(x);
   int newz = floorf(z);
 

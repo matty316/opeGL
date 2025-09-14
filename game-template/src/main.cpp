@@ -4,10 +4,11 @@
 #include "texture.h"
 #include <cstddef>
 
-auto pos = glm::vec3(0.0f, 40.0f, 0.0f);
+auto pos = glm::vec3(0.0f, 16.0f, 0.0f);
 
 void buildScene() {
-  createScene();
+  auto terrain =createTerrain(16, 16, 0.1f); 
+  createScene(terrain);
   //addPlane(marble, glm::vec3{0.0f}, glm::vec3{1.0f, 0.0f, 0.0f},
     //       90.f, 200.f);
 }

@@ -10,6 +10,7 @@
 // clang-format on
 
 void createScene();
+void createScene(Terrain &newTerrain);
 void processMouse(GLFWwindow *window, double xposIn, double yposIn);
 void processScroll(double yoffset);
 void updateScene(int width, int height);
