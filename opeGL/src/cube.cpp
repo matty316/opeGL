@@ -4,110 +4,123 @@
 #include <cstddef>
 #include <cstdint>
 #include <glm/ext/matrix_transform.hpp>
+#include <ios>
+#include <iostream>
+#include <ostream>
+#include <print>
 #include <vector>
 
-GLuint cubeBackFace[] = {
-    0x0000, //-1, -1, -1, 0, // Bottom-left
-    0x1100, // 1,  1, -1, 0, // top-right
-    0x1000, // 1, -1, -1, 0, // bottom-right
-    0x1100, // 1,  1, -1, 0, // top-right
-    0x0000, //-1, -1, -1, 0, // bottom-left
-    0x0100, //-1,  1, -1, 0, // top-left
+int8_t cubeBackFace[] = {
+    -1, -1, -1, 0, // Bottom-left
+    1,  1,  -1, 0, // top-right
+    1,  -1, -1, 0, // bottom-right
+    1,  1,  -1, 0, // top-right
+    -1, -1, -1, 0, // bottom-left
+    -1, 1,  -1, 0, // top-left
 };
 
-GLuint cubeFrontFace[] = {
-    0x0011, //-1, -1,  1, 1, // bottom-left
-    0x1011, // 1, -1,  1, 1, // bottom-right
-    0x1111, // 1,  1,  1, 1, // top-right
-    0x1111, // 1,  1,  1, 1, // top-right
-    0x0111, //-1,  1,  1, 1, // top-left
-    0x0011, //-1, -1,  1, 1, // bottom-left
+int8_t cubeFrontFace[] = {
+    -1, -1, 1, 1, // bottom-left
+    1,  -1, 1, 1, // bottom-right
+    1,  1,  1, 1, // top-right
+    1,  1,  1, 1, // top-right
+    -1, 1,  1, 1, // top-left
+    -1, -1, 1, 1, // bottom-left
 };
 
-GLuint cubeLeftFace[] = {
-    0x0112, //-1,  1,  1, 2, // top-right
-    0x0102, //-1,  1, -1, 2, // top-left
-    0x0002, //-1, -1, -1, 2, // bottom-left
-    0x0002, //-1, -1, -1, 2, // bottom-left
-    0x0012, //-1, -1,  1, 2, // bottom-right
-    0x0112, //-1,  1,  1, 2,  // top-right
+int8_t cubeLeftFace[] = {
+    -1, 1,  1,  2, // top-right
+    -1, 1,  -1, 2, // top-left
+    -1, -1, -1, 2, // bottom-left
+    -1, -1, -1, 2, // bottom-left
+    -1, -1, 1,  2, // bottom-right
+    -1, 1,  1,  2, // top-right
 };
 
-GLuint cubeRightFace[] = {
-    0x1113, //1, 1,  1,  3, // top-left
-    0x1003, //1, -1, -1, 3, // bottom-right
-    0x1103, //1, 1,  -1, 3, // top-right
-    0x1003, //1, -1, -1, 3, // bottom-right
-    0x1113, //1, 1,  1,  3, // top-left
-    0x1013, //1, -1, 1,  3, // bottom-left
+int8_t cubeRightFace[] = {
+    1, 1,  1,  3, // top-left
+    1, -1, -1, 3, // bottom-right
+    1, 1,  -1, 3, // top-right
+    1, -1, -1, 3, // bottom-right
+    1, 1,  1,  3, // top-left
+    1, -1, 1,  3, // bottom-left
 };
 
-GLuint cubeBottomFace[] = {
-    0x0004, //-1, -1, -1, 4, // top-right
-    0x1004, //1,  -1, -1, 4, // top-left
-    0x1014, //1,  -1, 1,  4, // bottom-left
-    0x1014, //1,  -1, 1,  4, // bottom-left
-    0x0014, //-1, -1, 1,  4, // bottom-right
-    0x0004, //-1, -1, -1, 4, // top-right
+int8_t cubeBottomFace[] = {
+    -1, -1, -1, 4, // top-right
+    1,  -1, -1, 4, // top-left
+    1,  -1, 1,  4, // bottom-left
+    1,  -1, 1,  4, // bottom-left
+    -1, -1, 1,  4, // bottom-right
+    -1, -1, -1, 4, // top-right
 };
 
-GLuint cubeTopFace[] = {
-    0x0105, //-1, 1, -1, 5, // top-left
-    0x1115, //1,  1, 1,  5, // bottom-right
-    0x1105, //1,  1, -1, 5, // top-right
-    0x1115, //1,  1, 1,  5, // bottom-right
-    0x0105, //-1, 1, -1, 5, // top-left
-    0x0115, //-1, 1, 1,  5, // bottom-left
+int8_t cubeTopFace[] = {
+    -1, 1, -1, 5, // top-left
+    1,  1, 1,  5, // bottom-right
+    1,  1, -1, 5, // top-right
+    1,  1, 1,  5, // bottom-right
+    -1, 1, -1, 5, // top-left
+    -1, 1, 1,  5, // bottom-left
 };
 
-GLuint grassColor = 0; //{0.427f, 0.549f, 0.196f};
-GLuint snowColor = 1;  //{1.0f, 0.957f, 0.878f};
-GLuint waterColor = 2; //{0.271f, 0.486f, 0.839f};
-GLuint dirtColor = 3;  //{0.173f, 0.106f, 0.18f};
+int8_t grassColor = 0; //{0.427f, 0.549f, 0.196f};
+int8_t snowColor = 1;  //{1.0f, 0.957f, 0.878f};
+int8_t waterColor = 2; //{0.271f, 0.486f, 0.839f};
+int8_t dirtColor = 3;  //{0.173f, 0.106f, 0.18f};
+
+uint32_t packSignedInts(int8_t i1, int8_t i2, int8_t i3, int8_t i4) {
+  uint32_t packed_value = 0;
+
+  // Cast to unsigned char to handle sign extension during bitwise operations
+  packed_value |= static_cast<uint8_t>(i1) << 24; // Most significant byte
+  packed_value |= static_cast<uint8_t>(i2) << 16;
+  packed_value |= static_cast<uint8_t>(i3) << 8;
+  packed_value |= static_cast<uint8_t>(i4); // Least significant byte
+
+  return packed_value;
+}
 
 const size_t vertBufferRowSize = 4, numOfVertRows = 6,
-             totalVertBufferRowSize = 5;
-std::vector<GLuint> vertsWithOffset(Cube &cube, int8_t oldVerts[6], int8_t xoffset, int8_t yoffset, int8_t zoffset) {
-  for (int i = 0; i < 6; i++) {
-    oldVerts[i] = oldVerts[i] & 
-  }
+             totalVertBufferRowSize = 4;
+std::vector<GLuint>
+vertsWithOffset(Cube &cube, int8_t oldVerts[vertBufferRowSize * numOfVertRows],
+                size_t xoffset, size_t yoffset, size_t zoffset) {
+  std::vector<GLuint> verts;
+  std::vector<int32_t> transformedVerts;
 
-
-  /*for (size_t i = 0; i < vertBufferRowSize; i++) {
-    for (size_t j = 0; j < numOfVertRows; j++)
-      verts.push_back(oldVerts[i * numOfVertRows + j]);
-
-    switch (cube.blockType) {
-    case Grass:
-      verts.push_back(0);
-      break;
-    case Snow:
-      verts.push_back(1);
-      break;
-    case Dirt:
-      verts.push_back(2);
-      break;
-    case Water:
-      verts.push_back(3);
-      break;
-    }
+  for (size_t i = 0; i < numOfVertRows; i++) {
+    for (size_t j = 0; j < vertBufferRowSize; j++)
+      transformedVerts.push_back(oldVerts[i * vertBufferRowSize + j]);
   }
 
   for (size_t i = 0; i < numOfVertRows; i++) {
-    verts[i * totalVertBufferRowSize] += xoffset;
-    verts[i * totalVertBufferRowSize + 1] += yoffset;
-    verts[i * totalVertBufferRowSize + 2] += zoffset;
+    transformedVerts[i * totalVertBufferRowSize] += xoffset;
+    transformedVerts[i * totalVertBufferRowSize + 1] += yoffset;
+    transformedVerts[i * totalVertBufferRowSize + 2] += zoffset;
   }
-*/
+
+  for (size_t i = 0; i < numOfVertRows; i++) {
+    auto data =
+        packSignedInts(transformedVerts[i * totalVertBufferRowSize],
+                       transformedVerts[i * totalVertBufferRowSize + 1],
+                       transformedVerts[i * totalVertBufferRowSize + 2],
+                       transformedVerts[i * totalVertBufferRowSize + 3]);
+    // uint32_t data = (color << 21) | (norm << 18) | (z << 12) | (y
+    // << 6) | x;
+    std::cout << std::hex << data << std::endl;
+    verts.push_back(data);
+  }
+
   return verts;
 }
 
-std::vector<GLuint> cubeVerts(Cube &cube, int xoffset, int yoffset,
-                              int zoffset) {
+std::vector<GLuint> cubeVerts(Cube &cube, size_t xoffset, size_t yoffset,
+                              size_t zoffset) {
   if (!cube.isActive)
     return {};
 
-  std::vector<int8_t> verts;
+  std::vector<GLuint> verts;
   size_t vertSize = 0;
   const size_t vertsPerRow = 6;
   if (cube.back) {
@@ -167,29 +180,16 @@ void setupCubeBuffers(Cube &cube) {
   glCreateVertexArrays(1, &cube.vao);
   glCreateBuffers(1, &cube.vbo);
 
-  glNamedBufferStorage(cube.vbo, sizeof(int8_t) * verts.size(), verts.data(),
+  glNamedBufferStorage(cube.vbo, sizeof(GLint) * verts.size(), verts.data(),
                        GL_DYNAMIC_STORAGE_BIT);
 
-  glVertexArrayVertexBuffer(cube.vao, 0, cube.vbo, 0,
-                            sizeof(int8_t) * totalVertBufferRowSize);
+  glVertexArrayVertexBuffer(cube.vao, 0, cube.vbo, 0, sizeof(GLint));
 
   glEnableVertexArrayAttrib(cube.vao, 0);
-  glEnableVertexArrayAttrib(cube.vao, 1);
-  glEnableVertexArrayAttrib(cube.vao, 2);
-  glEnableVertexArrayAttrib(cube.vao, 3);
 
-  glVertexArrayAttribFormat(cube.vao, 0, 3, GL_FLOAT, GL_FALSE, 0);
-  glVertexArrayAttribFormat(cube.vao, 1, 3, GL_FLOAT, GL_FALSE,
-                            sizeof(int8_t) * 3);
-  glVertexArrayAttribFormat(cube.vao, 2, 2, GL_FLOAT, GL_FALSE,
-                            sizeof(int8_t) * 6);
-  glVertexArrayAttribFormat(cube.vao, 3, 3, GL_FLOAT, GL_FALSE,
-                            sizeof(int8_t) * 8);
+  glVertexArrayAttribFormat(cube.vao, 0, 1, GL_INT, GL_FALSE, 0);
 
   glVertexArrayAttribBinding(cube.vao, 0, 0);
-  glVertexArrayAttribBinding(cube.vao, 1, 0);
-  glVertexArrayAttribBinding(cube.vao, 2, 0);
-  glVertexArrayAttribBinding(cube.vao, 3, 0);
 }
 
 Cube createCube(size_t diff, size_t spec, glm::vec3 pos, glm::vec3 rotation,
@@ -227,8 +227,6 @@ void drawCube(Cube &cube, GLuint shader) {
 
   auto model = cubeModelMatrix(cube);
   setMat4(shader, "model", model);
-
-  setInt(shader, "textureIndex", cube.diff);
 
   glBindVertexArray(cube.vao);
   glDrawArrays(GL_TRIANGLES, 0, cube.vertSize);

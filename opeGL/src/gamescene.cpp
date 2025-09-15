@@ -320,7 +320,7 @@ void renderDebugQuad(float nearPlane, float farPlane) {
 void addChunk(size_t diff, size_t spec, glm::vec3 pos, glm::vec3 rotation,
               float angle, float scale, ChunkType type, size_t chunkSize,
               size_t height, size_t width, size_t depth) {
-  Chunk chunk = createChunk(diff, spec, pos, rotation, angle, scale, type,
+  Chunk chunk = createChunk(diff, spec, pos, rotation, angle, scale, type, true,
                             chunkSize, height, width, depth);
   chunks.push_back(chunk);
 }

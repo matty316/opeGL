@@ -33,11 +33,11 @@ std::vector<PerChunkData> perChunkData;
 std::vector<DrawArraysIndirectCommand> drawCommands;
 GLuint drawCommandBuffer, perChunkBuffer;
 size_t numVertices = 0;
-std::vector<GLfloat> terrainVertices;
+std::vector<GLuint> terrainVertices;
 std::vector<Chunk> terrainChunks;
 std::unordered_map<size_t, Chunk> loadedChunks;
 
-void makeSphere(Chunk &chunk, Cube *cubes) {
+void makeSphere(Chunk &chunk, std::vector<Cube> &cubes) {
   for (size_t x = 0; x < chunk.chunkSize; x++) {
     for (size_t y = 0; y < chunk.chunkSize; y++) {
       for (size_t z = 0; z < chunk.chunkSize; z++) {
@@ -55,7 +55,7 @@ void makeSphere(Chunk &chunk, Cube *cubes) {
   }
 }
 
-void makeLandscape(Chunk &chunk, Cube *cubes, float freq = 0.01f,
+void makeLandscape(Chunk &chunk, std::vector<Cube> &cubes, float freq = 0.01f,
                    int octave = 8) {
   std::println("generating terrain");
   for (size_t x = 0; x < chunk.chunkSize; x++) {
@@ -97,7 +97,7 @@ void makeLandscape(Chunk &chunk, Cube *cubes, float freq = 0.01f,
   }
 }
 
-void makeWall(Chunk &chunk, Cube *cubes) {
+void makeWall(Chunk &chunk, std::vector<Cube> &cubes) {
   for (size_t x = 0; x < chunk.width; x++) {
     for (size_t y = 0; y < chunk.height; y++) {
       size_t xpos = x * chunk.chunkSize * chunk.chunkSize,
@@ -107,7 +107,7 @@ void makeWall(Chunk &chunk, Cube *cubes) {
   }
 }
 
-void makeRoof(Chunk &chunk, Cube *cubes) {
+void makeRoof(Chunk &chunk, std::vector<Cube> &cubes) {
   chunk.pos.y += chunk.chunkSize;
   for (size_t x = 0; x < chunk.width; x++) {
     for (size_t z = 0; z < chunk.depth; z++) {
@@ -117,7 +117,7 @@ void makeRoof(Chunk &chunk, Cube *cubes) {
   }
 }
 
-void createVerts(Chunk &chunk, Cube *cubes) {
+void createVerts(Chunk &chunk, std::vector<Cube> &cubes) {
   bool lDefault = false;
   for (size_t x = 0; x < chunk.chunkSize; x++) {
     for (size_t y = 0; y < chunk.chunkSize; y++) {
@@ -184,8 +184,7 @@ void createVerts(Chunk &chunk, Cube *cubes) {
         if (z == chunk.chunkSize - 1)
           cubes[xpos + ypos + z].front = false;
 
-        for (auto &vert : cubeVerts(cubes[xpos + ypos + z], x + chunk.xoffset,
-                                    y, z + chunk.zoffset))
+        for (auto &vert : cubeVerts(cubes[xpos + ypos + z], x, y, z))
           chunk.vertices.push_back(vert);
 
         chunk.vertSize += cubes[xpos + ypos + z].vertSize;
@@ -194,32 +193,26 @@ void createVerts(Chunk &chunk, Cube *cubes) {
   }
 }
 
-void setupBuffers(GLuint &vao, GLuint &vbo, std::vector<GLfloat> vertices) {
+void setupBuffers(GLuint &vao, GLuint &vbo, std::vector<GLuint> vertices) {
   glCreateVertexArrays(1, &vao);
   glCreateBuffers(1, &vbo);
 
-  glNamedBufferData(vbo, sizeof(GLfloat) * vertices.size(), vertices.data(),
+  glNamedBufferData(vbo, sizeof(GLuint) * vertices.size(), vertices.data(),
                     GL_DYNAMIC_DRAW);
 
-  glVertexArrayVertexBuffer(vao, 0, vbo, 0, sizeof(GLint) * 5);
+  glVertexArrayVertexBuffer(vao, 0, vbo, 0, sizeof(GLuint));
 
   glEnableVertexArrayAttrib(vao, 0);
-  glEnableVertexArrayAttrib(vao, 1);
-  glEnableVertexArrayAttrib(vao, 2);
 
-  glVertexArrayAttribFormat(vao, 0, 3, GL_INT, GL_FALSE, 0);
-  glVertexArrayAttribFormat(vao, 1, 3, GL_INT, GL_FALSE, sizeof(GLfloat) * 3);
-  glVertexArrayAttribFormat(vao, 2, 3, GL_INT, GL_FALSE, sizeof(GLfloat) * 6);
+  glVertexArrayAttribFormat(vao, 0, 1, GL_UNSIGNED_INT, GL_FALSE, 0);
 
   glVertexArrayAttribBinding(vao, 0, 0);
-  glVertexArrayAttribBinding(vao, 1, 0);
-  glVertexArrayAttribBinding(vao, 2, 0);
 }
 
 Chunk createChunk(size_t diff, size_t spec, glm::vec3 pos, glm::vec3 rotation,
                   float angle, float scale, ChunkType type,
-                  bool shouldSetupBuffers, size_t xoffset, size_t zoffset,
-                  size_t chunkSize, size_t height, size_t width, size_t depth) {
+                  bool shouldSetupBuffers, size_t chunkSize, size_t height,
+                  size_t width, size_t depth) {
   if (height > chunkSize || width > chunkSize || depth > chunkSize) {
     std::println("height, width and depth must be lower than chunk size");
     exit(1);
@@ -236,22 +229,15 @@ Chunk createChunk(size_t diff, size_t spec, glm::vec3 pos, glm::vec3 rotation,
   chunk.height = height == 0 ? chunkSize : height;
   chunk.width = width == 0 ? chunkSize : width;
   chunk.depth = depth == 0 ? chunkSize : depth;
-  chunk.xoffset = xoffset;
-  chunk.zoffset = zoffset;
 
-  Cube *cubes = new Cube[chunk.chunkSize * chunk.chunkSize * chunk.chunkSize];
+  std::vector<Cube> cubes(chunkSize * chunkSize * chunkSize);
 
-  for (size_t x = 0; x < chunk.chunkSize; x++) {
-    for (size_t y = 0; y < chunk.chunkSize; y++) {
-      for (size_t z = 0; z < chunk.chunkSize; z++) {
-        size_t xpos = x * chunk.chunkSize * chunk.chunkSize,
-               ypos = y * chunk.chunkSize;
-        Cube cube = createCube(diff, spec, glm::vec3(0.0f), glm::vec3(1.0f),
-                               0.0f, 1.0f, Grass, true);
+  for (size_t x = 0; x < chunkSize; x++) {
+    for (size_t y = 0; y < chunkSize; y++) {
+      for (size_t z = 0; z < chunkSize; z++) {
+        size_t xpos = x * chunkSize * chunkSize, ypos = y * chunkSize;
+        Cube cube;
         cube.isActive = false;
-        cube.x = x;
-        cube.y = y;
-        cube.z = z;
         cubes[xpos + ypos + z] = cube;
       }
     }
@@ -274,7 +260,6 @@ Chunk createChunk(size_t diff, size_t spec, glm::vec3 pos, glm::vec3 rotation,
 
   createVerts(chunk, cubes);
   std::println("size of verts: {}", sizeof(GLfloat) * chunk.vertices.size());
-  delete[] cubes;
   if (shouldSetupBuffers)
     setupBuffers(chunk.vao, chunk.vbo, chunk.vertices);
 
@@ -334,10 +319,10 @@ void createChunks(std::vector<Chunk> &terrainChunks, float posx, float posz,
       if (loadedChunks.contains(x * width + z)) {
         chunk = loadedChunks[x * width + z];
       } else {
-      float xpos = (posx - x + static_cast<float>(width) / 2.0f);
-      float zpos = (posz + z - static_cast<float>(depth) / 2.0f);
-      chunk = createChunk(0, 0, glm::vec3(xpos, 0.0f, zpos),
-                                glm::vec3(1.0f), 0.0f, scale, Landscape, false);
+        float xpos = (posx - x + static_cast<float>(width) / 2.0f);
+        float zpos = (posz + z - static_cast<float>(depth) / 2.0f);
+        chunk = createChunk(0, 0, glm::vec3(xpos, 0.0f, zpos), glm::vec3(1.0f),
+                            0.0f, scale, Landscape, false);
       }
       std::lock_guard<std::mutex> lock(mtx);
       loadedChunks[x * width + z] = chunk;
