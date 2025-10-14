@@ -1,2 +1,4 @@
-cd game-template
-./clean.sh
+#!/bin/bash
+
+rm -rf build
+mkdir build
