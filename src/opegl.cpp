@@ -132,6 +132,7 @@ void OpeGL::mouse_callback(GLFWwindow *window, double x, double y) {
   auto app = reinterpret_cast<OpeGL *>(glfwGetWindowUserPointer(window));
   int width, height;
   glfwGetFramebufferSize(window, &width, &height);
+  glViewport(0, 0, width, height);
 
   app->mouseState.pos.x = static_cast<float>(x / width);
   app->mouseState.pos.y = static_cast<float>(y / height);
