@@ -2,3 +2,5 @@ build
 */.cache/clangd/index
 game-template/opeGL
 mesh-converter/opeGL
+.cache/clangd/index
+.cache/clangd/index
