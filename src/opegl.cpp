@@ -57,7 +57,8 @@ void OpeGL::init() {
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
   window =
-      glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "opegl", nullptr, nullptr);
+      glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "opegl",
+                       fullscreen ? glfwGetPrimaryMonitor() : nullptr, nullptr);
   if (window == nullptr)
     throw std::runtime_error("failed to create window");
 
@@ -69,6 +70,7 @@ void OpeGL::init() {
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
   glfwSetCursorPosCallback(window, mouse_callback);
   glfwSetKeyCallback(window, key_callback);
+  glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
   glCreateBuffers(1, &vbo);
   glNamedBufferStorage(vbo, sizeof(Vertex) * quadVertices.size(),

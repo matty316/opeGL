@@ -22,6 +22,7 @@ private:
 
   double timeStamp = glfwGetTime();
   double deltaTime = 0.0f;
+  bool fullscreen = true;
 
   void init();
   void mainLoop();
