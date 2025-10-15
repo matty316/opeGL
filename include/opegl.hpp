@@ -6,14 +6,17 @@
 // clang-format on
 
 #include "camera.hpp"
+#include "quad.hpp"
 
 class OpeGL {
 public:
   void run();
+  void addQuad(glm::vec3 position, float angle, glm::vec3 rotation,
+               float scale);
 
 private:
   GLFWwindow *window;
-  GLuint vao, vbo, ebo;
+  GLuint vao, vbo, ebo, modelMatrixBuffer;
   OpeCamera camera{{0.0f, 0.0f, 3.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}};
   struct MouseState {
     glm::vec2 pos{0.0f};
@@ -23,6 +26,7 @@ private:
   double timeStamp = glfwGetTime();
   double deltaTime = 0.0f;
   bool fullscreen = true;
+  OpeQuad quad;
 
   void init();
   void mainLoop();

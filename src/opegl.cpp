@@ -22,6 +22,7 @@ void OpeGL::mainLoop() {
     update();
     int width, height;
     glfwGetFramebufferSize(window, &width, &height);
+    glViewport(0, 0, width, height);
     processInput(window);
 
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -36,13 +37,11 @@ void OpeGL::mainLoop() {
 
     shader.setMat4("view", camera.getView());
 
-    glm::mat4 model{1.0f};
-    model = glm::translate(model, {0.0f, 0.0f, 0.0f});
-    model = glm::rotate(model, glm::radians(0.0f), {1.0f, 1.0f, 1.0f});
-    shader.setMat4("model", model);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, modelMatrixBuffer);
 
     glBindVertexArray(vao);
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    glDrawElementsInstanced(GL_TRIANGLES, quadIndices.size(), GL_UNSIGNED_INT,
+                            0, quad.getInstanceCount());
 
     glfwSwapBuffers(window);
     glfwPollEvents();
@@ -91,6 +90,11 @@ void OpeGL::init() {
                             offsetof(Vertex, pos));
 
   glVertexArrayAttribBinding(vao, 0, 0);
+
+  glCreateBuffers(1, &modelMatrixBuffer);
+  glNamedBufferStorage(modelMatrixBuffer,
+                       sizeof(glm::mat4) * quad.getInstanceCount(),
+                       quad.getMatrices().data(), GL_DYNAMIC_STORAGE_BIT);
 }
 
 void OpeGL::cleanup() {
@@ -132,7 +136,6 @@ void OpeGL::mouse_callback(GLFWwindow *window, double x, double y) {
   auto app = reinterpret_cast<OpeGL *>(glfwGetWindowUserPointer(window));
   int width, height;
   glfwGetFramebufferSize(window, &width, &height);
-  glViewport(0, 0, width, height);
 
   app->mouseState.pos.x = static_cast<float>(x / width);
   app->mouseState.pos.y = static_cast<float>(y / height);
@@ -143,4 +146,9 @@ void OpeGL::update() {
   deltaTime = newTimeStamp - timeStamp;
   timeStamp = newTimeStamp;
   camera.update(deltaTime, mouseState.pos);
+}
+
+void OpeGL::addQuad(glm::vec3 position, float angle, glm::vec3 rotation,
+                    float scale) {
+  quad.addQuad(position, angle, rotation, scale);
 }
