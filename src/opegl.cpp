@@ -85,11 +85,15 @@ void OpeGL::init() {
   glVertexArrayElementBuffer(vao, ebo);
 
   glEnableVertexArrayAttrib(vao, 0);
+  glEnableVertexArrayAttrib(vao, 1);
 
   glVertexArrayAttribFormat(vao, 0, 3, GL_FLOAT, GL_FALSE,
                             offsetof(Vertex, pos));
+  glVertexArrayAttribFormat(vao, 1, 2, GL_FLOAT, GL_FALSE,
+                            offsetof(Vertex, texCoord));
 
   glVertexArrayAttribBinding(vao, 0, 0);
+  glVertexArrayAttribBinding(vao, 1, 0);
 
   glCreateBuffers(1, &modelMatrixBuffer);
   glNamedBufferStorage(modelMatrixBuffer,

@@ -5,6 +5,8 @@
 #include <GLFW/glfw3.h>
 // clang-format on
 
+#include <string>
+
 #include "camera.hpp"
 #include "quad.hpp"
 
@@ -13,6 +15,7 @@ public:
   void run();
   void addQuad(glm::vec3 position, float angle, glm::vec3 rotation,
                float scale);
+  size_t addTexture(const std::string &filename);
 
 private:
   GLFWwindow *window;
