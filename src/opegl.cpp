@@ -156,3 +156,7 @@ void OpeGL::addQuad(glm::vec3 position, float angle, glm::vec3 rotation,
                     float scale) {
   quad.addQuad(position, angle, rotation, scale);
 }
+
+size_t OpeGL::addTexture(const std::string &filename) {
+  return textures.loadTexture(filename);
+}

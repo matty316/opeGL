@@ -3,13 +3,14 @@
 #include <glad/glad.h>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 class OpeTexture {
 public:
-  OpeTexture(const std::string &filename) : filename(filename) {}
-  GLuint loadTexture();
+  size_t loadTexture(const std::string &filename);
 
 private:
   std::string filename;
-  static std::unordered_map<std::string, GLuint> loadedTextures;
+  static std::unordered_map<std::string, size_t> loadedTextures;
+  static std::vector<GLuint> textures;
 };

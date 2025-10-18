@@ -9,6 +9,7 @@
 
 #include "camera.hpp"
 #include "quad.hpp"
+#include "texture.hpp"
 
 class OpeGL {
 public:
@@ -30,6 +31,7 @@ private:
   double deltaTime = 0.0f;
   bool fullscreen = true;
   OpeQuad quad;
+  OpeTexture textures;
 
   void init();
   void mainLoop();

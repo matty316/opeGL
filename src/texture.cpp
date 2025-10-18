@@ -3,7 +3,7 @@
 #include <format>
 #include <stb_image.h>
 
-GLuint OpeTexture::loadTexture() {
+size_t OpeTexture::loadTexture(const std::string &filename) {
   if (loadedTextures.contains(filename))
     return loadedTextures[filename];
 
@@ -42,6 +42,7 @@ GLuint OpeTexture::loadTexture() {
     throw std::runtime_error(errorMessage);
   }
 
-  loadedTextures[filename] = textureID;
-  return textureID;
+  textures.push_back(textureID);
+  loadedTextures[filename] = textures.size() - 1;
+  return textures.size() - 1;
 }
