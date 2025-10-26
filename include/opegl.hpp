@@ -18,6 +18,7 @@ public:
   void addQuad(glm::vec3 position, float angle, glm::vec3 rotation, float scale,
                size_t texture);
   size_t addTexture(const std::string &filename);
+  void setPlayerPos(glm::vec2 pos);
 
 private:
   GLFWwindow *window;
@@ -31,6 +32,7 @@ private:
   double timeStamp = glfwGetTime();
   double deltaTime = 0.0f;
   bool fullscreen = true;
+  bool debug = true;
   OpeQuad quad;
   OpeTexture textures;
 
@@ -45,4 +47,8 @@ private:
   static void key_callback(GLFWwindow *window, int key, int scancode,
                            int action, int mods);
   void processInput(GLFWwindow *window);
+  static void APIENTRY glDebugOutput(GLenum source, GLenum type,
+                                     unsigned int id, GLenum severity,
+                                     GLsizei length, const char *message,
+                                     const void *userParam);
 };

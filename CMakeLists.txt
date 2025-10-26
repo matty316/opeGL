@@ -10,6 +10,6 @@ add_library(opeGL "${MY_SOURCES}" "${MY_HEADERS}" "${MY_RESOURCES}" "${CMAKE_CUR
 target_include_directories(opeGL PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include/")
 target_link_libraries(opeGL PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/thirdParty/libglfw3.a)
 target_link_libraries(opeGL PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/thirdParty/libassimp.a)
-target_link_libraries(opeGL PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/thirdParty/libmeshoptimizer.a)
+target_link_libraries(opeGL PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/thirdParty/libtmxlite.a)
 target_link_libraries(opeGL PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/thirdParty/libzlibstatic.a)
 target_compile_options(opeGL PRIVATE -Wall -Wextra -g)
