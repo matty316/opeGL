@@ -1,5 +1,7 @@
 #include "shader.hpp"
+#include "constants.hpp"
 #include "frag-shader.h"
+#include "texture.hpp"
 #include "vert-shader.h"
 #include <stdexcept>
 #include <string>
@@ -50,6 +52,16 @@ GLuint OpeShader::compile(unsigned char source[], unsigned int len,
 }
 
 void OpeShader::use() { glUseProgram(ID); }
+
+void OpeShader::setTextures(int numTextures) {
+  textureLocation = glGetUniformLocation(ID, "textures");
+  std::vector<int> textureUnits;
+  textureUnits.resize(numTextures);
+  for (int i = 0; i < numTextures; i++) {
+    textureUnits[i] = i;
+  }
+  glUniform1iv(textureLocation, numTextures, textureUnits.data());
+}
 
 void OpeShader::setMat4(const std::string &name, const glm::mat4 &mat) const {
   glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE,

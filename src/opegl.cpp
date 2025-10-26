@@ -2,22 +2,25 @@
 #include "GLFW/glfw3.h"
 #include "constants.hpp"
 #include "glm/ext/matrix_clip_space.hpp"
-#include "glm/ext/matrix_float4x4.hpp"
-#include "glm/ext/matrix_transform.hpp"
 #include "glm/trigonometric.hpp"
 #include "shader.hpp"
 #include "vertex.hpp"
 #include <cstddef>
+#include <cstdint>
 #include <stdexcept>
 
+OpeGL::OpeGL() { init(); }
+
 void OpeGL::run() {
-  init();
+  createBuffers();
   mainLoop();
   cleanup();
 }
 
 void OpeGL::mainLoop() {
   OpeShader shader;
+  shader.use();
+  shader.setTextures(textures.textureCount());
   while (!glfwWindowShouldClose(window)) {
     update();
     int width, height;
@@ -25,8 +28,9 @@ void OpeGL::mainLoop() {
     glViewport(0, 0, width, height);
     processInput(window);
 
+    glEnable(GL_DEPTH_TEST);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     shader.use();
 
@@ -70,7 +74,9 @@ void OpeGL::init() {
   glfwSetCursorPosCallback(window, mouse_callback);
   glfwSetKeyCallback(window, key_callback);
   glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+}
 
+void OpeGL::createBuffers() {
   glCreateBuffers(1, &vbo);
   glNamedBufferStorage(vbo, sizeof(Vertex) * quadVertices.size(),
                        quadVertices.data(), GL_DYNAMIC_STORAGE_BIT);
@@ -96,9 +102,13 @@ void OpeGL::init() {
   glVertexArrayAttribBinding(vao, 1, 0);
 
   glCreateBuffers(1, &modelMatrixBuffer);
-  glNamedBufferStorage(modelMatrixBuffer,
-                       sizeof(glm::mat4) * quad.getInstanceCount(),
-                       quad.getMatrices().data(), GL_DYNAMIC_STORAGE_BIT);
+  glNamedBufferStorage(
+      modelMatrixBuffer, sizeof(PerInstanceData) * quad.getInstanceCount(),
+      quad.getPerInstanceData().data(), GL_DYNAMIC_STORAGE_BIT);
+
+  for (size_t i = 0; i < textures.textureCount(); i++) {
+    glBindTextureUnit(i, textures.textureIdAtCount(i));
+  }
 }
 
 void OpeGL::cleanup() {
@@ -153,8 +163,9 @@ void OpeGL::update() {
 }
 
 void OpeGL::addQuad(glm::vec3 position, float angle, glm::vec3 rotation,
-                    float scale) {
-  quad.addQuad(position, angle, rotation, scale);
+                    float scale, size_t texture) {
+  quad.addQuad(position, angle, rotation, scale,
+               static_cast<uint32_t>(texture));
 }
 
 size_t OpeGL::addTexture(const std::string &filename) {

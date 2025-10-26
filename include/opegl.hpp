@@ -13,9 +13,10 @@
 
 class OpeGL {
 public:
+  OpeGL();
   void run();
-  void addQuad(glm::vec3 position, float angle, glm::vec3 rotation,
-               float scale);
+  void addQuad(glm::vec3 position, float angle, glm::vec3 rotation, float scale,
+               size_t texture);
   size_t addTexture(const std::string &filename);
 
 private:
@@ -34,6 +35,7 @@ private:
   OpeTexture textures;
 
   void init();
+  void createBuffers();
   void mainLoop();
   void cleanup();
   void update();

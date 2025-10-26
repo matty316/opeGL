@@ -1,13 +1,15 @@
 #include "texture.hpp"
 
 #include <format>
+#include <iterator>
+#define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
 size_t OpeTexture::loadTexture(const std::string &filename) {
   if (loadedTextures.contains(filename))
     return loadedTextures[filename];
 
-  unsigned int textureID;
+  GLuint textureID;
   glCreateTextures(GL_TEXTURE_2D, 1, &textureID);
 
   int width, height, nrComponents;
@@ -46,3 +48,7 @@ size_t OpeTexture::loadTexture(const std::string &filename) {
   loadedTextures[filename] = textures.size() - 1;
   return textures.size() - 1;
 }
+
+size_t OpeTexture::textureCount() { return textures.size(); }
+
+GLuint OpeTexture::textureIdAtCount(size_t i) { return textures[i]; }
