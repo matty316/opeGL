@@ -4,6 +4,7 @@
 #include "glm/ext/matrix_clip_space.hpp"
 #include "glm/ext/vector_float2.hpp"
 #include "glm/trigonometric.hpp"
+#include "light.hpp"
 #include "shader.hpp"
 #include "vertex.hpp"
 #include <cstddef>
@@ -23,6 +24,11 @@ void OpeGL::mainLoop() {
   OpeShader shader;
   shader.use();
   shader.setTextures(textures.textureCount());
+
+  for (size_t i = 0; i < pointLights.size(); i++) {
+    shader.setPointLight(pointLights[i], i);
+  }
+
   while (!glfwWindowShouldClose(window)) {
     update();
     int width, height;
@@ -109,14 +115,18 @@ void OpeGL::createBuffers() {
 
   glEnableVertexArrayAttrib(vao, 0);
   glEnableVertexArrayAttrib(vao, 1);
+  glEnableVertexArrayAttrib(vao, 2);
 
   glVertexArrayAttribFormat(vao, 0, 3, GL_FLOAT, GL_FALSE,
                             offsetof(Vertex, pos));
   glVertexArrayAttribFormat(vao, 1, 2, GL_FLOAT, GL_FALSE,
                             offsetof(Vertex, texCoord));
+  glVertexArrayAttribFormat(vao, 2, 3, GL_FLOAT, GL_FALSE,
+                            offsetof(Vertex, normal));
 
   glVertexArrayAttribBinding(vao, 0, 0);
   glVertexArrayAttribBinding(vao, 1, 0);
+  glVertexArrayAttribBinding(vao, 2, 0);
 
   glCreateBuffers(1, &modelMatrixBuffer);
   glNamedBufferStorage(
@@ -271,3 +281,5 @@ void APIENTRY OpeGL::glDebugOutput(GLenum source, GLenum type, unsigned int id,
 }
 
 void OpeGL::setPlayerPos(glm::vec2 pos) { camera.setPlayerPos(pos); }
+
+void OpeGL::addPointLight(PointLight &light) { pointLights.push_back(light); }

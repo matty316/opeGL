@@ -1,8 +1,9 @@
 #include "shader.hpp"
-#include "constants.hpp"
 #include "frag-shader.h"
+#include "light.hpp"
 #include "texture.hpp"
 #include "vert-shader.h"
+#include <format>
 #include <stdexcept>
 #include <string>
 
@@ -62,10 +63,29 @@ void OpeShader::setTextures(int numTextures) {
   }
   glUniform1iv(textureLocation, numTextures, textureUnits.data());
 }
-
-void OpeShader::setMat4(const std::string &name, const glm::mat4 &mat) const {
-  glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE,
-                     &mat[0][0]);
-}
-
 void OpeShader::cleanup() { glDeleteProgram(ID); }
+
+void OpeShader::setPointLight(PointLight &light, size_t index) {
+  std::string lightName = std::format("pointLights[{}]", index);
+
+  std::string lightPositionName = std::format("{}.position", lightName);
+  setVec3(lightPositionName, light.position);
+
+  std::string lightAmbientName = std::format("{}.ambient", lightName);
+  setVec3(lightAmbientName, light.ambient);
+
+  std::string lightDiffuseName = std::format("{}.diffuse", lightName);
+  setVec3(lightDiffuseName, light.diffuse);
+
+  std::string lightSpecularName = std::format("{}.specular", lightName);
+  setVec3(lightSpecularName, light.specular);
+
+  std::string lightConstantName = std::format("{}.constant", lightName);
+  setFloat(lightConstantName, light.constant);
+
+  std::string lightLinearName = std::format("{}.linear", lightName);
+  setFloat(lightLinearName, light.linear);
+
+  std::string lightQuadraticName = std::format("{}.quadratic", lightName);
+  setFloat(lightQuadraticName, light.quadratic);
+}

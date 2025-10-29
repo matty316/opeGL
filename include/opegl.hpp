@@ -6,8 +6,10 @@
 // clang-format on
 
 #include <string>
+#include <vector>
 
 #include "camera.hpp"
+#include "light.hpp"
 #include "quad.hpp"
 #include "texture.hpp"
 
@@ -19,6 +21,7 @@ public:
                size_t texture);
   size_t addTexture(const std::string &filename);
   void setPlayerPos(glm::vec2 pos);
+  void addPointLight(PointLight &light);
 
 private:
   GLFWwindow *window;
@@ -28,6 +31,8 @@ private:
     glm::vec2 pos{0.0f};
     bool pressed = false;
   } mouseState;
+
+  std::vector<PointLight> pointLights;
 
   double timeStamp = glfwGetTime();
   double deltaTime = 0.0f;
