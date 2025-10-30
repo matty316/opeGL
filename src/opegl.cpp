@@ -4,6 +4,7 @@
 #include "glm/ext/matrix_clip_space.hpp"
 #include "glm/ext/vector_float2.hpp"
 #include "glm/trigonometric.hpp"
+#include "level.hpp"
 #include "light.hpp"
 #include "shader.hpp"
 #include "vertex.hpp"
@@ -22,11 +23,17 @@ void OpeGL::run() {
 
 void OpeGL::mainLoop() {
   OpeShader shader;
+  OpeShader modelShader(true);
   shader.use();
   shader.setTextures(textures.textureCount());
+  modelShader.use();
+  modelShader.setTextures(textures.textureCount());
 
   for (size_t i = 0; i < pointLights.size(); i++) {
+    shader.use();
     shader.setPointLight(pointLights[i], i);
+    modelShader.use();
+    modelShader.setPointLight(pointLights[i], i);
   }
 
   while (!glfwWindowShouldClose(window)) {
@@ -48,16 +55,29 @@ void OpeGL::mainLoop() {
 
     shader.setMat4("view", camera.getView());
 
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, modelMatrixBuffer);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, perInstanceDataBuffer);
 
     glBindVertexArray(vao);
     glDrawElementsInstanced(GL_TRIANGLES, quadIndices.size(), GL_UNSIGNED_INT,
                             0, quad.getInstanceCount());
 
+    modelShader.use();
+    modelShader.setMat4("projection", projection);
+
+    modelShader.setMat4("view", camera.getView());
+
+    for (auto &model : models) {
+      modelShader.setMat4("modelMatrix", model.modelMatrix());
+      modelShader.setUInt("textureIndx",
+                          static_cast<int>(model.getTextureId()));
+      model.draw(quad.getInstanceCount() + 1);
+    }
+
     glfwSwapBuffers(window);
     glfwPollEvents();
   }
   shader.cleanup();
+  modelShader.cleanup();
 }
 
 void OpeGL::init() {
@@ -128,9 +148,11 @@ void OpeGL::createBuffers() {
   glVertexArrayAttribBinding(vao, 1, 0);
   glVertexArrayAttribBinding(vao, 2, 0);
 
-  glCreateBuffers(1, &modelMatrixBuffer);
+  glCreateBuffers(1, &perInstanceDataBuffer);
+
   glNamedBufferStorage(
-      modelMatrixBuffer, sizeof(PerInstanceData) * quad.getInstanceCount(),
+      perInstanceDataBuffer,
+      sizeof(PerInstanceData) * quad.getPerInstanceData().size(),
       quad.getPerInstanceData().data(), GL_DYNAMIC_STORAGE_BIT);
 
   for (size_t i = 0; i < textures.textureCount(); i++) {
@@ -283,3 +305,22 @@ void APIENTRY OpeGL::glDebugOutput(GLenum source, GLenum type, unsigned int id,
 void OpeGL::setPlayerPos(glm::vec2 pos) { camera.setPlayerPos(pos); }
 
 void OpeGL::addPointLight(PointLight &light) { pointLights.push_back(light); }
+
+void OpeGL::loadLevel(std::string path, uint32_t wallTexture,
+                      uint32_t floorTexture, uint32_t ceilingTexture,
+                      size_t maxHeight) {
+  auto newLevel =
+      OpeLevel(path, wallTexture, floorTexture, ceilingTexture, maxHeight);
+  currentLevel = &newLevel;
+  currentLevel->loadLevel(*this);
+}
+
+void OpeGL::addModel(std::string modelPath, glm::vec3 pos, float angle,
+                     glm::vec3 rotation, float scale) {
+  OpeModel model(modelPath, pos, angle, rotation, scale);
+  model.loadModel();
+  auto diffusePath = model.getDiffusePath();
+  auto diffuse = addTexture(diffusePath);
+  model.setDiffuse(diffuse);
+  models.push_back(model);
+}

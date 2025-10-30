@@ -1,7 +1,8 @@
 #pragma once
 
 #include "light.hpp"
-#include "opegl.hpp"
+
+class OpeGL;
 
 #include <glm/glm.hpp>
 

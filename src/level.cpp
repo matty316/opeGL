@@ -4,6 +4,8 @@
 #include <tmxlite/ObjectGroup.hpp>
 #include <tmxlite/TileLayer.hpp>
 
+#include "opegl.hpp"
+
 OpeLevel::OpeLevel(std::string path, uint32_t wallTexture,
                    uint32_t floorTexture, uint32_t ceilingTexture,
                    size_t maxHeight)

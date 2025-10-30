@@ -1,15 +1,19 @@
 #include "shader.hpp"
 #include "frag-shader.h"
 #include "light.hpp"
+#include "model-shader.h"
 #include "texture.hpp"
 #include "vert-shader.h"
 #include <format>
 #include <stdexcept>
 #include <string>
 
-OpeShader::OpeShader() {
-  auto vertex =
-      compile(shaders_shader_vert, shaders_shader_vert_len, GL_VERTEX_SHADER);
+OpeShader::OpeShader(bool model) {
+
+  auto vertex = !model ? compile(shaders_shader_vert, shaders_shader_vert_len,
+                                 GL_VERTEX_SHADER)
+                       : compile(shaders_model_vert, shaders_model_vert_len,
+                                 GL_VERTEX_SHADER);
   auto fragment =
       compile(shaders_shader_frag, shaders_shader_frag_len, GL_FRAGMENT_SHADER);
 
