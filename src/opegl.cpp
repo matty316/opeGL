@@ -1,6 +1,7 @@
 #include "opegl.hpp"
 #include "GLFW/glfw3.h"
 #include "constants.hpp"
+#include "glm/common.hpp"
 #include "glm/ext/matrix_clip_space.hpp"
 #include "glm/ext/vector_float2.hpp"
 #include "glm/trigonometric.hpp"
@@ -8,9 +9,12 @@
 #include "light.hpp"
 #include "shader.hpp"
 #include "vertex.hpp"
+#include <cfloat>
 #include <cstddef>
 #include <cstdint>
+#include <cstdlib>
 #include <iostream>
+#include <print>
 #include <stdexcept>
 
 OpeGL::OpeGL() { init(); }
@@ -37,11 +41,11 @@ void OpeGL::mainLoop() {
   }
 
   while (!glfwWindowShouldClose(window)) {
+    processInput(window);
     update();
     int width, height;
     glfwGetFramebufferSize(window, &width, &height);
     glViewport(0, 0, width, height);
-    processInput(window);
 
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -54,6 +58,7 @@ void OpeGL::mainLoop() {
     shader.setMat4("projection", projection);
 
     shader.setMat4("view", camera.getView());
+    shader.setVec3("viewPos", camera.getPosition());
 
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, perInstanceDataBuffer);
 
@@ -65,6 +70,7 @@ void OpeGL::mainLoop() {
     modelShader.setMat4("projection", projection);
 
     modelShader.setMat4("view", camera.getView());
+    modelShader.setVec3("viewPos", camera.getPosition());
 
     for (auto &model : models) {
       modelShader.setMat4("modelMatrix", model.modelMatrix());
@@ -173,14 +179,30 @@ void OpeGL::framebuffer_size_callback(GLFWwindow *window, int width,
 }
 
 void OpeGL::processInput(GLFWwindow *window) {
-  if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-    glfwSetWindowShouldClose(window, true);
+  if (glfwJoystickPresent(GLFW_JOYSTICK_1)) {
+    if (glfwJoystickIsGamepad(GLFW_JOYSTICK_1))
+      std::println("is gamepad");
+    int count;
+    const float *axes = glfwGetJoystickAxes(GLFW_JOYSTICK_1, &count);
+    camera.movement.forward = axes[1] < -0.5f;
+    camera.movement.backward = axes[1] > 0.5f;
+    camera.movement.left = axes[0] < -0.5f;
+    camera.movement.right = axes[0] > 0.5f;
+
+    std::println("x {}", axes[2]);
+    std::println("y {}", axes[3]);
+
+    camera.updateRightAxes(deltaTime, axes[3], axes[2]);
+  }
 }
 
 void OpeGL::key_callback(GLFWwindow *window, int key, int scancode, int action,
                          int mods) {
   auto app = reinterpret_cast<OpeGL *>(glfwGetWindowUserPointer(window));
   const bool press = action != GLFW_RELEASE;
+
+  if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+    glfwSetWindowShouldClose(window, true);
   if (key == GLFW_KEY_ESCAPE)
     glfwSetWindowShouldClose(window, GLFW_TRUE);
   if (key == GLFW_KEY_W)

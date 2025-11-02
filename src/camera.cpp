@@ -69,3 +69,11 @@ void OpeCamera::setUpVector(glm::vec3 up) {
 }
 
 void OpeCamera::resetMousePosition(const glm::vec2 &p) { mousePosition = p; }
+
+void OpeCamera::updateRightAxes(double deltaTime, float x, float y) {
+  auto newX = glm::abs(x) > 0.5f ? x : 0;
+  auto newY = glm::abs(y) > 0.5f ? y : 0;
+  auto newQuat = glm::quat(glm::vec3(newX * deltaTime, newY * deltaTime, 0.0f));
+  cameraOrientation = glm::normalize(newQuat * cameraOrientation);
+  setUpVector(worldUp);
+}

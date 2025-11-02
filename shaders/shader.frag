@@ -39,7 +39,7 @@ void main() {
     lighting += BlinnPhong(norm, fragPos, pointLights[i].position, pointLights[i].diffuse);
   color *= lighting;
 
-  //color = pow(color, 1/gamma);
+  color = pow(color, 1/gamma);
   FragColor = vec4(color, 1.0);
 }
 

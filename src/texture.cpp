@@ -30,7 +30,7 @@ size_t OpeTexture::loadTexture(const std::string &filename) {
                         GL_LINEAR_MIPMAP_LINEAR);
     glTextureParameteri(textureID, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-    glTextureStorage2D(textureID, 1, GL_RGBA8, width, height);
+    glTextureStorage2D(textureID, 1, GL_RGBA16F, width, height);
     glTextureSubImage2D(textureID, 0, 0, 0, width, height, format,
                         GL_UNSIGNED_BYTE, data);
 
