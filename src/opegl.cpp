@@ -91,6 +91,21 @@ void OpeGL::init() {
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+  const char *customMapping =
+      "03000000c82d00000b31000000010000,8BitDo Ultimate 2 Wireless Controller,"
+      "crc:4260,platform:Linux,a:b0,b:b1,x:b3,y:b4,dpleft:h0.8,"
+      "dpright:h0.2,dpup:h0.1,dpdown:h0.4,leftx:a0,lefty:a1,leftstick:b13,"
+      "rightx:a2,righty:a3,rightstick:b14,leftshoulder:b6,lefttrigger:a5,"
+      "rightshoulder:b7,righttrigger:a4,back:b10,start:b11,guide:b12,steam:2,"
+      "paddle1:b17,paddle2:b16,paddle3:b2,paddle4:b5,";
+
+  // Update gamepad mappings
+  if (glfwUpdateGamepadMappings(customMapping)) {
+    printf("Custom gamepad mapping added successfully.\n");
+  } else {
+    fprintf(stderr, "Failed to add custom gamepad mapping.\n");
+  }
   if (debug)
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
   window =
@@ -180,19 +195,21 @@ void OpeGL::framebuffer_size_callback(GLFWwindow *window, int width,
 
 void OpeGL::processInput(GLFWwindow *window) {
   if (glfwJoystickPresent(GLFW_JOYSTICK_1)) {
-    if (glfwJoystickIsGamepad(GLFW_JOYSTICK_1))
-      std::println("is gamepad");
+    std::println("is gamepad {}", glfwJoystickIsGamepad(GLFW_JOYSTICK_1));
     int count;
     const float *axes = glfwGetJoystickAxes(GLFW_JOYSTICK_1, &count);
-    camera.movement.forward = axes[1] < -0.5f;
-    camera.movement.backward = axes[1] > 0.5f;
-    camera.movement.left = axes[0] < -0.5f;
-    camera.movement.right = axes[0] > 0.5f;
 
-    std::println("x {}", axes[2]);
-    std::println("y {}", axes[3]);
+    for (int i = 0; i < count; i++)
+      std::println("axes {} == {}", i, axes[i]);
 
-    camera.updateRightAxes(deltaTime, axes[3], axes[2]);
+    if (count >= 4) {
+      camera.movement.forward = axes[1] < -0.5f;
+      camera.movement.backward = axes[1] > 0.5f;
+      camera.movement.left = axes[0] < -0.5f;
+      camera.movement.right = axes[0] > 0.5f;
+
+      camera.updateRightAxes(deltaTime, axes[4], axes[3]);
+    }
   }
 }
 
