@@ -5,7 +5,8 @@
 #include "glm/ext/vector_float3.hpp"
 #include "glm/gtc/quaternion.hpp"
 
-void OpeCamera::update(double deltaTime, const glm::vec2 &mousePos) {
+void OpeCamera::update(double deltaTime, const glm::vec2 &mousePos,
+                       bool collided) {
   auto delta = mousePos - mousePosition;
   auto deltaQuat =
       glm::quat(glm::vec3(mouseSpeed * delta.y, mouseSpeed * delta.x, 0.0f));
@@ -44,7 +45,8 @@ void OpeCamera::update(double deltaTime, const glm::vec2 &mousePos) {
     if (glm::length(moveSpeed) > maximumSpeed)
       moveSpeed = glm::normalize(moveSpeed) * maximumSpeed;
   }
-  cameraPos += moveSpeed * static_cast<float>(deltaTime);
+  if (!collided)
+    cameraPos += moveSpeed * static_cast<float>(deltaTime);
   cameraPos.y = playerHeight;
 }
 

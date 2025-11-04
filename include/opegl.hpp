@@ -16,6 +16,16 @@
 #include "quad.hpp"
 #include "texture.hpp"
 
+struct GameObject {
+  float minX, minY, minZ;
+  float maxX, maxY, maxZ;
+
+  bool intersects(const GameObject &other) const {
+    return (minX < other.maxX && maxX > other.minX && minY < other.maxY &&
+            maxY > other.minY && minZ < other.maxZ && maxZ > other.minZ);
+  }
+};
+
 class OpeGL {
 public:
   OpeGL();
@@ -29,6 +39,9 @@ public:
                  uint32_t ceilingTexture, size_t maxHeight = 2);
   void addModel(std::string modelPath, glm::vec3 pos, float angle,
                 glm::vec3 rotation, float scale);
+  void addWall(size_t x, size_t z, size_t wallTexture, size_t width,
+               size_t depth, size_t maxHeight,
+               std::vector<std::vector<uint32_t>> &walls);
 
 private:
   GLFWwindow *window;
@@ -41,6 +54,7 @@ private:
 
   std::vector<PointLight> pointLights;
   std::vector<OpeModel> models;
+  std::vector<GameObject> gameObjects;
 
   std::unique_ptr<OpeLevel> currentLevel;
 
@@ -56,6 +70,8 @@ private:
   void mainLoop();
   void cleanup();
   void update();
+  bool checkCollision();
+  GameObject getPlayer();
   static void framebuffer_size_callback(GLFWwindow *window, int width,
                                         int height);
   static void mouse_callback(GLFWwindow *window, double x, double y);

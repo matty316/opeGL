@@ -12,7 +12,7 @@ public:
   OpeCamera(const glm::vec3 &pos, const glm::vec3 &target, const glm::vec3 &up)
       : cameraPos(pos), cameraOrientation(glm::lookAt(pos, target, up)),
         worldUp(up) {}
-  void update(double deltaTime, const glm::vec2 &mousePos);
+  void update(double deltaTime, const glm::vec2 &mousePos, bool collided);
   glm::mat4 getView();
   glm::vec3 getPosition();
   void setPlayerPos(glm::vec2 pos);

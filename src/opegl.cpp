@@ -17,6 +17,7 @@
 #include <memory>
 #include <print>
 #include <stdexcept>
+#include <vector>
 
 OpeGL::OpeGL() { init(); }
 
@@ -201,16 +202,13 @@ void OpeGL::processInput(GLFWwindow *window) {
       int count;
       const float *axes = glfwGetJoystickAxes(GLFW_JOYSTICK_1, &count);
 
-      for (int i = 0; i < count; i++)
-        std::println("axes {} == {}", i, axes[i]);
-
       if (count >= 4) {
         camera.movement.forward = axes[1] < -0.5f;
         camera.movement.backward = axes[1] > 0.5f;
         camera.movement.left = axes[0] < -0.5f;
         camera.movement.right = axes[0] > 0.5f;
 
-        camera.updateRightAxes(deltaTime, axes[4], axes[3]);
+        camera.updateRightAxes(deltaTime, axes[3], axes[4]);
       }
     }
   }
@@ -250,7 +248,43 @@ void OpeGL::update() {
   const double newTimeStamp = glfwGetTime();
   deltaTime = newTimeStamp - timeStamp;
   timeStamp = newTimeStamp;
-  camera.update(deltaTime, mouseState.pos);
+  if (checkCollision()) {
+    std::println("collided {}", checkCollision());
+  }
+  camera.update(deltaTime, mouseState.pos, false);
+}
+
+void OpeGL::addWall(size_t x, size_t z, size_t wallTexture, size_t width,
+                    size_t depth, size_t maxHeight,
+                    std::vector<std::vector<uint32_t>> &walls) {
+  gameObjects.emplace_back(
+      GameObject{static_cast<float>(x), 0.0f, static_cast<float>(z),
+                 static_cast<float>(x) + 1.0f, static_cast<float>(maxHeight),
+                 static_cast<float>(z) + 1.0f});
+  if (z != depth - 1 && walls[z + 1][x] == 0) {
+    for (size_t height = 0; height < maxHeight; height++) {
+      addQuad(glm::vec3(0.0f + x, static_cast<float>(height), 0.0f + z), 0.0f,
+              glm::vec3(1.0f), 1.0f, wallTexture);
+    }
+  }
+  if (x != width - 1 && walls[z][x + 1] == 0) {
+    for (size_t height = 0; height < maxHeight; height++) {
+      addQuad(glm::vec3(0.5f + x, static_cast<float>(height), -0.5f + z), 90.0f,
+              glm::vec3(0.0f, 1.0f, 0.0f), 1.0f, wallTexture);
+    }
+  }
+  if (x != 0 && walls[z][x - 1] == 0) {
+    for (size_t height = 0; height < maxHeight; height++) {
+      addQuad(glm::vec3(-0.5f + x, static_cast<float>(height), -0.5f + z),
+              270.0f, glm::vec3(0.0f, 1.0f, 0.0f), 1.0f, wallTexture);
+    }
+  }
+  if (z != 0 && walls[z - 1][x] == 0) {
+    for (size_t height = 0; height < maxHeight; height++) {
+      addQuad(glm::vec3(0.0f + x, static_cast<float>(height), -1.0f + z),
+              180.0f, glm::vec3(0.0f, 1.0f, 0.0f), 1.0f, wallTexture);
+    }
+  }
 }
 
 void OpeGL::addQuad(glm::vec3 position, float angle, glm::vec3 rotation,
@@ -365,4 +399,16 @@ void OpeGL::addModel(std::string modelPath, glm::vec3 pos, float angle,
   auto diffuse = addTexture(diffusePath);
   model.setDiffuse(diffuse);
   models.push_back(model);
+}
+
+bool OpeGL::checkCollision() {
+  for (auto &gameObject : gameObjects)
+    return gameObject.intersects(getPlayer());
+
+  return false;
+}
+
+GameObject OpeGL::getPlayer() {
+  auto pos = camera.getPosition();
+  return GameObject{pos.x, 0.0f, pos.z, pos.x + 1.0f, 1.0f, pos.z + 1.0f};
 }
