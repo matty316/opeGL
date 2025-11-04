@@ -16,6 +16,7 @@ public:
   glm::mat4 getView();
   glm::vec3 getPosition();
   void setPlayerPos(glm::vec2 pos);
+  void updateRightAxes(double deltaTime, float x, float y);
 
   struct Movement {
     bool forward = false;

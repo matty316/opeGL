@@ -1,6 +1,7 @@
 #include "opegl.hpp"
 #include "GLFW/glfw3.h"
 #include "constants.hpp"
+#include "glm/common.hpp"
 #include "glm/ext/matrix_clip_space.hpp"
 #include "glm/ext/vector_float2.hpp"
 #include "glm/trigonometric.hpp"
@@ -8,9 +9,13 @@
 #include "light.hpp"
 #include "shader.hpp"
 #include "vertex.hpp"
+#include <cfloat>
 #include <cstddef>
 #include <cstdint>
+#include <cstdlib>
 #include <iostream>
+#include <memory>
+#include <print>
 #include <stdexcept>
 
 OpeGL::OpeGL() { init(); }
@@ -37,11 +42,11 @@ void OpeGL::mainLoop() {
   }
 
   while (!glfwWindowShouldClose(window)) {
+    processInput(window);
     update();
     int width, height;
     glfwGetFramebufferSize(window, &width, &height);
     glViewport(0, 0, width, height);
-    processInput(window);
 
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -54,6 +59,7 @@ void OpeGL::mainLoop() {
     shader.setMat4("projection", projection);
 
     shader.setMat4("view", camera.getView());
+    shader.setVec3("viewPos", camera.getPosition());
 
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, perInstanceDataBuffer);
 
@@ -65,6 +71,7 @@ void OpeGL::mainLoop() {
     modelShader.setMat4("projection", projection);
 
     modelShader.setMat4("view", camera.getView());
+    modelShader.setVec3("viewPos", camera.getPosition());
 
     for (auto &model : models) {
       modelShader.setMat4("modelMatrix", model.modelMatrix());
@@ -85,6 +92,7 @@ void OpeGL::init() {
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
   if (debug)
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
   window =
@@ -173,14 +181,48 @@ void OpeGL::framebuffer_size_callback(GLFWwindow *window, int width,
 }
 
 void OpeGL::processInput(GLFWwindow *window) {
-  if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-    glfwSetWindowShouldClose(window, true);
+  if (glfwJoystickPresent(GLFW_JOYSTICK_1)) {
+    if (glfwJoystickIsGamepad(GLFW_JOYSTICK_1)) {
+      GLFWgamepadstate state;
+      if (glfwGetGamepadState(GLFW_JOYSTICK_1, &state)) {
+        float left_stick_x = state.axes[GLFW_GAMEPAD_AXIS_LEFT_X];
+        float left_stick_y = state.axes[GLFW_GAMEPAD_AXIS_LEFT_Y];
+        float right_stick_x = state.axes[GLFW_GAMEPAD_AXIS_RIGHT_X];
+        float right_stick_y = state.axes[GLFW_GAMEPAD_AXIS_RIGHT_Y];
+
+        camera.movement.forward = left_stick_y < -0.5f;
+        camera.movement.backward = left_stick_y > 0.5f;
+        camera.movement.left = left_stick_x < -0.5f;
+        camera.movement.right = left_stick_x > 0.5f;
+
+        camera.updateRightAxes(deltaTime, right_stick_x, right_stick_y);
+      }
+    } else {
+      int count;
+      const float *axes = glfwGetJoystickAxes(GLFW_JOYSTICK_1, &count);
+
+      for (int i = 0; i < count; i++)
+        std::println("axes {} == {}", i, axes[i]);
+
+      if (count >= 4) {
+        camera.movement.forward = axes[1] < -0.5f;
+        camera.movement.backward = axes[1] > 0.5f;
+        camera.movement.left = axes[0] < -0.5f;
+        camera.movement.right = axes[0] > 0.5f;
+
+        camera.updateRightAxes(deltaTime, axes[4], axes[3]);
+      }
+    }
+  }
 }
 
 void OpeGL::key_callback(GLFWwindow *window, int key, int scancode, int action,
                          int mods) {
   auto app = reinterpret_cast<OpeGL *>(glfwGetWindowUserPointer(window));
   const bool press = action != GLFW_RELEASE;
+
+  if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+    glfwSetWindowShouldClose(window, true);
   if (key == GLFW_KEY_ESCAPE)
     glfwSetWindowShouldClose(window, GLFW_TRUE);
   if (key == GLFW_KEY_W)
@@ -309,9 +351,9 @@ void OpeGL::addPointLight(PointLight &light) { pointLights.push_back(light); }
 void OpeGL::loadLevel(std::string path, uint32_t wallTexture,
                       uint32_t floorTexture, uint32_t ceilingTexture,
                       size_t maxHeight) {
-  auto newLevel =
-      OpeLevel(path, wallTexture, floorTexture, ceilingTexture, maxHeight);
-  currentLevel = &newLevel;
+  auto newLevel = std::make_unique<OpeLevel>(
+      OpeLevel(path, wallTexture, floorTexture, ceilingTexture, maxHeight));
+  currentLevel = std::move(newLevel);
   currentLevel->loadLevel(*this);
 }
 

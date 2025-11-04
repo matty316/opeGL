@@ -1,15 +1,19 @@
 cmake_minimum_required(VERSION 3.13)
 
 project(opeGL)
+
+add_subdirectory("thirdParty/glfw")
+
 set(CMAKE_CXX_STANDARD 23)
+
 file(GLOB_RECURSE MY_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
 file(GLOB_RECURSE MY_HEADERS CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/include/*.h")
 file(GLOB_RECURSE MY_RESOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/resources/*")
 
 add_library(opeGL "${MY_SOURCES}" "${MY_HEADERS}" "${MY_RESOURCES}" "${CMAKE_CURRENT_SOURCE_DIR}/src/glad.c")
 target_include_directories(opeGL PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include/")
-target_link_libraries(opeGL PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/thirdParty/libglfw3.a)
 target_link_libraries(opeGL PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/thirdParty/libassimp.a)
 target_link_libraries(opeGL PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/thirdParty/libtmxlite.a)
 target_link_libraries(opeGL PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/thirdParty/libzlibstatic.a)
+target_link_libraries(opeGL PUBLIC glfw)
 target_compile_options(opeGL PRIVATE -Wall -Wextra -g)

@@ -5,6 +5,7 @@
 #include <GLFW/glfw3.h>
 // clang-format on
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -41,7 +42,7 @@ private:
   std::vector<PointLight> pointLights;
   std::vector<OpeModel> models;
 
-  OpeLevel *currentLevel = nullptr;
+  std::unique_ptr<OpeLevel> currentLevel;
 
   double timeStamp = glfwGetTime();
   double deltaTime = 0.0f;
