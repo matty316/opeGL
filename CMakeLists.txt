@@ -2,7 +2,16 @@ cmake_minimum_required(VERSION 3.13)
 
 project(opeGL)
 
+set(ASSIMP_NO_EXPORT ON CACHE BOOL "")
+set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "")
+set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "")
+set(ASSIMP_INSTALL_PDB OFF CACHE BOOL "")
+set(ASSIMP_BUILD_ALL_IMPORTERS_BY_DEFAULT OFF CACHE BOOL "")
+set(ASSIMP_BUILD_GLTF_IMPORTER ON CACHE BOOL "")
+
 add_subdirectory("thirdParty/glfw")
+add_subdirectory("thirdParty/assimp")
+add_subdirectory("thirdParty/tmxlite")
 
 set(CMAKE_CXX_STANDARD 23)
 
@@ -12,8 +21,5 @@ file(GLOB_RECURSE MY_RESOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/re
 
 add_library(opeGL "${MY_SOURCES}" "${MY_HEADERS}" "${MY_RESOURCES}" "${CMAKE_CURRENT_SOURCE_DIR}/src/glad.c")
 target_include_directories(opeGL PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include/")
-target_link_libraries(opeGL PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/thirdParty/libassimp.a)
-target_link_libraries(opeGL PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/thirdParty/libtmxlite.a)
-target_link_libraries(opeGL PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/thirdParty/libzlibstatic.a)
-target_link_libraries(opeGL PUBLIC glfw)
+target_link_libraries(opeGL PUBLIC glfw assimp tmxlite)
 target_compile_options(opeGL PRIVATE -Wall -Wextra -g)
