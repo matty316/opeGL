@@ -249,7 +249,7 @@ void OpeGL::update() {
   deltaTime = newTimeStamp - timeStamp;
   timeStamp = newTimeStamp;
   if (checkCollision()) {
-    std::println("collided {}", checkCollision());
+    std::println("collided");
   }
   camera.update(deltaTime, mouseState.pos, false);
 }
@@ -258,9 +258,8 @@ void OpeGL::addWall(size_t x, size_t z, size_t wallTexture, size_t width,
                     size_t depth, size_t maxHeight,
                     std::vector<std::vector<uint32_t>> &walls) {
   gameObjects.emplace_back(
-      GameObject{static_cast<float>(x), 0.0f, static_cast<float>(z),
-                 static_cast<float>(x) + 1.0f, static_cast<float>(maxHeight),
-                 static_cast<float>(z) + 1.0f});
+      GameObject{static_cast<float>(x), static_cast<float>(z),
+                 static_cast<float>(x) + 1.0f, static_cast<float>(z) + 1.0f});
   if (z != depth - 1 && walls[z + 1][x] == 0) {
     for (size_t height = 0; height < maxHeight; height++) {
       addQuad(glm::vec3(0.0f + x, static_cast<float>(height), 0.0f + z), 0.0f,
@@ -410,5 +409,5 @@ bool OpeGL::checkCollision() {
 
 GameObject OpeGL::getPlayer() {
   auto pos = camera.getPosition();
-  return GameObject{pos.x, 0.0f, pos.z, pos.x + 1.0f, 1.0f, pos.z + 1.0f};
+  return GameObject{pos.x, pos.z, pos.x + 1.0f, pos.z + 1.0f};
 }

@@ -17,12 +17,12 @@
 #include "texture.hpp"
 
 struct GameObject {
-  float minX, minY, minZ;
-  float maxX, maxY, maxZ;
+  float minX, minZ;
+  float maxX, maxZ;
 
   bool intersects(const GameObject &other) const {
-    return (minX < other.maxX && maxX > other.minX && minY < other.maxY &&
-            maxY > other.minY && minZ < other.maxZ && maxZ > other.minZ);
+    return (minX < other.maxX && maxX > other.minX && minZ < other.maxZ &&
+            maxZ > other.minZ);
   }
 };
 
