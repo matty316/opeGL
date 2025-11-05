@@ -42,11 +42,13 @@ public:
   void addWall(size_t x, size_t z, size_t wallTexture, size_t width,
                size_t depth, size_t maxHeight,
                std::vector<std::vector<uint32_t>> &walls);
+  void addCube(size_t x, size_t z, size_t texture);
 
 private:
   GLFWwindow *window;
   GLuint vao, vbo, ebo, perInstanceDataBuffer;
-  OpeCamera camera{{0.0f, 0.0f, 3.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}};
+  OpeCamera camera{
+      {0.0f, 0.0f, 3.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, FLY};
   struct MouseState {
     glm::vec2 pos{0.0f};
     bool pressed = false;

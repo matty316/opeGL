@@ -47,7 +47,8 @@ void OpeCamera::update(double deltaTime, const glm::vec2 &mousePos,
   }
   if (!collided)
     cameraPos += moveSpeed * static_cast<float>(deltaTime);
-  cameraPos.y = playerHeight;
+  if (cameraType == FPS)
+    cameraPos.y = playerHeight;
 }
 
 glm::mat4 OpeCamera::getView() {

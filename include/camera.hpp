@@ -6,12 +6,15 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/euler_angles.hpp>
 
+enum OpeCameraType { FLY, FPS };
+
 class OpeCamera {
 public:
   OpeCamera() = default;
-  OpeCamera(const glm::vec3 &pos, const glm::vec3 &target, const glm::vec3 &up)
+  OpeCamera(const glm::vec3 &pos, const glm::vec3 &target, const glm::vec3 &up,
+            OpeCameraType cameraType = FPS)
       : cameraPos(pos), cameraOrientation(glm::lookAt(pos, target, up)),
-        worldUp(up) {}
+        worldUp(up), cameraType(cameraType) {}
   void update(double deltaTime, const glm::vec2 &mousePos, bool collided);
   glm::mat4 getView();
   glm::vec3 getPosition();
@@ -42,6 +45,7 @@ private:
   glm::quat cameraOrientation = glm::quat(glm::vec3(0.0f));
   glm::vec3 moveSpeed = glm::vec3(0.0f);
   glm::vec3 worldUp = glm::vec3(0.0f, 1.0f, 0.0f);
+  OpeCameraType cameraType = FPS;
   void setPosition(const glm::vec3 &pos);
   void setUpVector(glm::vec3 up);
   void resetMousePosition(const glm::vec2 &p);

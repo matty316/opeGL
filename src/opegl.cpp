@@ -412,3 +412,18 @@ GameObject OpeGL::getPlayer() {
   auto pos = camera.getPosition();
   return GameObject{pos.x, 0.0f, pos.z, pos.x + 1.0f, 1.0f, pos.z + 1.0f};
 }
+
+void OpeGL::addCube(size_t x, size_t z, size_t texture) {
+  addQuad(glm::vec3(0.0f + x, 0.0f, 0.0f + z), 0.0f, glm::vec3(1.0f), 1.0f,
+          texture);
+  addQuad(glm::vec3(0.5f + x, 0.0f, -0.5f + z), 90.0f,
+          glm::vec3(0.0f, 1.0f, 0.0f), 1.0f, texture);
+  addQuad(glm::vec3(-0.5f + x, 0.0f, -0.5f + z), 270.0f,
+          glm::vec3(0.0f, 1.0f, 0.0f), 1.0f, texture);
+  addQuad(glm::vec3(0.0f + x, 0.0f, -1.0f + z), 180.0f,
+          glm::vec3(0.0f, 1.0f, 0.0f), 1.0f, texture);
+  addQuad(glm::vec3(x, 0.0f, -1.0f + z), 90.0f, glm::vec3(1.0f, 0.0f, 0.0f),
+          1.0f, texture);
+  addQuad(glm::vec3(x, 1.0f, z), 270.0f, glm::vec3(1.0f, 0.0f, 0.0f), 1.0f,
+          texture);
+}
