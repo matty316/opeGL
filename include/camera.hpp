@@ -1,5 +1,6 @@
 #pragma once
 
+#include "game-object.hpp"
 #include "glm/ext/matrix_transform.hpp"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -19,6 +20,8 @@ public:
   glm::mat4 getView();
   glm::vec3 getPosition();
   void setPlayerPos(glm::vec2 pos);
+  void resolveCollision(const OpeGameObject &gameObject);
+  OpeGameObject getPlayer();
   void updateRightAxes(double deltaTime, float x, float y);
 
   struct Movement {

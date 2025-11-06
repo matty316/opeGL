@@ -1,6 +1,7 @@
 #include "opegl.hpp"
 #include "GLFW/glfw3.h"
 #include "constants.hpp"
+#include "game-object.hpp"
 #include "glm/common.hpp"
 #include "glm/ext/matrix_clip_space.hpp"
 #include "glm/ext/vector_float2.hpp"
@@ -248,18 +249,14 @@ void OpeGL::update() {
   const double newTimeStamp = glfwGetTime();
   deltaTime = newTimeStamp - timeStamp;
   timeStamp = newTimeStamp;
-  if (checkCollision()) {
-    std::println("collided");
-  }
-  camera.update(deltaTime, mouseState.pos, false);
+  camera.update(deltaTime, mouseState.pos, checkCollision());
 }
 
 void OpeGL::addWall(size_t x, size_t z, size_t wallTexture, size_t width,
                     size_t depth, size_t maxHeight,
                     std::vector<std::vector<uint32_t>> &walls) {
   gameObjects.emplace_back(
-      GameObject{static_cast<float>(x), static_cast<float>(z),
-                 static_cast<float>(x) + 1.0f, static_cast<float>(z) + 1.0f});
+      OpeGameObject{{x, 0, z}, {1.0f, maxHeight, 1.0f}, WALL});
   if (z != depth - 1 && walls[z + 1][x] == 0) {
     for (size_t height = 0; height < maxHeight; height++) {
       addQuad(glm::vec3(0.0f + x, static_cast<float>(height), 0.0f + z), 0.0f,
@@ -402,14 +399,13 @@ void OpeGL::addModel(std::string modelPath, glm::vec3 pos, float angle,
 
 bool OpeGL::checkCollision() {
   for (auto &gameObject : gameObjects)
-    return gameObject.intersects(getPlayer());
+    if (gameObject.intersects(camera.getPlayer())) {
+      std::println("found collsion");
+      camera.resolveCollision(gameObject);
+      return true;
+    }
 
   return false;
-}
-
-GameObject OpeGL::getPlayer() {
-  auto pos = camera.getPosition();
-  return GameObject{pos.x, pos.z, pos.x + 1.0f, pos.z + 1.0f};
 }
 
 void OpeGL::addCube(size_t x, size_t z, size_t texture) {

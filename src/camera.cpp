@@ -1,4 +1,5 @@
 #include "camera.hpp"
+#include "game-object.hpp"
 #include "glm/ext/matrix_float4x4.hpp"
 #include "glm/ext/matrix_transform.hpp"
 #include "glm/ext/quaternion_geometric.hpp"
@@ -35,18 +36,20 @@ void OpeCamera::update(double deltaTime, const glm::vec2 &mousePos,
   if (movement.fast)
     accel *= fastCoef;
 
-  if (accel == glm::vec3(0.0f)) {
-    moveSpeed -=
-        moveSpeed *
-        glm::min((1.0f / damping) * static_cast<float>(deltaTime), 1.0f);
-  } else {
-    moveSpeed += accel * acceleration * static_cast<float>(deltaTime);
-    const float maximumSpeed = movement.fast ? maxSpeed * fastCoef : maxSpeed;
-    if (glm::length(moveSpeed) > maximumSpeed)
-      moveSpeed = glm::normalize(moveSpeed) * maximumSpeed;
-  }
-  if (!collided)
+  if (!collided) {
+    if (accel == glm::vec3(0.0f)) {
+      moveSpeed -=
+          moveSpeed *
+          glm::min((1.0f / damping) * static_cast<float>(deltaTime), 1.0f);
+    } else {
+      moveSpeed += accel * acceleration * static_cast<float>(deltaTime);
+      const float maximumSpeed = movement.fast ? maxSpeed * fastCoef : maxSpeed;
+      if (glm::length(moveSpeed) > maximumSpeed)
+        moveSpeed = glm::normalize(moveSpeed) * maximumSpeed;
+    }
     cameraPos += moveSpeed * static_cast<float>(deltaTime);
+  }
+
   if (cameraType == FPS)
     cameraPos.y = playerHeight;
 }
@@ -79,4 +82,18 @@ void OpeCamera::updateRightAxes(double deltaTime, float x, float y) {
   auto newQuat = glm::quat(glm::vec3(newY * deltaTime, newX * deltaTime, 0.0f));
   cameraOrientation = glm::normalize(newQuat * cameraOrientation);
   setUpVector(worldUp);
+}
+
+void OpeCamera::resolveCollision(const OpeGameObject &gameObject) {
+  auto playerObject = getPlayer();
+  if (glm::abs(cameraOrientation.z) > 0.001f)
+    cameraPos.x = gameObject.pos.x + gameObject.size.x;
+  else
+    cameraPos.z = gameObject.pos.z + gameObject.size.z;
+}
+
+OpeGameObject OpeCamera::getPlayer() {
+  auto pos = getPosition();
+  return OpeGameObject{
+      {pos.x, pos.y - playerHeight, pos.z}, {1.0f, playerHeight, 1.0f}, PLAYER};
 }

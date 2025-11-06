@@ -10,21 +10,12 @@
 #include <vector>
 
 #include "camera.hpp"
+#include "game-object.hpp"
 #include "level.hpp"
 #include "light.hpp"
 #include "model.hpp"
 #include "quad.hpp"
 #include "texture.hpp"
-
-struct GameObject {
-  float minX, minZ;
-  float maxX, maxZ;
-
-  bool intersects(const GameObject &other) const {
-    return (minX < other.maxX && maxX > other.minX && minZ < other.maxZ &&
-            maxZ > other.minZ);
-  }
-};
 
 class OpeGL {
 public:
@@ -48,7 +39,7 @@ private:
   GLFWwindow *window;
   GLuint vao, vbo, ebo, perInstanceDataBuffer;
   OpeCamera camera{
-      {0.0f, 0.0f, 3.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, FLY};
+      {0.0f, 0.0f, 3.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, FPS};
   struct MouseState {
     glm::vec2 pos{0.0f};
     bool pressed = false;
@@ -56,7 +47,7 @@ private:
 
   std::vector<PointLight> pointLights;
   std::vector<OpeModel> models;
-  std::vector<GameObject> gameObjects;
+  std::vector<OpeGameObject> gameObjects;
 
   std::unique_ptr<OpeLevel> currentLevel;
 
@@ -73,7 +64,6 @@ private:
   void cleanup();
   void update();
   bool checkCollision();
-  GameObject getPlayer();
   static void framebuffer_size_callback(GLFWwindow *window, int width,
                                         int height);
   static void mouse_callback(GLFWwindow *window, double x, double y);
